@@ -1,4 +1,6 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+/* Import WHOOP brand fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -68,63 +70,73 @@
 }
 
 .dark {
-  /* WHOOP-inspired dark theme based on screenshot */
-  --background: 220 20% 6%;
-  --foreground: 210 40% 98%;
+  /* WHOOP official dark theme (from brand guidelines) */
+  --background: 200 19% 18%; /* #283339 - #101518 gradient midpoint */
+  --foreground: 0 0% 100%; /* #FFFFFF */
   
-  --card: 220 20% 9%;
-  --card-foreground: 210 40% 98%;
+  --card: 200 19% 12%; /* Darker version of background */
+  --card-foreground: 0 0% 100%; /* #FFFFFF */
   
-  --popover: 220 20% 9%;
-  --popover-foreground: 210 40% 98%;
+  --popover: 200 19% 12%; 
+  --popover-foreground: 0 0% 100%;
   
-  --primary: 160 70% 50%;
-  --primary-foreground: 210 40% 98%;
+  --primary: 158 100% 47%; /* Teal #00F19F */
+  --primary-foreground: 0 0% 100%;
   
-  --secondary: 220 20% 12%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 200 19% 15%;
+  --secondary-foreground: 0 0% 100%;
   
-  --muted: 220 20% 12%;
+  --muted: 200 19% 15%;
   --muted-foreground: 215 20% 65%;
   
-  --accent: 220 20% 15%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 200 19% 22%;
+  --accent-foreground: 0 0% 100%;
   
-  --destructive: 0 62% 45%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: 350 100% 43%; /* Low Recovery #FF0026 */
+  --destructive-foreground: 0 0% 100%;
   
-  --border: 220 20% 15%;
-  --input: 220 20% 15%;
-  --ring: 160 70% 50%;
+  --border: 200 19% 25%;
+  --input: 200 19% 25%;
+  --ring: 158 100% 47%;
   
-  /* WHOOP-inspired emotion colors - green to red scale */
-  --emotion-stressed: 0 80% 60%;
-  --emotion-worried: 30 85% 60%;
-  --emotion-neutral: 210 70% 60%;
-  --emotion-content: 180 70% 50%;
-  --emotion-happy: 145 70% 50%;
+  /* WHOOP official recovery colors from brand guidelines */
+  --recovery-high: 118 96% 47%; /* High Recovery 100-67% #16EC06 */
+  --recovery-medium: 52 100% 50%; /* Medium Recovery 66-34% #FFDE00 */
+  --recovery-low: 350 100% 43%; /* Low Recovery 33-0% #FF0026 */
+  --recovery-neutral: 204 64% 65%; /* Recovery Blue #67AEE6 */
   
-  /* WHOOP-inspired financial indicators */
-  --finance-positive: 145 70% 50%;
-  --finance-negative: 0 80% 60%;
-  --finance-neutral: 210 70% 60%;
+  /* WHOOP official colors for other metrics */
+  --strain: 207 100% 45%; /* #0093E7 */
+  --sleep: 208 34% 67%; /* #7BA1BB */
+  
+  /* Mapping emotion colors to WHOOP recovery spectrum */
+  --emotion-stressed: 350 100% 43%; /* Low Recovery #FF0026 */
+  --emotion-worried: 52 100% 50%; /* Medium Recovery #FFDE00 */
+  --emotion-neutral: 204 64% 65%; /* Recovery Blue #67AEE6 */
+  --emotion-content: 52 100% 50%; /* Medium Recovery #FFDE00 */
+  --emotion-happy: 118 96% 47%; /* High Recovery #16EC06 */
+  
+  /* Financial indicators mapped to WHOOP colors */
+  --finance-positive: 118 96% 47%; /* High Recovery #16EC06 */
+  --finance-negative: 350 100% 43%; /* Low Recovery #FF0026 */
+  --finance-neutral: 204 64% 65%; /* Recovery Blue #67AEE6 */
   
   /* Dark theme sidebar */
-  --sidebar-background: 220 20% 6%;
-  --sidebar-foreground: 210 40% 98%;
-  --sidebar-primary: 160 70% 50%;
-  --sidebar-primary-foreground: 210 40% 98%;
-  --sidebar-accent: 220 20% 15%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-border: 220 20% 15%;
-  --sidebar-ring: 160 70% 50%;
+  --sidebar-background: 200 19% 18%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 158 100% 47%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 200 19% 22%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 200 19% 25%;
+  --sidebar-ring: 158 100% 47%;
   
-  /* WHOOP-inspired chart colors */
-  --chart-1: 0 80% 60%;
-  --chart-2: 30 85% 60%;
-  --chart-3: 210 70% 60%;
-  --chart-4: 180 70% 50%;
-  --chart-5: 145 70% 50%;
+  /* WHOOP chart colors */
+  --chart-1: 350 100% 43%; /* Low Recovery #FF0026 */
+  --chart-2: 52 100% 50%; /* Medium Recovery #FFDE00 */
+  --chart-3: 204 64% 65%; /* Recovery Blue #67AEE6 */
+  --chart-4: 158 100% 47%; /* Teal #00F19F */
+  --chart-5: 118 96% 47%; /* High Recovery #16EC06 */
 }
 
 @layer base {

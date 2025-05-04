@@ -98,8 +98,9 @@ export default function Home() {
                   </div>
                 )}
                 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  {/* WHOOP-inspired circular progress indicator for Mood */}
+                {/* WHOOP-style metrics overview */}
+                <div className="grid grid-cols-2 gap-4 mb-5">
+                  {/* WHOOP-inspired Mood Recovery */}
                   <div className="flex flex-col items-center justify-center p-3">
                     <div className="relative w-24 h-24 mb-2">
                       <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
@@ -109,7 +110,7 @@ export default function Home() {
                           cy="50"
                           r="40"
                           fill="transparent"
-                          stroke="hsl(var(--accent))"
+                          stroke="hsl(var(--muted))"
                           strokeWidth="8"
                         />
                         {/* Progress circle */}
@@ -118,7 +119,7 @@ export default function Home() {
                           cy="50"
                           r="40"
                           fill="transparent"
-                          stroke="hsl(var(--finance-positive))"
+                          stroke="hsl(var(--recovery-high))" /* Using WHOOP official recovery high color */
                           strokeWidth="8"
                           strokeDasharray="251.2"
                           strokeDashoffset={251.2 * (1 - 0.87)} // 87% progress
@@ -126,69 +127,69 @@ export default function Home() {
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-2xl font-semibold text-finance-positive">87%</span>
-                        <span className="text-xs text-muted-foreground">mood</span>
+                        <span className="text-2xl font-bold text-[hsl(var(--recovery-high))]">87%</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-widest">MOOD</span>
                       </div>
                     </div>
                     <div className="text-center">
-                      <span className="text-xs font-medium text-muted-foreground">Your Weekly Mood Score</span>
+                      <span className="text-xs text-muted-foreground uppercase">Weekly Recovery</span>
                     </div>
                   </div>
 
-                  {/* Financial Health Chart */}
+                  {/* Financial Health Chart - Using WHOOP recovery colors */}
                   <div className="flex flex-col p-3">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-medium text-foreground">Financial Score</span>
-                      <span className="text-sm font-medium finance-positive">75</span>
+                      <span className="text-sm font-semibold text-foreground uppercase tracking-wider">FINANCIAL</span>
+                      <span className="text-sm font-medium text-[hsl(var(--recovery-high))]">75</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
-                          <span className="text-muted-foreground">Spending</span>
-                          <span className="text-finance-positive">Good</span>
+                          <span className="text-muted-foreground uppercase tracking-wider">SPENDING</span>
+                          <span className="text-[hsl(var(--recovery-medium))]">GOOD</span>
                         </div>
                         <div className="progress-bar">
                           <div className="progress-bar-fill" 
-                            style={{ width: '68%', backgroundColor: 'hsl(var(--finance-positive))' }}></div>
+                            style={{ width: '68%', backgroundColor: 'hsl(var(--recovery-medium))' }}></div>
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
-                          <span className="text-muted-foreground">Saving</span>
-                          <span className="text-finance-positive">Excellent</span>
+                          <span className="text-muted-foreground uppercase tracking-wider">SAVING</span>
+                          <span className="text-[hsl(var(--recovery-high))]">EXCELLENT</span>
                         </div>
                         <div className="progress-bar">
                           <div className="progress-bar-fill" 
-                            style={{ width: '89%', backgroundColor: 'hsl(var(--finance-positive))' }}></div>
+                            style={{ width: '89%', backgroundColor: 'hsl(var(--recovery-high))' }}></div>
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
-                          <span className="text-muted-foreground">Emotion-Spending</span>
-                          <span className="text-finance-neutral">Moderate</span>
+                          <span className="text-muted-foreground uppercase tracking-wider">EMOTION</span>
+                          <span className="text-[hsl(var(--recovery-neutral))]">MODERATE</span>
                         </div>
                         <div className="progress-bar">
                           <div className="progress-bar-fill" 
-                            style={{ width: '45%', backgroundColor: 'hsl(var(--finance-neutral))' }}></div>
+                            style={{ width: '45%', backgroundColor: 'hsl(var(--recovery-neutral))' }}></div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Weekly Trends - WHOOP inspired visualization */}
-                <div className="mt-2 border-t border-border pt-3">
+                {/* Weekly Trends - WHOOP style visualization */}
+                <div className="mt-4 pt-4 border-t border-border">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm font-medium text-foreground">Weekly Trends</span>
-                    <span className="text-xs text-primary">View Details</span>
+                    <span className="text-sm font-semibold text-foreground uppercase tracking-wider">DAILY TRENDS</span>
+                    <span className="text-xs text-[hsl(var(--primary))] uppercase tracking-wider">VIEW ALL</span>
                   </div>
-                  <div className="h-16 flex items-end justify-between pt-2">
+                  <div className="h-24 flex items-end justify-between">
                     {[65, 72, 45, 32, 58, 84, 76].map((value, index) => {
-                      // Determine color based on value
+                      // WHOOP color scale function - maps to official recovery colors
                       const getColor = (val: number) => {
-                        if (val > 70) return 'hsl(var(--finance-positive))';
-                        if (val > 50) return 'hsl(var(--finance-neutral))';
-                        return 'hsl(var(--finance-negative))';
+                        if (val >= 67) return 'hsl(var(--recovery-high))';
+                        if (val >= 34) return 'hsl(var(--recovery-medium))';
+                        return 'hsl(var(--recovery-low))';
                       };
                       
                       return (
@@ -200,7 +201,7 @@ export default function Home() {
                               backgroundColor: getColor(value)
                             }}
                           ></div>
-                          <span className="text-xs text-muted-foreground mt-1">{index + 1}</span>
+                          <span className="text-xs text-muted-foreground mt-2">{index + 1}</span>
                         </div>
                       );
                     })}

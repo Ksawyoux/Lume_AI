@@ -10,14 +10,14 @@ export default function BottomNavigation() {
       <div className="max-w-md mx-auto grid grid-cols-5 relative py-3">
         <NavItem 
           href="/" 
-          label="Home" 
+          label="HOME" 
           icon={<Home size={20} />} 
           isActive={location === "/"} 
         />
         
         <NavItem 
           href="/insights" 
-          label="Analytics" 
+          label="ANALYTICS" 
           icon={<BarChart3 size={20} />} 
           isActive={location === "/insights"} 
         />
@@ -29,19 +29,19 @@ export default function BottomNavigation() {
               <PlusCircle size={24} />
             </div>
           </Link>
-          <span className="text-xs mt-2 text-muted-foreground font-medium">Add</span>
+          <span className="text-xs mt-2 text-muted-foreground font-medium uppercase tracking-widest">ADD</span>
         </div>
         
         <NavItem 
           href="/emotions" 
-          label="Moods" 
+          label="MOOD" 
           icon={<HeartPulse size={20} />} 
           isActive={location === "/emotions"} 
         />
         
         <NavItem 
           href="/profile" 
-          label="You" 
+          label="YOU" 
           icon={<User size={20} />} 
           isActive={location === "/profile"} 
         />
@@ -68,7 +68,7 @@ function NavItem({ href, label, icon, isActive }: NavItemProps) {
           {icon}
         </div>
         <span className={cn(
-          "text-xs mt-1 font-medium",
+          "text-xs mt-1 font-medium uppercase tracking-widest",
           isActive ? "text-primary" : "text-muted-foreground"
         )}>{label}</span>
       </div>
