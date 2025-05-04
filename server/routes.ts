@@ -336,6 +336,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Machine Learning Emotion Analysis routes
+  app.use('/api/ml/emotions', emotionAnalysisRoutes);
+
   const httpServer = createServer(app);
 
   return httpServer;

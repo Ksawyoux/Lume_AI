@@ -43,7 +43,8 @@ Respond ONLY with a JSON object with these keys: primaryEmotion, emotionIntensit
     });
 
     // Parse the JSON response
-    const result = JSON.parse(response.content[0].text);
+    const content = response.content[0] as { text: string };
+    const result = JSON.parse(content.text);
     
     return {
       primaryEmotion: result.primaryEmotion,
@@ -54,9 +55,9 @@ Respond ONLY with a JSON object with these keys: primaryEmotion, emotionIntensit
       sentiment: result.sentiment,
       confidence: result.confidence
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error analyzing emotion:', error);
-    throw new Error(`Failed to analyze emotion: ${error.message}`);
+    throw new Error(`Failed to analyze emotion: ${error.message || 'Unknown error'}`);
   }
 }
 
@@ -89,10 +90,11 @@ Respond ONLY with a JSON object with these keys: patterns (array), triggers (arr
     });
 
     // Parse the JSON response
-    return JSON.parse(response.content[0].text);
-  } catch (error) {
+    const content1 = response.content[0] as { text: string };
+    return JSON.parse(content1.text);
+  } catch (error: any) {
     console.error('Error analyzing emotional patterns:', error);
-    throw new Error(`Failed to analyze emotional patterns: ${error.message}`);
+    throw new Error(`Failed to analyze emotional patterns: ${error.message || 'Unknown error'}`);
   }
 }
 
@@ -131,9 +133,10 @@ Respond ONLY with a JSON object with these keys: correlations (array), financial
     });
 
     // Parse the JSON response
-    return JSON.parse(response.content[0].text);
-  } catch (error) {
+    const content2 = response.content[0] as { text: string };
+    return JSON.parse(content2.text);
+  } catch (error: any) {
     console.error('Error generating personalized insights:', error);
-    throw new Error(`Failed to generate personalized insights: ${error.message}`);
+    throw new Error(`Failed to generate personalized insights: ${error.message || 'Unknown error'}`);
   }
 }
