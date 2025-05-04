@@ -2,7 +2,7 @@ import React from 'react';
 import { useUser } from '@/context/UserContext';
 import { HealthDataGrid } from '@/components/HealthDataWidget';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, AppleIcon, AreaChart, Watch } from 'lucide-react';
+import { Activity, Apple, AreaChart, Watch } from 'lucide-react';
 import Header from '@/components/Header';
 
 export default function Health() {
@@ -18,7 +18,7 @@ export default function Health() {
         <Card className="bg-gradient-to-r from-zinc-900 to-zinc-950 shadow-lg mb-6">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center">
-              <AppleIcon className="mr-2" />
+              <Apple className="mr-2" />
               <span>Apple Watch Integration</span>
             </CardTitle>
           </CardHeader>
