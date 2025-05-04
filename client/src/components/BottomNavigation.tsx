@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, BarChart3, PlusCircle, HeartPulse, User, Activity } from "lucide-react";
+import { Home, BarChart3, HeartPulse, User, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNavigation() {
@@ -7,7 +7,7 @@ export default function BottomNavigation() {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background shadow-md">
-      <div className="max-w-md mx-auto grid grid-cols-6 relative py-3">
+      <div className="max-w-md mx-auto grid grid-cols-5 relative py-3">
         <NavItem 
           href="/" 
           label="HOME" 
@@ -28,16 +28,6 @@ export default function BottomNavigation() {
           icon={<Activity size={20} />} 
           isActive={location === "/health"} 
         />
-        
-        {/* Action Button - WHOOP-inspired center button */}
-        <div className="flex flex-col items-center">
-          <Link href="/add-transaction">
-            <div className="action-button -mt-8 border-4 border-background">
-              <PlusCircle size={24} />
-            </div>
-          </Link>
-          <span className="text-xs mt-2 text-muted-foreground font-medium uppercase tracking-widest">ADD</span>
-        </div>
         
         <NavItem 
           href="/emotions" 
@@ -69,13 +59,15 @@ function NavItem({ href, label, icon, isActive }: NavItemProps) {
     <Link href={href}>
       <div className="flex flex-col items-center cursor-pointer">
         <div className={cn(
-          "w-8 h-8 flex items-center justify-center",
-          isActive ? "text-primary" : "text-muted-foreground"
+          "w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200",
+          isActive 
+            ? "text-primary bg-primary/10 border border-primary/20" 
+            : "text-muted-foreground hover:bg-muted/50"
         )}>
           {icon}
         </div>
         <span className={cn(
-          "text-xs mt-1 font-medium uppercase tracking-widest",
+          "text-xs mt-1 font-medium uppercase tracking-widest transition-colors duration-200",
           isActive ? "text-primary" : "text-muted-foreground"
         )}>{label}</span>
       </div>
