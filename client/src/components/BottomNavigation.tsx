@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, BarChart3, PlusCircle, HeartPulse, User } from "lucide-react";
+import { Home, BarChart3, PlusCircle, HeartPulse, User, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNavigation() {
@@ -7,7 +7,7 @@ export default function BottomNavigation() {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background shadow-md">
-      <div className="max-w-md mx-auto grid grid-cols-5 relative py-3">
+      <div className="max-w-md mx-auto grid grid-cols-6 relative py-3">
         <NavItem 
           href="/" 
           label="HOME" 
@@ -20,6 +20,13 @@ export default function BottomNavigation() {
           label="ANALYTICS" 
           icon={<BarChart3 size={20} />} 
           isActive={location === "/insights"} 
+        />
+        
+        <NavItem 
+          href="/health" 
+          label="HEALTH" 
+          icon={<Activity size={20} />} 
+          isActive={location === "/health"} 
         />
         
         {/* Action Button - WHOOP-inspired center button */}
