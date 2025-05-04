@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useUser } from '@/context/UserContext';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { EmotionType, emotionConfig } from '@/types';
@@ -36,188 +35,269 @@ export default function Insights() {
     ? Math.max(...spendingByEmotion.map(item => item.amount), 1) 
     : 0;
   
+  // Calculate total spending
+  const totalSpending = spendingByEmotion
+    ? spendingByEmotion.reduce((sum, item) => sum + item.amount, 0)
+    : 0;
+  
   return (
-    <div className="max-w-md mx-auto bg-[#f9fafb] min-h-screen flex flex-col">
+    <div className="max-w-md mx-auto bg-background min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1 overflow-y-auto pb-16">
         <section className="px-4 pt-6 pb-4">
-          <h2 className="text-xl font-semibold text-neutral-800">Your Insights</h2>
-          <p className="text-sm text-neutral-500 mt-1">
-            Understand the connection between your emotions and finances
+          <h2 className="text-xl font-semibold text-foreground">Analytics</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Understand how emotions impact your financial behavior
           </p>
         </section>
         
         <section className="px-4 py-2">
           <Tabs defaultValue="spending" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="spending">Spending by Emotion</TabsTrigger>
-              <TabsTrigger value="trends">Emotion Trends</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4 bg-card border border-border">
+              <TabsTrigger value="spending" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Spending Analysis
+              </TabsTrigger>
+              <TabsTrigger value="trends" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Emotion Trends
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="spending">
-              <Card className="bg-white rounded-xl border border-neutral-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-medium text-neutral-800">Spending by Emotion</h4>
-                    <span className="text-xs text-neutral-500">Last 30 days</span>
+              <div className="whoop-container">
+                <div className="flex items-center justify-between mb-5">
+                  <h4 className="text-sm font-medium text-foreground">Emotion Impact</h4>
+                  <span className="text-xs text-muted-foreground">Last 30 days</span>
+                </div>
+                
+                {isLoading ? (
+                  <div className="h-48 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
                   </div>
-                  
-                  {isLoading ? (
-                    <div className="animate-pulse space-y-3">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i}>
-                          <div className="flex justify-between items-center mb-1">
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 rounded-full mr-2 bg-neutral-200"></div>
-                              <div className="h-4 w-16 bg-neutral-200 rounded"></div>
-                            </div>
-                            <div className="h-4 w-12 bg-neutral-200 rounded"></div>
-                          </div>
-                          <div className="h-2 bg-neutral-200 rounded-full"></div>
-                        </div>
-                      ))}
+                ) : (
+                  <div className="flex flex-col items-center">
+                    {/* WHOOP-inspired spending by emotion chart */}
+                    <div className="relative w-48 h-48 mb-5">
+                      <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                        {/* Create pie chart segments */}
+                        {spendingByEmotion?.map((item, index) => {
+                          // Calculate the percentage this emotion represents of total spending
+                          const percentage = totalSpending > 0 ? (item.amount / totalSpending) * 100 : 0;
+                          
+                          // For pie chart: calculate stroke-dasharray and stroke-dashoffset
+                          const circumference = 2 * Math.PI * 40; // 2πr where r=40
+                          
+                          // Running sum of previous percentages to know where to start this segment
+                          const previousPercentagesSum = spendingByEmotion
+                            .slice(0, index)
+                            .reduce((sum, item) => sum + (item.amount / totalSpending) * 100, 0);
+                            
+                          // Calculate the dashoffset
+                          const dashoffset = circumference - (previousPercentagesSum / 100) * circumference;
+                          
+                          // Calculate the dash array (how much of the circle to fill)
+                          const dasharray = `${(percentage / 100) * circumference} ${circumference}`;
+                          
+                          return (
+                            <circle
+                              key={item.emotion}
+                              cx="50"
+                              cy="50"
+                              r="40"
+                              fill="transparent"
+                              stroke={emotionConfig[item.emotion].color}
+                              strokeWidth="12"
+                              strokeDasharray={dasharray}
+                              strokeDashoffset={dashoffset}
+                              strokeLinecap="butt"
+                            />
+                          );
+                        })}
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span className="text-xl font-semibold text-foreground">
+                          {formatAmount(totalSpending)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">Total</span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
+                    
+                    {/* Legend */}
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 w-full">
                       {spendingByEmotion?.map((item) => (
-                        <div key={item.emotion}>
-                          <div className="flex justify-between items-center mb-1">
-                            <div className="flex items-center">
-                              <div 
-                                className="w-4 h-4 rounded-full mr-2" 
-                                style={{ backgroundColor: emotionConfig[item.emotion].color }}
-                              ></div>
-                              <span className="text-xs text-neutral-700">
-                                {emotionConfig[item.emotion].label}
-                              </span>
-                            </div>
-                            <span className="text-xs font-medium text-neutral-800">
+                        <div key={item.emotion} className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: emotionConfig[item.emotion].color }}
+                          ></div>
+                          <div className="flex-1 flex justify-between">
+                            <span className="text-xs text-foreground">
+                              {emotionConfig[item.emotion].label}
+                            </span>
+                            <span className="text-xs font-medium text-foreground">
                               {formatAmount(item.amount)}
                             </span>
                           </div>
-                          <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full rounded-full" 
-                              style={{ 
-                                backgroundColor: emotionConfig[item.emotion].color,
-                                width: `${(item.amount / maxSpending) * 100}%`
-                              }}
-                            ></div>
-                          </div>
                         </div>
                       ))}
                     </div>
-                  )}
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-4 py-2 text-sm font-medium text-primary border-primary-200 rounded-lg hover:bg-primary-50"
-                  >
-                    View Detailed Analysis
-                  </Button>
-                </CardContent>
-              </Card>
+                  </div>
+                )}
+              </div>
               
-              <Card className="bg-white rounded-xl border border-neutral-200 mt-4">
-                <CardContent className="p-4">
-                  <h4 className="text-sm font-medium text-neutral-800 mb-3">Key Observations</h4>
+              <div className="whoop-container mt-4">
+                <h4 className="text-sm font-medium text-foreground mb-3">Key Observations</h4>
+                
+                <ul className="space-y-3 text-sm text-foreground">
+                  <li className="flex items-start">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-finance-negative mr-2 mt-0.5 bg-[hsl(var(--finance-negative)/0.1)]">
+                      <i className="fas fa-exclamation-circle text-xs"></i>
+                    </div>
+                    <span>You spend 35% more when stressed or worried.</span>
+                  </li>
                   
-                  <ul className="space-y-2 text-sm text-neutral-700">
-                    <li className="flex items-start">
-                      <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-500 mr-2 mt-0.5">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
-                      </div>
-                      <span>You spend 35% more money when stressed or worried.</span>
-                    </li>
-                    
-                    <li className="flex items-start">
-                      <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-2 mt-0.5">
-                        <i className="fas fa-info-circle text-xs"></i>
-                      </div>
-                      <span>Happy and content states lead to healthier financial decisions.</span>
-                    </li>
-                    
-                    <li className="flex items-start">
-                      <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-2 mt-0.5">
-                        <i className="fas fa-lightbulb text-xs"></i>
-                      </div>
-                      <span>Consider setting spending limits when tracking stressed emotions.</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+                  <li className="flex items-start">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-finance-neutral mr-2 mt-0.5 bg-[hsl(var(--finance-neutral)/0.1)]">
+                      <i className="fas fa-info-circle text-xs"></i>
+                    </div>
+                    <span>Happy and content states lead to healthier financial decisions.</span>
+                  </li>
+                  
+                  <li className="flex items-start">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-finance-positive mr-2 mt-0.5 bg-[hsl(var(--finance-positive)/0.1)]">
+                      <i className="fas fa-lightbulb text-xs"></i>
+                    </div>
+                    <span>Consider setting spending limits when in stressed states.</span>
+                  </li>
+                </ul>
+              </div>
             </TabsContent>
             
             <TabsContent value="trends">
-              <Card className="bg-white rounded-xl border border-neutral-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-medium text-neutral-800">Emotion Trends</h4>
-                    <span className="text-xs text-neutral-500">Last 30 days</span>
-                  </div>
-                  
-                  <div className="h-48 flex items-end justify-between border-b border-neutral-200 pb-2 mb-4">
-                    {[...Array(7)].map((_, i) => {
-                      const heights = [30, 60, 45, 75, 40, 90, 65];
-                      const emotions: EmotionType[] = ["stressed", "worried", "neutral", "content", "content", "happy", "neutral"];
-                      
-                      return (
-                        <div key={i} className="flex flex-col items-center">
-                          <div 
-                            className="w-8 rounded-t-sm" 
-                            style={{ 
-                              height: `${heights[i]}%`,
-                              backgroundColor: emotionConfig[emotions[i]].color
-                            }}
-                          ></div>
-                          <span className="text-xs text-neutral-500 mt-2">{i + 1}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex">
-                      {(["stressed", "worried", "neutral", "content", "happy"] as EmotionType[]).map((emotion) => (
-                        <div key={emotion} className="flex items-center mr-3">
-                          <div 
-                            className="w-3 h-3 rounded-full mr-1" 
-                            style={{ backgroundColor: emotionConfig[emotion].color }}
-                          ></div>
-                          <span className="text-xs text-neutral-600">{emotionConfig[emotion].label}</span>
-                        </div>
-                      ))}
+              <div className="whoop-container">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-medium text-foreground">Emotional State</h4>
+                  <span className="text-xs text-muted-foreground">Last 7 days</span>
+                </div>
+                
+                {/* Trend graph - WHOOP-inspired visualization */}
+                <div className="h-48 flex items-end justify-between border-b border-border pb-2 mb-4">
+                  {[...Array(9)].map((_, i) => {
+                    // Simulate a more complex pattern like in the WHOOP image
+                    const heights = [64, 61, 32, 52, 62, 88, 65, 44, 56];
+                    const emotions: EmotionType[] = [
+                      "content", "content", "stressed", "worried", 
+                      "content", "happy", "content", "worried", "neutral"
+                    ];
+                    
+                    return (
+                      <div key={i} className="flex flex-col items-center">
+                        <div 
+                          className="w-5 rounded-sm" 
+                          style={{ 
+                            height: `${heights[i]}%`,
+                            backgroundColor: emotionConfig[emotions[i]].color
+                          }}
+                        ></div>
+                        <span className="text-xs text-muted-foreground mt-1">{i + 1}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Legend - made more compact */}
+                <div className="flex flex-wrap">
+                  {(["stressed", "worried", "neutral", "content", "happy"] as EmotionType[]).map((emotion) => (
+                    <div key={emotion} className="flex items-center mr-4 mb-1">
+                      <div 
+                        className="w-3 h-3 rounded-full mr-1" 
+                        style={{ backgroundColor: emotionConfig[emotion].color }}
+                      ></div>
+                      <span className="text-xs text-muted-foreground">{emotionConfig[emotion].label}</span>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  ))}
+                </div>
+              </div>
               
-              <Card className="bg-white rounded-xl border border-neutral-200 mt-4">
-                <CardContent className="p-4">
-                  <h4 className="text-sm font-medium text-neutral-800 mb-3">Your Emotional Balance</h4>
-                  
-                  <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary mr-3">
-                      <i className="fas fa-brain"></i>
+              <div className="whoop-container mt-4">
+                <h4 className="text-sm font-medium text-foreground mb-3">Emotional Metrics</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* WHOOP-inspired circular progress indicator for Emotional Recovery */}
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="relative w-20 h-20 mb-2">
+                      <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                        {/* Background track */}
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="transparent"
+                          stroke="hsl(var(--muted))"
+                          strokeWidth="8"
+                        />
+                        {/* Progress circle */}
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="transparent"
+                          stroke="hsl(var(--finance-positive))"
+                          strokeWidth="8"
+                          strokeDasharray="251.2"
+                          strokeDashoffset={251.2 * (1 - 0.87)} // 87% progress
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span className="text-lg font-semibold text-finance-positive">87%</span>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-neutral-700">Weekly Balance</span>
-                        <span className="text-sm font-medium text-green-600">Good</span>
-                      </div>
-                      <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-green-500 rounded-full" style={{ width: '70%' }}></div>
-                      </div>
+                    <div className="text-center">
+                      <span className="text-xs text-muted-foreground">Recovery</span>
                     </div>
                   </div>
-                  
-                  <p className="text-xs text-neutral-600">
-                    You've maintained a positive emotional balance this week. Continue with your mood-boosting
-                    activities for consistent wellness.
-                  </p>
-                </CardContent>
-              </Card>
+
+                  {/* WHOOP-inspired circular progress indicator for Emotional Strain */}
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="relative w-20 h-20 mb-2">
+                      <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                        {/* Background track */}
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="transparent"
+                          stroke="hsl(var(--muted))"
+                          strokeWidth="8"
+                        />
+                        {/* Progress circle */}
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="transparent"
+                          stroke="hsl(var(--finance-neutral))"
+                          strokeWidth="8"
+                          strokeDasharray="251.2"
+                          strokeDashoffset={251.2 * (1 - 0.45)} // 45% progress
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span className="text-lg font-semibold text-finance-neutral">45%</span>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xs text-muted-foreground">Strain</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-muted-foreground mt-3">
+                  You've maintained a positive emotional balance this week. Your recovery score indicates good resilience to stress factors.
+                </p>
+              </div>
             </TabsContent>
           </Tabs>
         </section>

@@ -6,7 +6,7 @@ export default function BottomNavigation() {
   const [location] = useLocation();
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-card shadow-sm">
+    <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background shadow-md">
       <div className="max-w-md mx-auto grid grid-cols-5 relative py-3">
         <NavItem 
           href="/" 
@@ -17,7 +17,7 @@ export default function BottomNavigation() {
         
         <NavItem 
           href="/insights" 
-          label="Insights" 
+          label="Analytics" 
           icon={<BarChart3 size={20} />} 
           isActive={location === "/insights"} 
         />
@@ -25,11 +25,11 @@ export default function BottomNavigation() {
         {/* Action Button - WHOOP-inspired center button */}
         <div className="flex flex-col items-center">
           <Link href="/add-transaction">
-            <div className="action-button -mt-8">
+            <div className="action-button -mt-8 border-4 border-background">
               <PlusCircle size={24} />
             </div>
           </Link>
-          <span className="text-xs mt-1 text-muted-foreground font-medium">Add</span>
+          <span className="text-xs mt-2 text-muted-foreground font-medium">Add</span>
         </div>
         
         <NavItem 
@@ -41,7 +41,7 @@ export default function BottomNavigation() {
         
         <NavItem 
           href="/profile" 
-          label="Profile" 
+          label="You" 
           icon={<User size={20} />} 
           isActive={location === "/profile"} 
         />
@@ -62,14 +62,14 @@ function NavItem({ href, label, icon, isActive }: NavItemProps) {
     <Link href={href}>
       <div className="flex flex-col items-center cursor-pointer">
         <div className={cn(
-          "w-8 h-8 flex items-center justify-center rounded-full",
-          isActive ? "text-primary bg-primary/10" : "text-muted-foreground"
+          "w-8 h-8 flex items-center justify-center",
+          isActive ? "text-primary" : "text-muted-foreground"
         )}>
           {icon}
         </div>
         <span className={cn(
           "text-xs mt-1 font-medium",
-          isActive ? "text-foreground" : "text-muted-foreground"
+          isActive ? "text-primary" : "text-muted-foreground"
         )}>{label}</span>
       </div>
     </Link>
