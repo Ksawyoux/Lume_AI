@@ -24,8 +24,8 @@ export default function EmotionTracker() {
     },
     onSuccess: () => {
       toast({
-        title: "Emotion saved",
-        description: "Your mood has been recorded successfully.",
+        title: "Mood recorded",
+        description: "Your emotional state has been saved.",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/emotions`] });
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/emotions/latest`] });
@@ -33,7 +33,7 @@ export default function EmotionTracker() {
     },
     onError: (error) => {
       toast({
-        title: "Error saving emotion",
+        title: "Error saving mood",
         description: error.message || "Please try again later.",
         variant: "destructive",
       });
@@ -53,53 +53,57 @@ export default function EmotionTracker() {
   return (
     <section className="px-4 py-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-medium text-neutral-700">How are you feeling today?</h3>
-        <span className="text-xs text-neutral-500">
+        <h3 className="text-base font-medium text-foreground">How are you feeling today?</h3>
+        <span className="text-xs text-muted-foreground">
           {format(new Date(), "MMM d, yyyy")}
         </span>
       </div>
       
-      <EmojiSelector 
-        selectedEmotion={selectedEmotion} 
-        onSelect={setSelectedEmotion} 
-      />
-      
-      <div className="mt-2">
-        <Textarea
-          className="w-full px-4 py-3 text-sm rounded-lg border border-neutral-200 focus-visible:ring-primary resize-none transition"
-          placeholder="Add notes about how you're feeling (optional)"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
+      {/* WHOOP-inspired emotion selector */}
+      <div className="whoop-container mb-2">
+        <EmojiSelector 
+          selectedEmotion={selectedEmotion} 
+          onSelect={setSelectedEmotion} 
         />
+        
+        <div className="mt-3">
+          <Textarea
+            className="w-full px-4 py-3 text-sm rounded-lg border border-border bg-background focus-visible:ring-primary focus-visible:ring-offset-0 resize-none transition"
+            placeholder="Add notes about how you're feeling (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+          />
 
-        <div className="mt-2 flex space-x-2">
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            className="rounded-full w-9 h-9 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition"
-            title="Record voice note"
-          >
-            <Mic className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            className="rounded-full w-9 h-9 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition"
-            title="Take a selfie"
-          >
-            <Camera className="h-4 w-4" />
-          </Button>
-          <div className="flex-1"></div>
-          <Button
-            onClick={handleSaveEmotion}
-            disabled={!selectedEmotion || mutation.isPending}
-            className="px-4 py-2 rounded-lg text-sm font-medium"
-          >
-            {mutation.isPending ? "Saving..." : "Save"}
-          </Button>
+          <div className="mt-3 flex space-x-3">
+            {/* WHOOP-inspired input methods */}
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              className="rounded-full w-10 h-10 bg-accent/50 text-primary hover:bg-accent/80 transition shadow-sm"
+              title="Record voice note"
+            >
+              <Mic className="h-5 w-5" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              className="rounded-full w-10 h-10 bg-accent/50 text-primary hover:bg-accent/80 transition shadow-sm"
+              title="Take a selfie"
+            >
+              <Camera className="h-5 w-5" />
+            </Button>
+            <div className="flex-1"></div>
+            <Button
+              onClick={handleSaveEmotion}
+              disabled={!selectedEmotion || mutation.isPending}
+              className="px-5 py-2 rounded-full text-sm font-medium shadow-sm"
+            >
+              {mutation.isPending ? "Saving..." : "Save Mood"}
+            </Button>
+          </div>
         </div>
       </div>
     </section>

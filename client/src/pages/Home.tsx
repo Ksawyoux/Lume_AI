@@ -4,9 +4,10 @@ import BottomNavigation from '@/components/BottomNavigation';
 import EmotionTracker from '@/components/EmotionTracker';
 import RecentTransactions from '@/components/RecentTransactions';
 import PersonalizedInsights from '@/components/PersonalizedInsights';
-import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
+import { Emotion } from '@/types';
 
 export default function Home() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -17,8 +18,14 @@ export default function Home() {
     enabled: !!user,
   });
   
+  // Latest emotion data
+  const { data: latestEmotion } = useQuery<Emotion>({
+    queryKey: user ? [`/api/users/${user.id}/emotions/latest`] : [],
+    enabled: !!user,
+  });
+  
   return (
-    <div className="max-w-md mx-auto bg-[#f9fafb] min-h-screen flex flex-col">
+    <div className="max-w-md mx-auto bg-background min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1 overflow-y-auto pb-16">
@@ -31,8 +38,8 @@ export default function Home() {
             </>
           ) : (
             <>
-              <h2 className="text-xl font-semibold text-neutral-800">Hi, {user?.name}</h2>
-              <p className="text-sm text-neutral-500 mt-1">
+              <h2 className="text-xl font-semibold text-foreground">Hi, {user?.name}</h2>
+              <p className="text-sm text-muted-foreground mt-1">
                 Track your finances and emotions to build better habits
               </p>
             </>
@@ -42,71 +49,89 @@ export default function Home() {
         {/* Emotion Tracker */}
         <EmotionTracker />
         
-        {/* Mood and Finance Summary */}
+        {/* Mood and Finance Summary - WHOOP-inspired minimalist dashboard */}
         <section className="px-4 py-2">
-          <Card className="bg-neutral-50 border border-neutral-200">
-            <CardContent className="p-4">
-              <h3 className="text-base font-medium text-neutral-700 mb-3">Your Week at a Glance</h3>
-              
-              {isEmotionLoading ? (
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <Skeleton className="w-10 h-10 rounded-full mr-3" />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-4 w-12" />
+          <div className="whoop-container">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-medium text-foreground">Your Dashboard</h3>
+              <span className="text-xs text-muted-foreground">{format(new Date(), 'MMM d, yyyy')}</span>
+            </div>
+            
+            {isEmotionLoading ? (
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <Skeleton className="w-10 h-10 rounded-full mr-3" />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                    <Skeleton className="h-2 w-full rounded" />
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <Skeleton className="w-10 h-10 rounded-full mr-3" />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                    <Skeleton className="h-2 w-full rounded" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Current Mood Status */}
+                {latestEmotion && (
+                  <div className="p-3 mb-4 rounded-lg bg-accent/50 border border-border">
+                    <div className="flex items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${latestEmotion.type ? `emotion-${latestEmotion.type}` : ''}`}>
+                        <i className={`fas fa-${latestEmotion.type ? `${latestEmotion.type === 'stressed' ? 'frown' : latestEmotion.type === 'worried' ? 'meh' : latestEmotion.type === 'neutral' ? 'meh-blank' : latestEmotion.type === 'content' ? 'smile' : 'grin-beam'}` : 'question'} text-sm`}></i>
                       </div>
-                      <Skeleton className="h-2 w-full rounded" />
+                      <div>
+                        <div className="text-sm font-medium text-foreground">Current Mood: {latestEmotion.type ? latestEmotion.type.charAt(0).toUpperCase() + latestEmotion.type.slice(1) : 'Unknown'}</div>
+                        <div className="text-xs text-muted-foreground">{latestEmotion.notes || 'No notes added'}</div>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <Skeleton className="w-10 h-10 rounded-full mr-3" />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-4 w-12" />
-                      </div>
-                      <Skeleton className="h-2 w-full rounded" />
+                )}
+                
+                {/* Mood Balance */}
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-accent/80 flex items-center justify-center text-primary mr-3 shadow-sm">
+                    <i className="fas fa-chart-line"></i>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium text-foreground">Mood Balance</span>
+                      <span className="text-sm font-medium finance-positive">+12%</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-bar-fill" style={{ width: '68%', backgroundColor: 'hsl(var(--finance-positive))' }}></div>
                     </div>
                   </div>
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary mr-3">
-                      <i className="fas fa-chart-line"></i>
+                
+                {/* Financial Health */}
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-accent/80 flex items-center justify-center text-primary mr-3 shadow-sm">
+                    <i className="fas fa-dollar-sign"></i>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium text-foreground">Financial Health</span>
+                      <span className="text-sm font-medium finance-positive">Good</span>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-neutral-700">Mood Balance</span>
-                        <span className="text-sm font-medium text-green-600">+12%</span>
-                      </div>
-                      <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-green-500 rounded-full" style={{ width: '68%' }}></div>
-                      </div>
+                    <div className="progress-bar">
+                      <div className="progress-bar-fill" style={{ width: '75%', backgroundColor: 'hsl(var(--finance-positive))' }}></div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary mr-3">
-                      <i className="fas fa-dollar-sign"></i>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-neutral-700">Financial Health</span>
-                        <span className="text-sm font-medium text-green-600">Good</span>
-                      </div>
-                      <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-green-500 rounded-full" style={{ width: '75%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+                </div>
+              </>
+            )}
+          </div>
         </section>
         
         {/* Recent Transactions */}

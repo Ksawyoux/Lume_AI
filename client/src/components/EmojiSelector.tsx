@@ -23,18 +23,14 @@ export default function EmojiSelector({
         >
           <div 
             className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center mb-1 border transition-all duration-200 hover:scale-110 hover:opacity-90 cursor-pointer",
-              selectedEmotion === emotion && "scale-110 shadow-sm"
+              "emotion-icon w-12 h-12 mb-1 cursor-pointer",
+              emotionConfig[emotion].cssClass,
+              selectedEmotion === emotion && "selected"
             )}
-            style={{
-              borderColor: emotionConfig[emotion].borderColor,
-              color: emotionConfig[emotion].color,
-              backgroundColor: selectedEmotion === emotion ? emotionConfig[emotion].bgColor : 'transparent',
-            }}
           >
             <i className={`fas fa-${emotionConfig[emotion].icon} text-xl`}></i>
           </div>
-          <span className="text-xs text-neutral-600">{emotionConfig[emotion].label}</span>
+          <span className="text-xs text-muted-foreground font-medium">{emotionConfig[emotion].label}</span>
         </div>
       ))}
     </div>
