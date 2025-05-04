@@ -47,9 +47,9 @@ export default function RecentTransactions() {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-base font-medium text-foreground">Transactions</h3>
         <Link href="/insights">
-          <a className="text-sm text-primary font-medium hover:text-primary/80 transition-colors">
+          <div className="text-sm text-primary font-medium hover:text-primary/80 transition-colors cursor-pointer">
             View all
-          </a>
+          </div>
         </Link>
       </div>
       
