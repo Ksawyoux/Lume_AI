@@ -2,6 +2,7 @@ import { useUser } from '@/context/UserContext';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import EmotionTracker from '@/components/EmotionTracker';
+import EmotionAnalyzer from '@/components/EmotionAnalyzer';
 import RecentTransactions from '@/components/RecentTransactions';
 import PersonalizedInsights from '@/components/PersonalizedInsights';
 import { useQuery } from '@tanstack/react-query';
@@ -215,6 +216,14 @@ export default function Home() {
         {/* Recent Transactions */}
         <RecentTransactions />
         
+        {/* Advanced Emotion Analysis */}
+        <section className="px-4 py-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-medium text-foreground">AI Emotion Analysis</h3>
+          </div>
+          <EmotionAnalyzer />
+        </section>
+
         {/* Personalized Insights */}
         <PersonalizedInsights />
       </main>
