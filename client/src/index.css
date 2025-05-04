@@ -1,93 +1,130 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-
 :root {
-  --background: 220 100% 99%;
-  --foreground: 222.2 84% 4.9%;
+  /* WHOOP-inspired color palette with muted tones and strategic highlights */
+  --background: 210 20% 98%;
+  --foreground: 220 25% 20%;
   
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 220 25% 20%;
   
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
+  --popover-foreground: 220 25% 20%;
   
-  --primary: 221.2 83.2% 53.3%;
+  /* Primary color - core brand color */
+  --primary: 220 70% 50%;
   --primary-foreground: 210 40% 98%;
   
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 210 20% 96%;
+  --secondary-foreground: 220 25% 20%;
   
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted: 210 20% 96%;
+  --muted-foreground: 220 10% 46%;
   
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
+  --accent: 220 15% 94%;
+  --accent-foreground: 220 25% 20%;
   
-  --destructive: 0 84.2% 60.2%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
   
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 220 70% 50%;
   
-  --radius: 0.5rem;
+  --radius: 0.75rem;
   
-  --sidebar-background: 221.2 83.2% 53.3%;
+  /* Emotion colors - for mood indicators */
+  --emotion-stressed: 0 80% 65%;
+  --emotion-worried: 30 85% 65%;
+  --emotion-neutral: 45 80% 75%;
+  --emotion-content: 120 65% 60%;
+  --emotion-happy: 195 80% 65%;
+  
+  /* Financial indicators */
+  --finance-positive: 142 70% 45%;
+  --finance-negative: 0 80% 60%;
+  --finance-neutral: 220 15% 60%;
+  
+  /* Sidebar styling */
+  --sidebar-background: 220 70% 50%;
   --sidebar-foreground: 0 0% 100%;
   --sidebar-primary: 0 0% 100%;
-  --sidebar-primary-foreground: 221.2 83.2% 53.3%;
+  --sidebar-primary-foreground: 220 70% 50%;
   --sidebar-accent: 214 74% 80%;
   --sidebar-accent-foreground: 210 40% 98%;
   --sidebar-border: 210 40% 88%;
   --sidebar-ring: 210 40% 98%;
   
-  --chart-1: 0 84.2% 60.2%;
-  --chart-2: 30 84.2% 60.2%;
-  --chart-3: 45 84.2% 60.2%;
-  --chart-4: 142 71.4% 40.2%;
-  --chart-5: 215 85.2% 60.2%;
+  /* Chart colors */
+  --chart-1: 0 84% 60%;
+  --chart-2: 30 84% 60%;
+  --chart-3: 45 84% 60%;
+  --chart-4: 142 71% 40%;
+  --chart-5: 195 80% 60%;
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
+  /* WHOOP-inspired dark theme */
+  --background: 220 25% 10%;
   --foreground: 210 40% 98%;
   
-  --card: 222.2 84% 4.9%;
+  --card: 220 25% 12%;
   --card-foreground: 210 40% 98%;
   
-  --popover: 222.2 84% 4.9%;
+  --popover: 220 25% 12%;
   --popover-foreground: 210 40% 98%;
   
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 47.4% 11.2%;
+  --primary: 220 70% 50%;
+  --primary-foreground: 210 40% 98%;
   
-  --secondary: 217.2 32.6% 17.5%;
+  --secondary: 220 25% 16%;
   --secondary-foreground: 210 40% 98%;
   
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
+  --muted: 220 25% 16%;
+  --muted-foreground: 215 20% 70%;
   
-  --accent: 217.2 32.6% 17.5%;
+  --accent: 220 25% 20%;
   --accent-foreground: 210 40% 98%;
   
-  --destructive: 0 62.8% 30.6%;
+  --destructive: 0 62% 45%;
   --destructive-foreground: 210 40% 98%;
   
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
+  --border: 220 25% 18%;
+  --input: 220 25% 18%;
+  --ring: 220 70% 60%;
   
-  --sidebar-background: 222.2 84% 4.9%;
+  /* Dark theme emotion colors - adjusted for better visibility */
+  --emotion-stressed: 0 80% 65%;
+  --emotion-worried: 30 85% 65%;
+  --emotion-neutral: 45 80% 75%;
+  --emotion-content: 120 65% 60%;
+  --emotion-happy: 195 80% 65%;
+  
+  /* Dark theme financial indicators */
+  --finance-positive: 142 70% 45%;
+  --finance-negative: 0 80% 60%;
+  --finance-neutral: 220 25% 70%;
+  
+  /* Dark theme sidebar */
+  --sidebar-background: 220 25% 10%;
   --sidebar-foreground: 210 40% 98%;
-  --sidebar-primary: 217.2 91.2% 59.8%;
-  --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-  --sidebar-accent: 217.2 32.6% 17.5%;
+  --sidebar-primary: 220 70% 50%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 220 25% 20%;
   --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-border: 217.2 32.6% 17.5%;
-  --sidebar-ring: 224.3 76.3% 48%;
+  --sidebar-border: 220 25% 18%;
+  --sidebar-ring: 220 70% 60%;
+  
+  /* Dark theme chart colors - brighter for better visibility */
+  --chart-1: 0 84% 65%;
+  --chart-2: 30 84% 65%;
+  --chart-3: 45 84% 65%;
+  --chart-4: 142 71% 45%;
+  --chart-5: 195 80% 65%;
 }
 
 @layer base {
@@ -100,8 +137,15 @@
   }
 }
 
+/* WHOOP-inspired utility classes */
+
+/* Emotion & Financial indicators */
 .emotion-icon {
   transition: transform 0.2s, opacity 0.2s;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .emotion-icon:hover {
@@ -111,14 +155,101 @@
 
 .emotion-icon.selected {
   transform: scale(1.1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.3);
 }
 
+/* Emotions */
+.emotion-stressed {
+  background-color: hsl(var(--emotion-stressed) / 0.1);
+  color: hsl(var(--emotion-stressed));
+  border: 1px solid hsl(var(--emotion-stressed) / 0.2);
+}
+
+.emotion-worried {
+  background-color: hsl(var(--emotion-worried) / 0.1);
+  color: hsl(var(--emotion-worried));
+  border: 1px solid hsl(var(--emotion-worried) / 0.2);
+}
+
+.emotion-neutral {
+  background-color: hsl(var(--emotion-neutral) / 0.1);
+  color: hsl(var(--emotion-neutral));
+  border: 1px solid hsl(var(--emotion-neutral) / 0.2);
+}
+
+.emotion-content {
+  background-color: hsl(var(--emotion-content) / 0.1);
+  color: hsl(var(--emotion-content));
+  border: 1px solid hsl(var(--emotion-content) / 0.2);
+}
+
+.emotion-happy {
+  background-color: hsl(var(--emotion-happy) / 0.1);
+  color: hsl(var(--emotion-happy));
+  border: 1px solid hsl(var(--emotion-happy) / 0.2);
+}
+
+/* Financial indicators */
+.finance-positive {
+  color: hsl(var(--finance-positive));
+}
+
+.finance-negative {
+  color: hsl(var(--finance-negative));
+}
+
+.finance-neutral {
+  color: hsl(var(--finance-neutral));
+}
+
+/* Card & Container styling */
 .card {
   transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: var(--radius);
+  background-color: hsl(var(--card));
 }
 
 .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* WHOOP-inspired minimalist container */
+.whoop-container {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+/* Progress bars */
+.progress-bar {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: hsl(var(--muted));
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+}
+
+/* Action button */
+.action-button {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s;
+}
+
+.action-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
