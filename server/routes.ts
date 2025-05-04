@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { insertEmotionSchema, insertHealthDataSchema, insertTransactionSchema, insertUserSchema, HealthMetricType } from "@shared/schema";
+import emotionAnalysisRoutes from "./routes/emotion-analysis";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
