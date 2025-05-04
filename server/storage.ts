@@ -61,8 +61,8 @@ export class MemStorage implements IStorage {
       id: this.userIds.current++,
       username: "demo",
       password: "password", // In a real app, this would be hashed
-      name: "Jamie",
-      initials: "JS",
+      name: "Youness",
+      initials: "YS",
     };
     this.users.set(user.id, user);
     
