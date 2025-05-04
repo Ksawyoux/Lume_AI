@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Heart, Moon, Activity, Timer, BarChart2 } from 'lucide-react';
+import { Heart, Moon, Activity, Timer, BarChart2, ArrowRight, Zap, TrendingUp } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import { getQueryFn } from '@/lib/queryClient';
@@ -204,216 +204,186 @@ export default function Health() {
   const sleepMetadata = sleep ? parseMetadata(sleep) : {};
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#1a2126] text-white">
       <Header />
       
       <main className="flex-1 container max-w-md mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Health Metrics</h1>
-        <p className="text-muted-foreground mb-6 text-sm">Data synced from your Apple Watch</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold mb-1">Health Report</h1>
+            <p className="text-muted-foreground text-sm">Based on your Apple Watch data</p>
+          </div>
+          <div className="rounded-full bg-[#2A363D] p-1.5">
+            <Activity size={22} className="text-[#00f19f]" />
+          </div>
+        </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2 mb-6">
-            <TabsTrigger value="daily">Daily</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="daily" className="space-y-4">
-            {/* Today's summary */}
-            <div className="grid grid-cols-2 gap-4">
-              <CircularProgressCard 
-                title="Recovery" 
-                value={recovery?.value || 0}
-                icon={<Activity size={18} />}
-                color={getRecoveryColor(recovery?.value || 0)}
-                subtitle="%"
-              />
-              
-              <CircularProgressCard 
-                title="Sleep" 
-                value={sleep?.value || 0}
-                icon={<Moon size={18} />}
-                color={getSleepColor(sleep?.value || 0)}
-                max={9}
-                subtitle="hours"
-              />
+        {/* WHOOP-style card with grid layout */}
+        <div className="bg-[#1F2932] rounded-xl p-5 mb-6 shadow-lg">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Recovery chart */}
+            <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[120px]">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Recovery</p>
+              <div className="mt-2">
+                <div className="relative">
+                  {/* Simplified chart */}
+                  <div className="h-10 relative">
+                    <svg className="absolute inset-0" viewBox="0 0 100 30">
+                      <path 
+                        d="M0,15 C10,5 20,25 30,15 C40,5 50,20 60,10 C70,0 80,15 90,20 C95,25 100,15 100,15" 
+                        fill="none" 
+                        stroke="white" 
+                        strokeWidth="1.5" 
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-lg font-bold">{recovery?.value || 0}%</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">Today</span>
+                </div>
+              </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <CircularProgressCard 
-                title="Heart Rate" 
-                value={heartRate?.value || 0}
-                icon={<Heart size={18} />}
-                color="text-red-500 bg-red-100 dark:bg-red-950/30"
-                max={120}
-                subtitle="bpm"
-              />
-              
-              <CircularProgressCard 
-                title="Steps" 
-                value={steps?.value || 0}
-                icon={<Timer size={18} />}
-                color="text-blue-500 bg-blue-100 dark:bg-blue-950/30"
-                max={10000}
-                subtitle="daily"
-              />
+            {/* Heart rate chart */}
+            <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[120px]">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Heart Rate</p>
+              <div className="mt-2">
+                <div className="relative">
+                  {/* Simplified chart - bar chart */}
+                  <div className="h-10 flex items-end justify-between gap-1">
+                    {[65, 78, 72, 68, 79, 75, 70, 80].map((value, index) => (
+                      <div 
+                        key={index} 
+                        className="w-full bg-white bg-opacity-30 rounded-sm" 
+                        style={{ height: `${(value / 100) * 100}%` }}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <div>
+                    <span className="text-lg font-bold">{heartRate?.value || 0}</span>
+                    <span className="text-xs ml-1">bpm</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">Resting</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4">
+            {/* Sleep chart */}
+            <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[100px]">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Sleep</p>
+              <div className="mt-auto">
+                <div>
+                  <span className="text-lg font-bold">{sleep?.value?.toFixed(1) || 0}</span>
+                  <span className="text-xs ml-1">hrs</span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">Last night</span>
+              </div>
             </div>
             
-            {/* Sleep Details */}
-            {sleep && (
-              <Card className="mt-6">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Sleep Analysis</CardTitle>
-                  <CardDescription>
-                    {new Date(sleep.timestamp).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'short', 
-                      day: 'numeric'
-                    })}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Deep Sleep</span>
-                      <span className="text-sm font-medium">{sleepMetadata.deepSleep || '0'} hrs</span>
-                    </div>
-                    <Progress value={parseFloat(sleepMetadata.deepSleep || '0') / sleep.value * 100} className="h-2" />
-                    
-                    <div className="flex justify-between mt-3">
-                      <span className="text-sm">REM Sleep</span>
-                      <span className="text-sm font-medium">{sleepMetadata.remSleep || '0'} hrs</span>
-                    </div>
-                    <Progress value={parseFloat(sleepMetadata.remSleep || '0') / sleep.value * 100} className="h-2" />
-                    
-                    <div className="flex justify-between mt-3">
-                      <span className="text-sm">Light Sleep</span>
-                      <span className="text-sm font-medium">{sleepMetadata.lightSleep || '0'} hrs</span>
-                    </div>
-                    <Progress value={parseFloat(sleepMetadata.lightSleep || '0') / sleep.value * 100} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Strain chart */}
+            <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[100px]">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Strain</p>
+              <div className="mt-auto">
+                <div>
+                  <span className="text-lg font-bold">14.2</span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">Daily</span>
+              </div>
+            </div>
             
-            {/* Recovery Details */}
-            {recovery && (
-              <Card className="mt-4">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-base">Recovery Score</CardTitle>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getRecoveryColor(recovery.value)}`}>
-                      {recovery.value}%
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Your recovery score is {recovery.value >= 67 ? 'excellent' : recovery.value >= 34 ? 'moderate' : 'low'}. 
-                    {recovery.value >= 67 
-                      ? 'Your body is well-rested and ready for activity.'
-                      : recovery.value >= 34
-                      ? 'Moderate training is recommended today.'
-                      : 'Consider taking it easy today to allow your body to recover.'}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+            {/* Steps chart */}
+            <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[100px]">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Steps</p>
+              <div className="mt-auto">
+                <div>
+                  <span className="text-lg font-bold">{(steps?.value || 0).toLocaleString()}</span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">Today</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-end items-center">
+            <span className="text-[10px] text-muted-foreground mr-1">DATA BY</span>
+            <span className="font-bold tracking-wider text-xs">WHOOP</span>
+          </div>
+        </div>
+        
+        {/* Recommended workout card */}
+        <div className="bg-[#1F2932] rounded-xl p-5 mb-6 shadow-lg">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="w-12 h-12 rounded-full bg-[#2A363D] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full border-2 border-l-yellow-400 border-r-yellow-400 border-t-transparent border-b-transparent flex items-center justify-center">
+                <Zap size={18} className="text-yellow-400" />
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold">Recommended Workout</h3>
+              <p className="text-sm text-muted-foreground">based on your Recovery Score</p>
+            </div>
+          </div>
           
-          <TabsContent value="weekly" className="space-y-6">
-            {/* Weekly Stats */}
-            {hrStats && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Heart Rate</CardTitle>
-                  <CardDescription>7-day overview</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center text-sm mb-1">
-                    <span>Min</span>
-                    <span>Avg</span>
-                    <span>Max</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium">{Math.round(hrStats.min)} bpm</span>
-                    <span className="text-lg font-medium">{Math.round(hrStats.avg)} bpm</span>
-                    <span className="text-lg font-medium">{Math.round(hrStats.max)} bpm</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            
-            {sleepStatsData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Sleep</CardTitle>
-                  <CardDescription>7-day overview</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center text-sm mb-1">
-                    <span>Min</span>
-                    <span>Avg</span>
-                    <span>Max</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium">{sleepStatsData.min.toFixed(1)} hrs</span>
-                    <span className="text-lg font-medium">{sleepStatsData.avg.toFixed(1)} hrs</span>
-                    <span className="text-lg font-medium">{sleepStatsData.max.toFixed(1)} hrs</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            
-            {recoveryStatsData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Recovery</CardTitle>
-                  <CardDescription>7-day overview</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center text-sm mb-1">
-                    <span>Min</span>
-                    <span>Avg</span>
-                    <span>Max</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium">{Math.round(recoveryStatsData.min)}%</span>
-                    <span className="text-lg font-medium">{Math.round(recoveryStatsData.avg)}%</span>
-                    <span className="text-lg font-medium">{Math.round(recoveryStatsData.max)}%</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            
-            {stepsStatsData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Steps</CardTitle>
-                  <CardDescription>7-day overview</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center text-sm mb-1">
-                    <span>Min</span>
-                    <span>Avg</span>
-                    <span>Max</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium">{Math.round(stepsStatsData.min).toLocaleString()}</span>
-                    <span className="text-lg font-medium">{Math.round(stepsStatsData.avg).toLocaleString()}</span>
-                    <span className="text-lg font-medium">{Math.round(stepsStatsData.max).toLocaleString()}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            
-            <div className="my-4">
-              <Button variant="outline" className="w-full">
-                <BarChart2 size={16} className="mr-2" />
-                View Detailed Charts
+          <div className="bg-[#2A363D] rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-medium mb-1">Moderate Cardio</h4>
+                <p className="text-xs text-muted-foreground">{recovery?.value || 0}% Recovery · Moderate intensity</p>
+              </div>
+              <Button variant="ghost" size="sm" className="bg-[#1F2932] hover:bg-[#2A363D]">
+                <ArrowRight size={16} />
               </Button>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
+        
+        {/* Recovery recommendations */}
+        <div className="bg-[#1F2932] rounded-xl p-5 shadow-lg">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="w-12 h-12 rounded-full bg-[#2A363D] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full border-2 border-[#00f19f] flex items-center justify-center">
+                <TrendingUp size={18} className="text-[#00f19f]" />
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold">Get back in the Green</h3>
+              <p className="text-sm text-muted-foreground">Recovery recommendations</p>
+            </div>
+          </div>
+          
+          <div className="bg-[#2A363D] rounded-lg p-4">
+            <p className="text-sm mb-3">
+              Based on your metrics, consider the following to improve recovery:
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-start">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#00f19f]/20 text-[#00f19f] mr-2 mt-0.5">
+                  <span className="text-xs">1</span>
+                </div>
+                <span className="text-sm">Get 7+ hours of sleep tonight</span>
+              </div>
+              <div className="flex items-start">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#00f19f]/20 text-[#00f19f] mr-2 mt-0.5">
+                  <span className="text-xs">2</span>
+                </div>
+                <span className="text-sm">Limit screen time 1 hour before bed</span>
+              </div>
+              <div className="flex items-start">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#00f19f]/20 text-[#00f19f] mr-2 mt-0.5">
+                  <span className="text-xs">3</span>
+                </div>
+                <span className="text-sm">Maintain consistent sleep schedule</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
       
       <BottomNavigation />
