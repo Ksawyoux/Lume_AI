@@ -43,41 +43,47 @@ export const emotionConfig: Record<EmotionType, {
   bgColor: string;
   borderColor: string;
   label: string;
+  cssClass: string;
 }> = {
   stressed: {
     icon: "frown",
-    color: "hsl(0, 84%, 60%)",
-    bgColor: "hsl(0, 84%, 97%)",
-    borderColor: "hsl(0, 84%, 90%)",
-    label: "Stressed"
+    color: "hsl(var(--emotion-stressed))",
+    bgColor: "hsl(var(--emotion-stressed) / 0.1)",
+    borderColor: "hsl(var(--emotion-stressed) / 0.2)",
+    label: "Stressed",
+    cssClass: "emotion-stressed"
   },
   worried: {
     icon: "meh",
-    color: "hsl(30, 92%, 45%)",
-    bgColor: "hsl(30, 92%, 97%)",
-    borderColor: "hsl(30, 92%, 90%)",
-    label: "Worried"
+    color: "hsl(var(--emotion-worried))",
+    bgColor: "hsl(var(--emotion-worried) / 0.1)",
+    borderColor: "hsl(var(--emotion-worried) / 0.2)",
+    label: "Worried",
+    cssClass: "emotion-worried"
   },
   neutral: {
     icon: "meh-blank",
-    color: "hsl(45, 93%, 47%)",
-    bgColor: "hsl(45, 93%, 97%)",
-    borderColor: "hsl(45, 93%, 90%)",
-    label: "Neutral"
+    color: "hsl(var(--emotion-neutral))",
+    bgColor: "hsl(var(--emotion-neutral) / 0.1)",
+    borderColor: "hsl(var(--emotion-neutral) / 0.2)",
+    label: "Neutral",
+    cssClass: "emotion-neutral"
   },
   content: {
     icon: "smile",
-    color: "hsl(142, 71%, 45%)",
-    bgColor: "hsl(142, 71%, 97%)",
-    borderColor: "hsl(142, 71%, 90%)",
-    label: "Content"
+    color: "hsl(var(--emotion-content))",
+    bgColor: "hsl(var(--emotion-content) / 0.1)",
+    borderColor: "hsl(var(--emotion-content) / 0.2)",
+    label: "Content",
+    cssClass: "emotion-content"
   },
   happy: {
     icon: "grin-beam",
-    color: "hsl(216, 92%, 58%)",
-    bgColor: "hsl(216, 92%, 97%)",
-    borderColor: "hsl(216, 92%, 90%)",
-    label: "Happy"
+    color: "hsl(var(--emotion-happy))",
+    bgColor: "hsl(var(--emotion-happy) / 0.1)",
+    borderColor: "hsl(var(--emotion-happy) / 0.2)",
+    label: "Happy",
+    cssClass: "emotion-happy"
   }
 };
 
