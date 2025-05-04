@@ -40,16 +40,50 @@ export default function Insights() {
     ? spendingByEmotion.reduce((sum, item) => sum + item.amount, 0)
     : 0;
   
+  // Generate points for line graphs (simulated data for visual demonstration)
+  const generateLinePoints = (width: number, height: number, points: number) => {
+    const result = [];
+    for (let i = 0; i < points; i++) {
+      const x = (i / (points - 1)) * width;
+      // Create a wave pattern
+      const y = height/2 + Math.sin(i * 0.5) * (height/3) + (Math.random() * height/4);
+      result.push([x, y]);
+    }
+    return result.map(([x, y]) => `${x},${y}`).join(' ');
+  };
+  
+  // Generate bar chart points
+  const generateBarPoints = (width: number, height: number, points: number) => {
+    const result = [];
+    const barWidth = width / points;
+    for (let i = 0; i < points; i++) {
+      const barHeight = Math.random() * height * 0.8 + height * 0.2; // Random height 20-100%
+      result.push({
+        x: i * barWidth,
+        width: barWidth * 0.7, // Slightly narrower than the spacing
+        height: barHeight
+      });
+    }
+    return result;
+  };
+  
   return (
-    <div className="max-w-md mx-auto bg-background min-h-screen flex flex-col">
+    <div className="max-w-md mx-auto bg-[#1a2126] text-white min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1 overflow-y-auto pb-16">
         <section className="px-4 pt-6 pb-4">
-          <h2 className="text-xl font-semibold text-foreground">Analytics</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Understand how emotions impact your financial behavior
-          </p>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold">Analytics</h2>
+              <p className="text-sm text-gray-400 mt-1">
+                Financial behavior insights
+              </p>
+            </div>
+            <div className="rounded-full bg-[#2A363D] p-1.5">
+              <BarChart3 size={20} className="text-[#00f19f]" />
+            </div>
+          </div>
         </section>
         
         <section className="px-4 py-2">

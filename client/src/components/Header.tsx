@@ -23,10 +23,10 @@ export default function Header() {
   const isScoreUp = scoreDiff > 0;
   
   return (
-    <header className="px-4 py-4 flex items-center justify-between bg-background">
+    <header className="px-4 py-4 flex items-center justify-between bg-[#1a2126] text-white">
       <div className="flex items-center">
         {/* WHOOP-style wordmark in uppercase with letter spacing */}
-        <h1 className="text-xl font-bold text-foreground tracking-widest uppercase">LUME</h1>
+        <h1 className="text-lg font-bold tracking-widest uppercase">LUME</h1>
       </div>
       
       {/* WHOOP-style center recovery score display */}
@@ -34,29 +34,31 @@ export default function Header() {
         <div className="flex flex-col items-center">
           <div className="flex items-center">
             {/* Main recovery score with appropriate color based on value */}
-            <span className={`text-2xl font-bold ${getRecoveryColorClass()}`}>{recoveryScore}%</span>
+            <span className={`text-2xl font-bold ${isHighRecovery ? 'text-[#16EC06]' : isMediumRecovery ? 'text-[#FFDE00]' : 'text-[#FF0026]'}`}>
+              {recoveryScore}%
+            </span>
             
             {/* Score change indicator */}
             {scoreDiff !== 0 && (
-              <span className={`ml-1 text-xs ${isScoreUp ? 'text-[hsl(var(--recovery-high))]' : 'text-[hsl(var(--recovery-low))]'}`}>
+              <span className={`ml-1 text-xs ${isScoreUp ? 'text-[#16EC06]' : 'text-[#FF0026]'}`}>
                 {isScoreUp ? '+' : ''}{scoreDiff}
               </span>
             )}
           </div>
-          <span className="text-xs text-muted-foreground uppercase tracking-widest">RECOVERY</span>
+          <span className="text-xs text-gray-400 uppercase tracking-widest">RECOVERY</span>
         </div>
       </div>
       
       {/* Right side icons */}
       <div className="flex items-center space-x-4">
-        <button className="text-muted-foreground hover:text-foreground transition-colors relative">
+        <button className="text-gray-400 hover:text-white transition-colors relative">
           <BellIcon className="h-5 w-5" />
         </button>
-        <button className="text-muted-foreground hover:text-foreground transition-colors">
+        <button className="text-gray-400 hover:text-white transition-colors">
           <Settings className="h-5 w-5" />
         </button>
         {user && (
-          <div className="w-8 h-8 bg-card text-foreground rounded-full flex items-center justify-center shadow-sm border border-border">
+          <div className="w-8 h-8 bg-[#2A363D] text-white rounded-full flex items-center justify-center shadow-sm">
             <span className="text-xs font-medium uppercase tracking-wider">{user.initials}</span>
           </div>
         )}
