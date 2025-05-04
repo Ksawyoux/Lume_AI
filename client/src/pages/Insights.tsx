@@ -66,110 +66,123 @@ export default function Insights() {
             <TabsContent value="spending">
               <div className="whoop-container">
                 <div className="flex items-center justify-between mb-5">
-                  <h4 className="text-sm font-medium text-foreground">Emotion Impact</h4>
+                  <h4 className="text-sm font-medium text-foreground">Emotion-Spending Correlation</h4>
                   <span className="text-xs text-muted-foreground">Last 30 days</span>
                 </div>
                 
                 {isLoading ? (
-                  <div className="h-48 flex items-center justify-center">
+                  <div className="h-64 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center">
-                    {/* WHOOP-inspired spending by emotion chart */}
-                    <div className="relative w-48 h-48 mb-5">
-                      <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                        {/* Create pie chart segments */}
+                  <div className="flex flex-col">
+                    {/* Bar chart showing spending by emotion */}
+                    <div className="h-64 mb-5 pt-5">
+                      <div className="flex items-end h-52 justify-between border-b border-l border-border relative">
+                        {/* Y-axis labels */}
+                        <div className="absolute left-0 top-0 h-full flex flex-col justify-between pr-2 -ml-7 text-xs text-muted-foreground">
+                          <span>$100</span>
+                          <span>$75</span>
+                          <span>$50</span>
+                          <span>$25</span>
+                          <span>$0</span>
+                        </div>
+                        
+                        {/* Bars */}
                         {spendingByEmotion?.map((item, index) => {
-                          // Calculate the percentage this emotion represents of total spending
-                          const percentage = totalSpending > 0 ? (item.amount / totalSpending) * 100 : 0;
-                          
-                          // For pie chart: calculate stroke-dasharray and stroke-dashoffset
-                          const circumference = 2 * Math.PI * 40; // 2πr where r=40
-                          
-                          // Running sum of previous percentages to know where to start this segment
-                          const previousPercentagesSum = spendingByEmotion
-                            .slice(0, index)
-                            .reduce((sum, item) => sum + (item.amount / totalSpending) * 100, 0);
-                            
-                          // Calculate the dashoffset
-                          const dashoffset = circumference - (previousPercentagesSum / 100) * circumference;
-                          
-                          // Calculate the dash array (how much of the circle to fill)
-                          const dasharray = `${(percentage / 100) * circumference} ${circumference}`;
+                          // Calculate height based on amount (normalized to 100)
+                          const maxHeight = 200; // Max visual height in pixels
+                          const height = maxSpending > 0 ? (item.amount / maxSpending) * maxHeight : 0;
                           
                           return (
-                            <circle
-                              key={item.emotion}
-                              cx="50"
-                              cy="50"
-                              r="40"
-                              fill="transparent"
-                              stroke={emotionConfig[item.emotion].color}
-                              strokeWidth="12"
-                              strokeDasharray={dasharray}
-                              strokeDashoffset={dashoffset}
-                              strokeLinecap="butt"
-                            />
+                            <div key={item.emotion} className="flex flex-col items-center mx-2 flex-1">
+                              <div 
+                                className="w-full rounded-t-sm relative group"
+                                style={{ 
+                                  height: `${height}px`,
+                                  backgroundColor: emotionConfig[item.emotion].color,
+                                  transition: 'height 0.5s ease-in-out'
+                                }}
+                              >
+                                {/* Tooltip */}
+                                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-md">
+                                  {formatAmount(item.amount)}
+                                </div>
+                              </div>
+                              <div className="mt-2 text-xs text-muted-foreground font-medium">
+                                {emotionConfig[item.emotion].label}
+                              </div>
+                            </div>
                           );
                         })}
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-xl font-semibold text-foreground">
-                          {formatAmount(totalSpending)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">Total</span>
                       </div>
                     </div>
                     
-                    {/* Legend */}
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 w-full">
-                      {spendingByEmotion?.map((item) => (
-                        <div key={item.emotion} className="flex items-center">
-                          <div 
-                            className="w-3 h-3 rounded-full mr-2" 
-                            style={{ backgroundColor: emotionConfig[item.emotion].color }}
-                          ></div>
-                          <div className="flex-1 flex justify-between">
-                            <span className="text-xs text-foreground">
-                              {emotionConfig[item.emotion].label}
-                            </span>
-                            <span className="text-xs font-medium text-foreground">
-                              {formatAmount(item.amount)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                    {/* Correlation data */}
+                    <div className="rounded-md border border-border p-3 bg-card">
+                      <h5 className="text-sm font-medium mb-2">Correlation Analysis</h5>
+                      <div className="space-y-3">
+                        {spendingByEmotion?.sort((a, b) => b.amount - a.amount).map((item, index) => {
+                          // Calculate percentage of total
+                          const percentage = totalSpending > 0 ? (item.amount / totalSpending) * 100 : 0;
+                          // Determine impact level (high for top spender, medium for second, low for others)
+                          const impactLevel = index === 0 ? 'High' : index === 1 ? 'Medium' : 'Low';
+                          // Color based on impact
+                          const impactColor = index === 0 ? 'text-red-500' : index === 1 ? 'text-amber-500' : 'text-green-500';
+                          
+                          return (
+                            <div key={item.emotion} className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div 
+                                  className="w-3 h-3 rounded-full mr-2" 
+                                  style={{ backgroundColor: emotionConfig[item.emotion].color }}
+                                ></div>
+                                <span className="text-xs text-foreground">
+                                  {emotionConfig[item.emotion].label}
+                                </span>
+                              </div>
+                              <div className="flex items-center">
+                                <span className="text-xs font-medium mr-2">
+                                  {percentage.toFixed(1)}%
+                                </span>
+                                <span className={`text-xs font-medium ${impactColor}`}>
+                                  {impactLevel}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
               
-              <div className="whoop-container mt-4">
-                <h4 className="text-sm font-medium text-foreground mb-3">Key Observations</h4>
+              <div className="whoop-container mt-4 rounded-md border border-border p-4 bg-card/50">
+                <h4 className="text-sm font-medium text-foreground mb-3">Emotional Spending Patterns</h4>
                 
-                <ul className="space-y-3 text-sm text-foreground">
-                  <li className="flex items-start">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-finance-negative mr-2 mt-0.5 bg-[hsl(var(--finance-negative)/0.1)]">
-                      <i className="fas fa-exclamation-circle text-xs"></i>
-                    </div>
-                    <span>You spend 35% more when stressed or worried.</span>
-                  </li>
+                <div className="space-y-4">
+                  <div className="rounded-md p-3 bg-red-500/10 border border-red-500/20">
+                    <h6 className="text-sm font-medium mb-1 text-red-500">High Correlation</h6>
+                    <p className="text-xs text-muted-foreground">
+                      During <strong>stressed</strong> periods, your spending increases by <strong>35%</strong> with most transactions in <strong>food delivery</strong> and <strong>impulse purchases</strong>.
+                    </p>
+                  </div>
                   
-                  <li className="flex items-start">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-finance-neutral mr-2 mt-0.5 bg-[hsl(var(--finance-neutral)/0.1)]">
-                      <i className="fas fa-info-circle text-xs"></i>
-                    </div>
-                    <span>Happy and content states lead to healthier financial decisions.</span>
-                  </li>
+                  <div className="rounded-md p-3 bg-yellow-500/10 border border-yellow-500/20">
+                    <h6 className="text-sm font-medium mb-1 text-yellow-500">Medium Correlation</h6>
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Neutral</strong> emotional states show <strong>15%</strong> higher spending compared to positive states, primarily in <strong>routine shopping</strong>.
+                    </p>
+                  </div>
                   
-                  <li className="flex items-start">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-finance-positive mr-2 mt-0.5 bg-[hsl(var(--finance-positive)/0.1)]">
-                      <i className="fas fa-lightbulb text-xs"></i>
-                    </div>
-                    <span>Consider setting spending limits when in stressed states.</span>
-                  </li>
-                </ul>
+                  <div className="rounded-md p-3 bg-green-500/10 border border-green-500/20">
+                    <h6 className="text-sm font-medium mb-1 text-green-500">Financial Optimization</h6>
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Happy</strong> and <strong>content</strong> emotional states correlate with more <strong>deliberate purchases</strong> and <strong>less regretted spending</strong>.
+                    </p>
+                  </div>
+                </div>
               </div>
             </TabsContent>
             
