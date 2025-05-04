@@ -4,6 +4,24 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { insertEmotionSchema, insertHealthDataSchema, insertTransactionSchema, insertUserSchema, HealthMetricType } from "@shared/schema";
 
+// Apple Watch connection endpoint
+async function handleConnectAppleWatch(req: Request, res: Response) {
+  try {
+    const userId = parseInt(req.params.userId);
+    const { metrics } = req.body;
+    
+    // Store connection preferences and log the connection
+    console.log(`User ${userId} connected Apple Watch with metrics:`, metrics);
+    
+    // In a real implementation, we would store the user's device connection preferences
+    // For now, just return success
+    return res.json({ success: true, message: 'Apple Watch connected successfully', metrics });
+  } catch (error) {
+    console.error('Error connecting Apple Watch:', error);
+    return res.status(500).json({ message: 'Failed to connect Apple Watch' });
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
   app.post("/api/users", async (req, res) => {
@@ -295,6 +313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Apple Watch connection route
+  app.post("/api/users/:userId/connect-apple-watch", handleConnectAppleWatch);
+  
   // Analytics routes
   app.get("/api/users/:userId/analytics/spending-by-emotion", async (req, res) => {
     try {
