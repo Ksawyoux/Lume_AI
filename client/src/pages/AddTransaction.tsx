@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { EmotionType, Emotion, emotionConfig, categoryIcons } from '@/types';
 import EmojiSelector from '@/components/EmojiSelector';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { CalendarIcon, Plus, Minus } from 'lucide-react';
 
 export default function AddTransaction() {
   const { user } = useUser();
@@ -25,17 +28,20 @@ export default function AddTransaction() {
   const [category, setCategory] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionType | null>("content");
+  const [date, setDate] = useState<Date>(new Date());
   
   // Fetch the latest emotion to suggest it for the transaction
   const { data: latestEmotion } = useQuery<Emotion>({
     queryKey: user ? [`/api/users/${user.id}/emotions/latest`] : [],
-    enabled: !!user,
-    onSuccess: (data) => {
-      if (data?.type && !selectedEmotion) {
-        setSelectedEmotion(data.type as EmotionType);
-      }
-    }
+    enabled: !!user
   });
+
+  // Set selected emotion when latest emotion is loaded
+  useEffect(() => {
+    if (latestEmotion?.type && !selectedEmotion) {
+      setSelectedEmotion(latestEmotion.type as EmotionType);
+    }
+  }, [latestEmotion, selectedEmotion]);
   
   const mutation = useMutation({
     mutationFn: async (data: {
@@ -45,6 +51,7 @@ export default function AddTransaction() {
       category: string;
       notes?: string;
       emotionId?: number;
+      date?: Date;
     }) => {
       const res = await apiRequest('POST', '/api/transactions', data);
       return res.json();
@@ -96,7 +103,10 @@ export default function AddTransaction() {
     
     try {
       // First create or get emotion
-      let emotionId = latestEmotion?.id;
+      let emotionId;
+      if (latestEmotion) {
+        emotionId = latestEmotion.id;
+      }
       
       // If user selected different emotion than latest one or there's no latest emotion
       if (selectedEmotion && (!latestEmotion || latestEmotion.type !== selectedEmotion)) {
@@ -116,6 +126,7 @@ export default function AddTransaction() {
         category,
         notes,
         emotionId,
+        date: date
       });
     } catch (error) {
       console.error("Error creating transaction:", error);
@@ -139,123 +150,157 @@ export default function AddTransaction() {
   if (!user) return null;
   
   return (
-    <div className="max-w-md mx-auto bg-[#f9fafb] min-h-screen flex flex-col">
+    <div className="max-w-md mx-auto bg-background min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1 overflow-y-auto pb-16">
         <section className="px-4 pt-6 pb-4">
-          <h2 className="text-xl font-semibold text-neutral-800">Add Transaction</h2>
-          <p className="text-sm text-neutral-500 mt-1">
-            Record your financial activities with emotional context
+          <h2 className="text-xl font-semibold text-foreground uppercase tracking-wider">ADD TRANSACTION</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Record financial activities with emotional context
           </p>
         </section>
         
         <section className="px-4 py-2">
-          <Card className="border border-neutral-200">
-            <CardContent className="p-4">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Amount
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-neutral-500">$</span>
-                    </div>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      className="pl-7"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
+          <div className="whoop-container mb-4">
+            <div className="space-y-4">
+              {/* Date picker */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                  DATE
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal border-border bg-card hover:bg-accent text-foreground"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={(date) => date && setDate(date)}
+                      initialFocus
                     />
-                  </div>
-                  <div className="mt-1 flex space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 text-red-500 border-red-200 hover:bg-red-50"
-                      onClick={() => setAmount(amount.startsWith('-') ? amount.substring(1) : `-${amount}`)}
-                    >
-                      Expense
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 text-green-500 border-green-200 hover:bg-green-50"
-                      onClick={() => setAmount(amount.startsWith('-') ? amount.substring(1) : amount)}
-                    >
-                      Income
-                    </Button>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Description
-                  </label>
-                  <Input
-                    placeholder="What was this transaction for?"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Category
-                  </label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categoryOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <div className="flex items-center">
-                            <i className={`fas fa-${categoryIcons[option.value]} mr-2 text-neutral-500`}></i>
-                            {option.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    How are you feeling?
-                  </label>
-                  <EmojiSelector
-                    selectedEmotion={selectedEmotion}
-                    onSelect={setSelectedEmotion}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Notes (optional)
-                  </label>
-                  <Textarea
-                    placeholder="Add any additional context about this transaction"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                
-                <Button
-                  onClick={handleSaveTransaction}
-                  disabled={!amount || !description || !category || mutation.isPending}
-                  className="w-full"
-                >
-                  {mutation.isPending ? "Saving..." : "Save Transaction"}
-                </Button>
+                  </PopoverContent>
+                </Popover>
               </div>
-            </CardContent>
-          </Card>
+              
+              {/* Amount */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                  AMOUNT
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-muted-foreground">$</span>
+                  </div>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    className="pl-7 bg-card border-border text-foreground"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={`border-border ${amount.startsWith('-') ? 'bg-[hsl(var(--recovery-low)/0.1)] text-[hsl(var(--recovery-low))] border-[hsl(var(--recovery-low))]' : 'bg-card text-foreground'} flex items-center justify-center`}
+                    onClick={() => setAmount(amount.startsWith('-') ? amount.substring(1) : `-${amount}`)}
+                  >
+                    <Minus size={14} className="mr-1" />
+                    EXPENSE
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={`border-border ${!amount.startsWith('-') && amount !== '' ? 'bg-[hsl(var(--recovery-high)/0.1)] text-[hsl(var(--recovery-high))] border-[hsl(var(--recovery-high))]' : 'bg-card text-foreground'} flex items-center justify-center`}
+                    onClick={() => setAmount(amount.startsWith('-') ? amount.substring(1) : amount)}
+                  >
+                    <Plus size={14} className="mr-1" />
+                    INCOME
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                  DESCRIPTION
+                </label>
+                <Input
+                  placeholder="What was this transaction for?"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="bg-card border-border text-foreground"
+                />
+              </div>
+              
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                  CATEGORY
+                </label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="bg-card border-border text-foreground">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div className="flex items-center">
+                          <i className={`fas fa-${categoryIcons[option.value]} mr-2 text-muted-foreground`}></i>
+                          {option.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Emotion Selector */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                  HOW ARE YOU FEELING?
+                </label>
+                <EmojiSelector
+                  selectedEmotion={selectedEmotion}
+                  onSelect={setSelectedEmotion}
+                />
+              </div>
+              
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                  NOTES (OPTIONAL)
+                </label>
+                <Textarea
+                  placeholder="Add any additional context about this transaction"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  className="bg-card border-border text-foreground resize-none"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Save Button */}
+          <Button
+            onClick={handleSaveTransaction}
+            disabled={!amount || !description || !category || mutation.isPending}
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-6 uppercase tracking-wider font-semibold"
+          >
+            {mutation.isPending ? "SAVING..." : "SAVE TRANSACTION"}
+          </Button>
         </section>
       </main>
 
