@@ -1,70 +1,77 @@
 import { Link, useLocation } from "wouter";
-import { Home, PieChart, PlusCircle, Smile, User } from "lucide-react";
+import { Home, BarChart3, PlusCircle, HeartPulse, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNavigation() {
   const [location] = useLocation();
   
   return (
-    <div className="border-t border-neutral-200 bg-white">
-      <div className="grid grid-cols-5 py-3">
-        <Link href="/">
-          <a className="flex flex-col items-center">
-            <div className={cn(
-              "w-6 h-6 flex items-center justify-center",
-              location === "/" ? "text-primary" : "text-neutral-400"
-            )}>
-              <Home size={20} />
-            </div>
-            <span className="text-xs mt-1 text-neutral-500">Home</span>
-          </a>
-        </Link>
+    <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-card shadow-sm">
+      <div className="max-w-md mx-auto grid grid-cols-5 relative py-3">
+        <NavItem 
+          href="/" 
+          label="Home" 
+          icon={<Home size={20} />} 
+          isActive={location === "/"} 
+        />
         
-        <Link href="/insights">
-          <a className="flex flex-col items-center">
-            <div className={cn(
-              "w-6 h-6 flex items-center justify-center",
-              location === "/insights" ? "text-primary" : "text-neutral-400"
-            )}>
-              <PieChart size={20} />
-            </div>
-            <span className="text-xs mt-1 text-neutral-500">Insights</span>
-          </a>
-        </Link>
+        <NavItem 
+          href="/insights" 
+          label="Insights" 
+          icon={<BarChart3 size={20} />} 
+          isActive={location === "/insights"} 
+        />
         
-        <Link href="/add-transaction">
-          <a className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center -mt-5 shadow-lg">
+        {/* Action Button - WHOOP-inspired center button */}
+        <div className="flex flex-col items-center">
+          <Link href="/add-transaction">
+            <div className="action-button -mt-8">
               <PlusCircle size={24} />
             </div>
-            <span className="text-xs mt-1 text-neutral-500">Add</span>
-          </a>
-        </Link>
+          </Link>
+          <span className="text-xs mt-1 text-muted-foreground font-medium">Add</span>
+        </div>
         
-        <Link href="/emotions">
-          <a className="flex flex-col items-center">
-            <div className={cn(
-              "w-6 h-6 flex items-center justify-center",
-              location === "/emotions" ? "text-primary" : "text-neutral-400"
-            )}>
-              <Smile size={20} />
-            </div>
-            <span className="text-xs mt-1 text-neutral-500">Emotions</span>
-          </a>
-        </Link>
+        <NavItem 
+          href="/emotions" 
+          label="Moods" 
+          icon={<HeartPulse size={20} />} 
+          isActive={location === "/emotions"} 
+        />
         
-        <Link href="/profile">
-          <a className="flex flex-col items-center">
-            <div className={cn(
-              "w-6 h-6 flex items-center justify-center",
-              location === "/profile" ? "text-primary" : "text-neutral-400"
-            )}>
-              <User size={20} />
-            </div>
-            <span className="text-xs mt-1 text-neutral-500">Profile</span>
-          </a>
-        </Link>
+        <NavItem 
+          href="/profile" 
+          label="Profile" 
+          icon={<User size={20} />} 
+          isActive={location === "/profile"} 
+        />
       </div>
     </div>
+  );
+}
+
+type NavItemProps = {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+};
+
+function NavItem({ href, label, icon, isActive }: NavItemProps) {
+  return (
+    <Link href={href}>
+      <div className="flex flex-col items-center cursor-pointer">
+        <div className={cn(
+          "w-8 h-8 flex items-center justify-center rounded-full",
+          isActive ? "text-primary bg-primary/10" : "text-muted-foreground"
+        )}>
+          {icon}
+        </div>
+        <span className={cn(
+          "text-xs mt-1 font-medium",
+          isActive ? "text-foreground" : "text-muted-foreground"
+        )}>{label}</span>
+      </div>
+    </Link>
   );
 }
