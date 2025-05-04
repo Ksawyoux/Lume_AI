@@ -1,11 +1,11 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { HealthData, HealthMetricType } from '../../shared/schema';
+import { HealthData, HealthMetricType } from '@shared/schema';
 import { useUser } from '@/context/UserContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, Moon, ZapIcon, Activity, WalkIcon } from 'lucide-react';
+import { Heart, Moon, Zap, Activity, Footprints } from 'lucide-react';
 
 type MetricConfig = {
   title: string;
@@ -68,7 +68,7 @@ const metricConfigs: Record<HealthMetricType, MetricConfig> = {
   strain: {
     title: 'Strain',
     description: 'Today\'s exertion level',
-    icon: <ZapIcon className="w-8 h-8 text-yellow-500" />,
+    icon: <Zap className="w-8 h-8 text-yellow-500" />,
     color: 'text-yellow-500',
     progressGradient: 'bg-gradient-to-r from-green-200 via-yellow-300 to-red-500',
     unit: 'score',
@@ -94,7 +94,7 @@ const metricConfigs: Record<HealthMetricType, MetricConfig> = {
   steps: {
     title: 'Steps',
     description: 'Steps taken today',
-    icon: <WalkIcon className="w-8 h-8 text-blue-500" />,
+    icon: <Footprints className="w-8 h-8 text-blue-500" />,
     color: 'text-blue-500',
     progressGradient: 'bg-gradient-to-r from-blue-200 to-blue-600',
     unit: 'steps',
