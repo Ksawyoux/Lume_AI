@@ -177,6 +177,8 @@ export class MemStorage implements IStorage {
       date: new Date(2023, 4, 15),
       updatedDate: new Date(2023, 4, 15)
     });
+    
+    // Health data will be added separately
   }
 
   // User methods
@@ -258,6 +260,57 @@ export class MemStorage implements IStorage {
     return this.insights.get(id);
   }
   
+  // Health Data methods
+  async createHealthData(insertHealthData: InsertHealthData): Promise<HealthData> {
+    const id = this.healthDataIds.current++;
+    const healthData: HealthData = { ...insertHealthData, id };
+    this.healthData.set(id, healthData);
+    return healthData;
+  }
+  
+  async getHealthDataByUserId(userId: number, type?: HealthMetricType, limit?: number): Promise<HealthData[]> {
+    let userHealthData = Array.from(this.healthData.values())
+      .filter(data => data.userId === userId);
+      
+    if (type) {
+      userHealthData = userHealthData.filter(data => data.type === type);
+    }
+    
+    userHealthData = userHealthData.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    return limit ? userHealthData.slice(0, limit) : userHealthData;
+  }
+  
+  async getLatestHealthDataByType(userId: number, type: HealthMetricType): Promise<HealthData | undefined> {
+    const userHealthData = await this.getHealthDataByUserId(userId, type);
+    return userHealthData.length > 0 ? userHealthData[0] : undefined;
+  }
+  
+  async getHealthDataStats(userId: number, type: HealthMetricType, days: number = 7): Promise<{ min: number, max: number, avg: number, count: number }> {
+    const cutoffDate = subDays(new Date(), days);
+    
+    const relevantData = (await this.getHealthDataByUserId(userId, type))
+      .filter(data => new Date(data.timestamp) >= cutoffDate);
+    
+    if (relevantData.length === 0) {
+      return { min: 0, max: 0, avg: 0, count: 0 };
+    }
+    
+    const values = relevantData.map(data => data.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    const avg = sum / values.length;
+    
+    return {
+      min,
+      max,
+      avg,
+      count: values.length
+    };
+  }
+
   // Analytics methods
   async getSpendingByEmotion(userId: number): Promise<Array<{ emotion: EmotionType, amount: number }>> {
     const transactions = await this.getTransactionsByUserId(userId);
@@ -284,3 +337,88 @@ export class MemStorage implements IStorage {
 }
 
 export const storage = new MemStorage();
+
+// Add health data after storage is initialized
+const addHealthData = async () => {
+  const user = await storage.getUser(1);
+  if (!user) return;
+  
+  const today = new Date();
+  
+  // Heart rate data (bpm)
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    await storage.createHealthData({
+      userId: user.id,
+      type: "heartRate",
+      value: 60 + Math.floor(Math.random() * 20), // Random between 60-80 bpm
+      unit: "bpm",
+      source: "appleWatch",
+      timestamp: date,
+      metadata: JSON.stringify({
+        activityType: "resting",
+        confidence: "high"
+      })
+    });
+  }
+  
+  // Sleep data (hours)
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    await storage.createHealthData({
+      userId: user.id,
+      type: "sleepQuality",
+      value: 5 + Math.random() * 3, // Random between 5-8 hours
+      unit: "hours",
+      source: "appleWatch",
+      timestamp: date,
+      metadata: JSON.stringify({
+        deepSleep: (1 + Math.random() * 2).toFixed(1),
+        remSleep: (1 + Math.random() * 2).toFixed(1),
+        lightSleep: (3 + Math.random() * 1).toFixed(1)
+      })
+    });
+  }
+  
+  // Recovery score (percentage)
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    await storage.createHealthData({
+      userId: user.id,
+      type: "recovery",
+      value: 30 + Math.floor(Math.random() * 70), // Random between 30-100%
+      unit: "percent",
+      source: "appleWatch",
+      timestamp: date,
+      metadata: JSON.stringify({
+        hrvScore: Math.floor(Math.random() * 100),
+        sleepQualityFactor: Math.floor(Math.random() * 100),
+        restingHeartRate: 55 + Math.floor(Math.random() * 10)
+      })
+    });
+  }
+  
+  // Daily steps
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    await storage.createHealthData({
+      userId: user.id,
+      type: "steps",
+      value: 5000 + Math.floor(Math.random() * 7000), // Random between 5k-12k steps
+      unit: "count",
+      source: "appleWatch",
+      timestamp: date,
+      metadata: JSON.stringify({
+        activeMinutes: 30 + Math.floor(Math.random() * 60),
+        distance: (3 + Math.random() * 6).toFixed(2)
+      })
+    });
+  }
+};
+
+// Execute it asynchronously
+addHealthData();
