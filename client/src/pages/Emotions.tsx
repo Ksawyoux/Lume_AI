@@ -81,7 +81,17 @@ export default function Emotions() {
                 <div className="space-y-3">
                   {emotions?.map((emotion) => {
                     const emotionType = emotion.type;
-                    const date = new Date(emotion.date);
+                    // Ensure we have a valid date object
+                    let date;
+                    try {
+                      date = new Date(emotion.date);
+                      // Check if date is valid
+                      if (isNaN(date.getTime())) {
+                        date = new Date(); // Fallback to current date if invalid
+                      }
+                    } catch (e) {
+                      date = new Date(); // Fallback to current date if error
+                    }
                     const colorClass = getEmotionColor(emotionType);
                     
                     return (
@@ -101,7 +111,13 @@ export default function Emotions() {
                                 {emotionConfig[emotionType].label}
                               </span>
                               <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                                {format(date, "MMM d").toUpperCase()} · {formatDistanceToNow(date, { addSuffix: true }).toUpperCase()}
+                                {/* Format date safely */}
+                                {!isNaN(date.getTime()) ? 
+                                  <>
+                                    {format(date, "MMM d")}
+                                    {` · ${formatDistanceToNow(date, { addSuffix: true })}`}
+                                  </> : 
+                                  "RECENT"}
                               </span>
                             </div>
                             
