@@ -1,0 +1,276 @@
+import { emotions, transactions, insights, users } from "@shared/schema";
+import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType } from "@shared/schema";
+import { format } from "date-fns";
+
+// modify the interface with any CRUD methods
+// you might need
+export interface IStorage {
+  // User
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
+  // Emotions
+  createEmotion(emotion: InsertEmotion): Promise<Emotion>;
+  getEmotionsByUserId(userId: number): Promise<Emotion[]>;
+  getEmotionById(id: number): Promise<Emotion | undefined>;
+  getLatestEmotionByUserId(userId: number): Promise<Emotion | undefined>;
+  
+  // Transactions
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getTransactionsByUserId(userId: number, limit?: number): Promise<Transaction[]>;
+  getTransactionById(id: number): Promise<Transaction | undefined>;
+  
+  // Insights
+  createInsight(insight: InsertInsight): Promise<Insight>;
+  getInsightsByUserId(userId: number): Promise<Insight[]>;
+  getInsightById(id: number): Promise<Insight | undefined>;
+  
+  // Analytics
+  getSpendingByEmotion(userId: number): Promise<Array<{ emotion: EmotionType, amount: number }>>;
+}
+
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private emotions: Map<number, Emotion>;
+  private transactions: Map<number, Transaction>;
+  private insights: Map<number, Insight>;
+  private userIds: { current: number };
+  private emotionIds: { current: number };
+  private transactionIds: { current: number };
+  private insightIds: { current: number };
+
+  constructor() {
+    this.users = new Map();
+    this.emotions = new Map();
+    this.transactions = new Map();
+    this.insights = new Map();
+    
+    this.userIds = { current: 1 };
+    this.emotionIds = { current: 1 };
+    this.transactionIds = { current: 1 };
+    this.insightIds = { current: 1 };
+    
+    // Add seed data
+    this.seedData();
+  }
+
+  private seedData() {
+    // Create a test user
+    const user: User = {
+      id: this.userIds.current++,
+      username: "demo",
+      password: "password", // In a real app, this would be hashed
+      name: "Jamie",
+      initials: "JS",
+    };
+    this.users.set(user.id, user);
+    
+    // Define the emotion categories
+    const emotionTypes: EmotionType[] = ["stressed", "worried", "neutral", "content", "happy"];
+    
+    // Create some emotions for the user
+    const emotions: InsertEmotion[] = [
+      {
+        userId: user.id,
+        type: "stressed",
+        notes: "Feeling overwhelmed with work",
+        date: new Date(2023, 4, 10) // May 10, 2023
+      },
+      {
+        userId: user.id,
+        type: "worried",
+        notes: "Concerned about upcoming bills",
+        date: new Date(2023, 4, 11) // May 11, 2023
+      },
+      {
+        userId: user.id,
+        type: "happy",
+        notes: "Got a promotion!",
+        date: new Date(2023, 4, 14) // May 14, 2023
+      },
+      {
+        userId: user.id,
+        type: "content",
+        notes: "Feeling calm and balanced today",
+        date: new Date(2023, 4, 15) // May 15, 2023
+      }
+    ];
+    
+    // Add emotions
+    emotions.forEach(emotion => {
+      const emotionId = this.emotionIds.current++;
+      this.emotions.set(emotionId, { ...emotion, id: emotionId });
+    });
+    
+    // Add transactions
+    this.createTransaction({
+      userId: user.id,
+      amount: -64.32,
+      description: "Whole Foods Market",
+      category: "grocery",
+      date: new Date(2023, 4, 15, 14, 34), // May 15, 2023, 2:34 PM
+      emotionId: 4 // Content
+    });
+    
+    this.createTransaction({
+      userId: user.id,
+      amount: -32.50,
+      description: "Cinema City",
+      category: "entertainment",
+      date: new Date(2023, 4, 14, 19, 15), // May 14, 2023, 7:15 PM
+      emotionId: 2 // Worried
+    });
+    
+    this.createTransaction({
+      userId: user.id,
+      amount: 1450.00,
+      description: "Paycheck Deposit",
+      category: "income",
+      date: new Date(2023, 4, 14, 9, 0), // May 14, 2023, 9:00 AM
+      emotionId: 3 // Happy
+    });
+    
+    this.createTransaction({
+      userId: user.id,
+      amount: -128.75,
+      description: "Online Shopping",
+      category: "shopping",
+      date: new Date(2023, 4, 13, 11, 42), // May 13, 2023, 11:42 AM
+      emotionId: 1 // Stressed
+    });
+    
+    // Add insights
+    this.createInsight({
+      userId: user.id,
+      type: "stress-triggered",
+      title: "Stress-Triggered Spending",
+      description: "You've spent $312 more than usual on online shopping when you were stressed. Try setting a 24-hour waiting period for purchases over $50 when feeling stressed.",
+      date: new Date(2023, 4, 15),
+      updatedDate: new Date(2023, 4, 15)
+    });
+    
+    this.createInsight({
+      userId: user.id,
+      type: "positive-pattern",
+      title: "Positive Spending Pattern",
+      description: "When you're happy, you tend to spend on healthier food options and activities. This month, 65% of your happy-state purchases were for long-term wellbeing.",
+      date: new Date(2023, 4, 15),
+      updatedDate: new Date(2023, 4, 15)
+    });
+    
+    this.createInsight({
+      userId: user.id,
+      type: "mood-boosting",
+      title: "Mood-Boosting Activities",
+      description: "Spending on outdoor activities correlates with a 27% improvement in your reported mood the following day. Consider budgeting $100/month for these activities.",
+      date: new Date(2023, 4, 15),
+      updatedDate: new Date(2023, 4, 15)
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.userIds.current++;
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
+    return user;
+  }
+  
+  // Emotion methods
+  async createEmotion(insertEmotion: InsertEmotion): Promise<Emotion> {
+    const id = this.emotionIds.current++;
+    const emotion: Emotion = { ...insertEmotion, id };
+    this.emotions.set(id, emotion);
+    return emotion;
+  }
+  
+  async getEmotionsByUserId(userId: number): Promise<Emotion[]> {
+    return Array.from(this.emotions.values())
+      .filter(emotion => emotion.userId === userId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+  
+  async getEmotionById(id: number): Promise<Emotion | undefined> {
+    return this.emotions.get(id);
+  }
+  
+  async getLatestEmotionByUserId(userId: number): Promise<Emotion | undefined> {
+    const userEmotions = await this.getEmotionsByUserId(userId);
+    return userEmotions.length > 0 ? userEmotions[0] : undefined;
+  }
+  
+  // Transaction methods
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const id = this.transactionIds.current++;
+    const transaction: Transaction = { ...insertTransaction, id };
+    this.transactions.set(id, transaction);
+    return transaction;
+  }
+  
+  async getTransactionsByUserId(userId: number, limit?: number): Promise<Transaction[]> {
+    const userTransactions = Array.from(this.transactions.values())
+      .filter(transaction => transaction.userId === userId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+    return limit ? userTransactions.slice(0, limit) : userTransactions;
+  }
+  
+  async getTransactionById(id: number): Promise<Transaction | undefined> {
+    return this.transactions.get(id);
+  }
+  
+  // Insight methods
+  async createInsight(insertInsight: InsertInsight): Promise<Insight> {
+    const id = this.insightIds.current++;
+    const insight: Insight = { ...insertInsight, id };
+    this.insights.set(id, insight);
+    return insight;
+  }
+  
+  async getInsightsByUserId(userId: number): Promise<Insight[]> {
+    return Array.from(this.insights.values())
+      .filter(insight => insight.userId === userId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+  
+  async getInsightById(id: number): Promise<Insight | undefined> {
+    return this.insights.get(id);
+  }
+  
+  // Analytics methods
+  async getSpendingByEmotion(userId: number): Promise<Array<{ emotion: EmotionType, amount: number }>> {
+    const transactions = await this.getTransactionsByUserId(userId);
+    
+    // Initialize results with all emotion types
+    const emotionTypes: EmotionType[] = ["stressed", "worried", "neutral", "content", "happy"];
+    const result = emotionTypes.map(emotion => ({ emotion, amount: 0 }));
+    
+    // Calculate spending by emotion
+    for (const transaction of transactions) {
+      if (transaction.emotionId) {
+        const emotion = await this.getEmotionById(transaction.emotionId);
+        if (emotion && transaction.amount < 0) { // Only count expenses
+          const index = result.findIndex(r => r.emotion === emotion.type);
+          if (index !== -1) {
+            result[index].amount += Math.abs(transaction.amount);
+          }
+        }
+      }
+    }
+    
+    return result;
+  }
+}
+
+export const storage = new MemStorage();
