@@ -15,7 +15,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
     
     const analysis = await analyzeEmotion(text);
     return res.json(analysis);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in emotion analysis:', error);
     return res.status(500).json({ error: error.message || 'An error occurred during emotion analysis' });
   }
@@ -39,13 +39,13 @@ router.post('/patterns', async (req: Request, res: Response) => {
     
     // Format emotions for analysis
     const entries = emotions.map(emotion => ({
-      text: emotion.notes || `Feeling ${emotion.type}`,
+      text: emotion.notes ?? `Feeling ${emotion.type}`,
       date: new Date(emotion.date).toISOString()
     }));
     
     const patterns = await analyzeEmotionalPatterns(entries);
     return res.json(patterns);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in emotional pattern analysis:', error);
     return res.status(500).json({ error: error.message || 'An error occurred during pattern analysis' });
   }
@@ -88,7 +88,7 @@ router.post('/insights/finance', async (req: Request, res: Response) => {
     
     const insights = await generatePersonalizedInsights(emotionalData, financialData);
     return res.json(insights);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating personalized insights:', error);
     return res.status(500).json({ error: error.message || 'An error occurred while generating insights' });
   }
