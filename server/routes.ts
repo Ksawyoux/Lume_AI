@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertEmotionSchema, insertTransactionSchema, insertUserSchema } from "@shared/schema";
+import { insertEmotionSchema, insertHealthDataSchema, insertTransactionSchema, insertUserSchema, HealthMetricType } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -202,6 +202,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Health Data routes
+  app.get("/api/users/:userId/health", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const type = req.query.type as HealthMetricType | undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const healthData = await storage.getHealthDataByUserId(userId, type, limit);
+      res.json(healthData);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/users/:userId/health/:type/latest", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const type = req.params.type as HealthMetricType;
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const latestData = await storage.getLatestHealthDataByType(userId, type);
+      
+      if (!latestData) {
+        return res.status(404).json({ message: `No ${type} data found for this user` });
+      }
+      
+      res.json(latestData);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/users/:userId/health/:type/stats", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const type = req.params.type as HealthMetricType;
+      const days = req.query.days ? parseInt(req.query.days as string) : 7;
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const stats = await storage.getHealthDataStats(userId, type, days);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.post("/api/health-data", async (req, res) => {
+    try {
+      const healthData = insertHealthDataSchema.parse(req.body);
+      const user = await storage.getUser(healthData.userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const newHealthData = await storage.createHealthData(healthData);
+      res.status(201).json(newHealthData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Analytics routes
   app.get("/api/users/:userId/analytics/spending-by-emotion", async (req, res) => {
     try {
