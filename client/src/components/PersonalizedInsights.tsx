@@ -13,17 +13,33 @@ export default function PersonalizedInsights() {
   
   if (!user) return null;
   
+  // Map insight types to WHOOP recovery colors
+  const getInsightColor = (type: string) => {
+    switch(type) {
+      case 'stress-triggered':
+        return 'bg-[hsl(var(--recovery-low)/0.1)] text-[hsl(var(--recovery-low))]';
+      case 'pattern':
+        return 'bg-[hsl(var(--recovery-medium)/0.1)] text-[hsl(var(--recovery-medium))]';
+      case 'finance':
+        return 'bg-[hsl(var(--recovery-neutral)/0.1)] text-[hsl(var(--recovery-neutral))]';
+      case 'suggestion':
+        return 'bg-[hsl(var(--recovery-high)/0.1)] text-[hsl(var(--recovery-high))]';
+      default:
+        return 'bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]';
+    }
+  };
+  
   return (
     <section className="px-4 py-4">
-      {/* WHOOP-inspired section header */}
+      {/* WHOOP-style section header */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-medium text-foreground">Personalized Insights</h3>
-        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium">
-          Updated Today
+        <h3 className="text-base font-semibold text-foreground uppercase tracking-wider">INSIGHTS</h3>
+        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium tracking-wider uppercase">
+          UPDATED TODAY
         </span>
       </div>
       
-      {/* WHOOP-inspired insights container */}
+      {/* WHOOP-style insights container */}
       <div className="whoop-container">
         {isLoading ? (
           <div className="space-y-4">
@@ -45,6 +61,7 @@ export default function PersonalizedInsights() {
           <div>
             {insights?.map((insight, index) => {
               const isLast = index === insights.length - 1;
+              const colorClass = getInsightColor(insight.type);
               
               return (
                 <div 
@@ -53,19 +70,18 @@ export default function PersonalizedInsights() {
                 >
                   <div className="flex">
                     <div 
-                      className="w-10 h-10 rounded-full flex items-center justify-center mr-3 shadow-sm"
-                      style={{ 
-                        backgroundColor: `hsl(${insightConfig[insight.type]?.color.match(/\d+/g)?.[0] || '0'} 80% 95%)`,
-                        color: insightConfig[insight.type]?.color || 'hsl(var(--primary))'
-                      }}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${colorClass}`}
                     >
                       <i className={`fas fa-${insightConfig[insight.type]?.icon || 'lightbulb'}`}></i>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-foreground">{insight.title}</h4>
+                      <h4 className="text-sm font-semibold text-foreground tracking-wide">{insight.title}</h4>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                         {insight.description}
                       </p>
+                      <div className="mt-2">
+                        <span className="text-xs text-primary tracking-wider uppercase">View Details</span>
+                      </div>
                     </div>
                   </div>
                 </div>
