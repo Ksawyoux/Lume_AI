@@ -4,6 +4,10 @@ import { z } from "zod";
 
 export type EmotionType = "stressed" | "worried" | "neutral" | "content" | "happy";
 
+export type HealthMetricType = "heartRate" | "sleepQuality" | "recovery" | "strain" | "readiness" | "steps" | "calories" | "workout";
+
+export type HealthSource = "appleWatch" | "manual" | "whoop" | "fitbit" | "other";
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -40,6 +44,17 @@ export const insights = pgTable("insights", {
   updatedDate: timestamp("updated_date"),
 });
 
+export const healthData = pgTable("health_data", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(), // heartRate, sleepQuality, recovery, etc.
+  value: real("value").notNull(),
+  unit: text("unit").notNull(), // bpm, hours, percent, steps, calories, etc.
+  source: text("source").notNull(), // appleWatch, manual, whoop, etc.
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  metadata: text("metadata"), // JSON string for additional data
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -73,6 +88,16 @@ export const insertInsightSchema = createInsertSchema(insights).pick({
   updatedDate: true,
 });
 
+export const insertHealthDataSchema = createInsertSchema(healthData).pick({
+  userId: true,
+  type: true,
+  value: true,
+  unit: true,
+  source: true,
+  timestamp: true,
+  metadata: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -85,3 +110,6 @@ export type Transaction = typeof transactions.$inferSelect;
 
 export type InsertInsight = z.infer<typeof insertInsightSchema>;
 export type Insight = typeof insights.$inferSelect;
+
+export type InsertHealthData = z.infer<typeof insertHealthDataSchema>;
+export type HealthData = typeof healthData.$inferSelect;

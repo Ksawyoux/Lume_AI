@@ -1,6 +1,6 @@
-import { emotions, transactions, insights, users } from "@shared/schema";
-import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType } from "@shared/schema";
-import { format } from "date-fns";
+import { emotions, transactions, insights, users, healthData } from "@shared/schema";
+import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType, InsertHealthData, HealthData, HealthMetricType } from "@shared/schema";
+import { format, subDays } from "date-fns";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -26,6 +26,12 @@ export interface IStorage {
   getInsightsByUserId(userId: number): Promise<Insight[]>;
   getInsightById(id: number): Promise<Insight | undefined>;
   
+  // Health Data
+  createHealthData(healthData: InsertHealthData): Promise<HealthData>;
+  getHealthDataByUserId(userId: number, type?: HealthMetricType, limit?: number): Promise<HealthData[]>;
+  getLatestHealthDataByType(userId: number, type: HealthMetricType): Promise<HealthData | undefined>;
+  getHealthDataStats(userId: number, type: HealthMetricType, days?: number): Promise<{ min: number, max: number, avg: number, count: number }>;
+
   // Analytics
   getSpendingByEmotion(userId: number): Promise<Array<{ emotion: EmotionType, amount: number }>>;
 }
@@ -35,21 +41,25 @@ export class MemStorage implements IStorage {
   private emotions: Map<number, Emotion>;
   private transactions: Map<number, Transaction>;
   private insights: Map<number, Insight>;
+  private healthData: Map<number, HealthData>;
   private userIds: { current: number };
   private emotionIds: { current: number };
   private transactionIds: { current: number };
   private insightIds: { current: number };
+  private healthDataIds: { current: number };
 
   constructor() {
     this.users = new Map();
     this.emotions = new Map();
     this.transactions = new Map();
     this.insights = new Map();
+    this.healthData = new Map();
     
     this.userIds = { current: 1 };
     this.emotionIds = { current: 1 };
     this.transactionIds = { current: 1 };
     this.insightIds = { current: 1 };
+    this.healthDataIds = { current: 1 };
     
     // Add seed data
     this.seedData();
