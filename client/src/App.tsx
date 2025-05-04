@@ -9,7 +9,6 @@ import Insights from "@/pages/Insights";
 import Emotions from "@/pages/Emotions";
 import Profile from "@/pages/Profile";
 import AddTransaction from "@/pages/AddTransaction";
-import Health from "@/pages/Health";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,7 +19,6 @@ function Router() {
       <Route path="/emotions" component={Emotions} />
       <Route path="/profile" component={Profile} />
       <Route path="/add-transaction" component={AddTransaction} />
-      <Route path="/health" component={Health} />
       <Route component={NotFound} />
     </Switch>
   );

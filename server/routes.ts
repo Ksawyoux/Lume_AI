@@ -2,25 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertEmotionSchema, insertHealthDataSchema, insertTransactionSchema, insertUserSchema, HealthMetricType } from "@shared/schema";
-
-// Apple Watch connection endpoint
-async function handleConnectAppleWatch(req: Request, res: Response) {
-  try {
-    const userId = parseInt(req.params.userId);
-    const { metrics } = req.body;
-    
-    // Store connection preferences and log the connection
-    console.log(`User ${userId} connected Apple Watch with metrics:`, metrics);
-    
-    // In a real implementation, we would store the user's device connection preferences
-    // For now, just return success
-    return res.json({ success: true, message: 'Apple Watch connected successfully', metrics });
-  } catch (error) {
-    console.error('Error connecting Apple Watch:', error);
-    return res.status(500).json({ message: 'Failed to connect Apple Watch' });
-  }
-}
+import { insertEmotionSchema, insertTransactionSchema, insertUserSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -219,102 +201,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
-  
-  // Health Data routes
-  app.get("/api/users/:userId/health", async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const type = req.query.type as HealthMetricType | undefined;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-      
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const healthData = await storage.getHealthDataByUserId(userId, type, limit);
-      res.json(healthData);
-    } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-  
-  app.get("/api/users/:userId/health/:type/latest", async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const type = req.params.type as HealthMetricType;
-      
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-      
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const latestData = await storage.getLatestHealthDataByType(userId, type);
-      
-      if (!latestData) {
-        return res.status(404).json({ message: `No ${type} data found for this user` });
-      }
-      
-      res.json(latestData);
-    } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-  
-  app.get("/api/users/:userId/health/:type/stats", async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const type = req.params.type as HealthMetricType;
-      const days = req.query.days ? parseInt(req.query.days as string) : 7;
-      
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-      
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const stats = await storage.getHealthDataStats(userId, type, days);
-      res.json(stats);
-    } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-  
-  app.post("/api/health-data", async (req, res) => {
-    try {
-      const healthData = insertHealthDataSchema.parse(req.body);
-      const user = await storage.getUser(healthData.userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const newHealthData = await storage.createHealthData(healthData);
-      res.status(201).json(newHealthData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  // Apple Watch connection route
-  app.post("/api/users/:userId/connect-apple-watch", handleConnectAppleWatch);
   
   // Analytics routes
   app.get("/api/users/:userId/analytics/spending-by-emotion", async (req, res) => {
