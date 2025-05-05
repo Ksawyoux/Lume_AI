@@ -208,13 +208,15 @@ export default function Health() {
       <Header />
       
       <main className="flex-1 container max-w-md mx-auto p-4">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold mb-1">Health Report</h1>
-            <p className="text-muted-foreground text-sm">Based on your Apple Watch data</p>
+            <h2 className="text-xl font-bold">Health Report</h2>
+            <p className="text-sm text-gray-400 mt-1">
+              Based on your Apple Watch data
+            </p>
           </div>
           <div className="rounded-full bg-[#2A363D] p-1.5">
-            <Activity size={22} className="text-[#00f19f]" />
+            <Activity size={20} className="text-[#00f19f]" />
           </div>
         </div>
         
@@ -223,7 +225,7 @@ export default function Health() {
           <div className="grid grid-cols-2 gap-4 mb-4">
             {/* Recovery chart */}
             <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[120px]">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Recovery</p>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Recovery</p>
               <div className="mt-2">
                 <div className="relative">
                   {/* Simplified chart */}
@@ -243,14 +245,14 @@ export default function Health() {
                   <div>
                     <span className="text-lg font-bold">{recovery?.value || 0}%</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">Today</span>
+                  <span className="text-xs text-gray-400">Today</span>
                 </div>
               </div>
             </div>
             
             {/* Heart rate chart */}
             <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[120px]">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Heart Rate</p>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Heart Rate</p>
               <div className="mt-2">
                 <div className="relative">
                   {/* Simplified chart - bar chart */}
@@ -269,7 +271,7 @@ export default function Health() {
                     <span className="text-lg font-bold">{heartRate?.value || 0}</span>
                     <span className="text-xs ml-1">bpm</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">Resting</span>
+                  <span className="text-xs text-gray-400">Resting</span>
                 </div>
               </div>
             </div>
@@ -278,41 +280,41 @@ export default function Health() {
           <div className="grid grid-cols-3 gap-4">
             {/* Sleep chart */}
             <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[100px]">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Sleep</p>
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Sleep</p>
               <div className="mt-auto">
                 <div>
                   <span className="text-lg font-bold">{sleep?.value?.toFixed(1) || 0}</span>
                   <span className="text-xs ml-1">hrs</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground">Last night</span>
+                <span className="text-[10px] text-gray-400">Last night</span>
               </div>
             </div>
             
             {/* Strain chart */}
             <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[100px]">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Strain</p>
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Strain</p>
               <div className="mt-auto">
                 <div>
                   <span className="text-lg font-bold">14.2</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground">Daily</span>
+                <span className="text-[10px] text-gray-400">Daily</span>
               </div>
             </div>
             
             {/* Steps chart */}
             <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[100px]">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Steps</p>
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Steps</p>
               <div className="mt-auto">
                 <div>
                   <span className="text-lg font-bold">{(steps?.value || 0).toLocaleString()}</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground">Today</span>
+                <span className="text-[10px] text-gray-400">Today</span>
               </div>
             </div>
           </div>
 
           <div className="mt-4 flex justify-end items-center">
-            <span className="text-[10px] text-muted-foreground mr-1">DATA BY</span>
+            <span className="text-[10px] text-gray-400 mr-1">DATA BY</span>
             <span className="font-bold tracking-wider text-xs">WHOOP</span>
           </div>
         </div>
@@ -327,7 +329,7 @@ export default function Health() {
             </div>
             <div>
               <h3 className="font-semibold">Recommended Workout</h3>
-              <p className="text-sm text-muted-foreground">based on your Recovery Score</p>
+              <p className="text-sm text-gray-400">based on your Recovery Score</p>
             </div>
           </div>
           
@@ -335,7 +337,7 @@ export default function Health() {
             <div className="flex justify-between items-center">
               <div>
                 <h4 className="font-medium mb-1">Moderate Cardio</h4>
-                <p className="text-xs text-muted-foreground">{recovery?.value || 0}% Recovery · Moderate intensity</p>
+                <p className="text-xs text-gray-400">{recovery?.value || 0}% Recovery · Moderate intensity</p>
               </div>
               <Button variant="ghost" size="sm" className="bg-[#1F2932] hover:bg-[#2A363D]">
                 <ArrowRight size={16} />
@@ -354,7 +356,7 @@ export default function Health() {
             </div>
             <div>
               <h3 className="font-semibold">Get back in the Green</h3>
-              <p className="text-sm text-muted-foreground">Recovery recommendations</p>
+              <p className="text-sm text-gray-400">Recovery recommendations</p>
             </div>
           </div>
           
