@@ -24,13 +24,13 @@ export default function Header() {
   
   return (
     <header className="px-4 py-4 flex items-center justify-between bg-[#1a2126] text-white">
-      <div className="flex items-center">
-        {/* WHOOP-style wordmark in uppercase with letter spacing */}
-        <h1 className="text-lg font-bold tracking-widest uppercase">LUME</h1>
+      {/* Left side - LUME wordmark */}
+      <div className="w-1/3">
+        <h1 className="text-xl font-bold tracking-widest uppercase">LUME</h1>
       </div>
       
-      {/* WHOOP-style center recovery score display */}
-      <div className="py-1.5 px-4 flex items-center space-x-1">
+      {/* Center - WHOOP-style recovery score display */}
+      <div className="w-1/3 flex justify-center">
         <div className="flex flex-col items-center">
           <div className="flex items-center">
             {/* Main recovery score with appropriate color based on value */}
@@ -50,7 +50,7 @@ export default function Header() {
       </div>
       
       {/* Right side icons */}
-      <div className="flex items-center space-x-4">
+      <div className="w-1/3 flex justify-end items-center space-x-4">
         <button className="text-gray-400 hover:text-white transition-colors relative">
           <BellIcon className="h-5 w-5" />
         </button>
