@@ -3,7 +3,6 @@ import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import EmotionTracker from '@/components/EmotionTracker';
 import RecentTransactions from '@/components/RecentTransactions';
-import PersonalizedInsights from '@/components/PersonalizedInsights';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -214,9 +213,6 @@ export default function Home() {
         
         {/* Recent Transactions */}
         <RecentTransactions />
-        
-        {/* Personalized Insights */}
-        <PersonalizedInsights />
       </main>
 
       <BottomNavigation />

@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useUser } from '@/context/UserContext';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
+import PersonalizedInsights from '@/components/PersonalizedInsights';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { EmotionType, emotionConfig } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, BarChart2, BriefcaseIcon, UsersIcon, WalletIcon } from 'lucide-react';
+import { BarChart3, BarChart2, BriefcaseIcon, UsersIcon, WalletIcon, Lightbulb } from 'lucide-react';
 
 interface SpendingByEmotion {
   emotion: EmotionType;
@@ -89,12 +90,15 @@ export default function Insights() {
         
         <section className="px-4 py-2">
           <Tabs defaultValue="spending" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#2A363D] rounded-lg overflow-hidden">
+            <TabsList className="grid w-full grid-cols-3 mb-4 bg-[#2A363D] rounded-lg overflow-hidden">
               <TabsTrigger value="spending" className="data-[state=active]:bg-[#00f19f] data-[state=active]:text-[#1a2126] py-2 rounded-none">
-                Spending Analysis
+                Spending
               </TabsTrigger>
               <TabsTrigger value="trends" className="data-[state=active]:bg-[#00f19f] data-[state=active]:text-[#1a2126] py-2 rounded-none">
-                Emotion Trends
+                Trends
+              </TabsTrigger>
+              <TabsTrigger value="insights" className="data-[state=active]:bg-[#00f19f] data-[state=active]:text-[#1a2126] py-2 rounded-none">
+                Insights
               </TabsTrigger>
             </TabsList>
             
@@ -557,6 +561,24 @@ export default function Insights() {
                 <p className="text-xs text-gray-400 mt-3">
                   You've maintained a positive emotional balance this week. Your recovery score indicates good resilience to stress factors.
                 </p>
+              </div>
+            </TabsContent>
+
+            {/* Insights Tab Content */}
+            <TabsContent value="insights">
+              <div className="bg-[#1F2932] rounded-xl p-5 mb-6 shadow-lg">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center">
+                    <Lightbulb size={18} className="text-[#00f19f] mr-2" />
+                    <h4 className="text-sm font-medium">Personalized Insights</h4>
+                  </div>
+                  <span className="text-xs text-gray-400">Based on your data</span>
+                </div>
+                
+                {/* Use the PersonalizedInsights component */}
+                <div className="-mx-5 -mb-5">
+                  <PersonalizedInsights />
+                </div>
               </div>
             </TabsContent>
           </Tabs>
