@@ -1,5 +1,5 @@
 import { emotions, transactions, insights, users, healthData } from "@shared/schema";
-import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType, InsertHealthData, HealthData, HealthMetricType } from "@shared/schema";
+import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType, InsertHealthData, HealthData, HealthMetricType, HealthSource } from "@shared/schema";
 import { format, subDays } from "date-fns";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -127,7 +127,7 @@ export class MemStorage implements IStorage {
         id: emotionId,
         userId: emotion.userId,
         type: emotion.type as EmotionType,
-        date: emotion.date,
+        date: emotion.date || new Date(),
         notes: emotion.notes || null
       });
     });
