@@ -12,8 +12,12 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
   const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   
-  // Track privacy consent
-  const [privacyConsent, setPrivacyConsent] = useState(false);
+  // Track privacy consents
+  const [dataConsent, setDataConsent] = useState(false);
+  const [healthConsent, setHealthConsent] = useState(false);
+  
+  // Combined privacy consent for enabling the button
+  const privacyConsent = dataConsent && healthConsent;
 
   // Welcome screen steps
   const steps = [
@@ -86,11 +90,38 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
             <p className="text-[#00f19f] mb-6">Welcome back, {user.name}!</p>
           )}
           
+          {/* Privacy consent checkboxes - only shown on privacy step */}
+          {steps[currentStep].isPrivacyStep && (
+            <div className="w-full mb-8 text-left">
+              <div className="flex items-start space-x-3 p-4 rounded-lg bg-[#2A363D] mb-3">
+                <Checkbox 
+                  id="privacy-consent" 
+                  checked={privacyConsent}
+                  onCheckedChange={(checked) => setPrivacyConsent(checked as boolean)}
+                  className="mt-1 data-[state=checked]:bg-[#00f19f] data-[state=checked]:text-[#1a2126]"
+                />
+                <div>
+                  <label 
+                    htmlFor="privacy-consent" 
+                    className="text-sm font-medium cursor-pointer block mb-1"
+                  >
+                    I agree to LUME's data collection practices
+                  </label>
+                  <p className="text-xs text-gray-400">
+                    LUME collects and analyzes data about your emotions, financial transactions, and health metrics
+                    to provide personalized insights. Your data is encrypted and never shared with third parties.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Actions */}
           <div className="w-full">
             <Button 
               onClick={nextStep}
-              className="w-full bg-[#00f19f] text-[#1a2126] hover:bg-[#00d989] py-6 rounded-lg font-medium"
+              disabled={steps[currentStep].isPrivacyStep && !privacyConsent}
+              className="w-full bg-[#00f19f] text-[#1a2126] hover:bg-[#00d989] disabled:bg-gray-600 disabled:text-gray-400 py-6 rounded-lg font-medium"
             >
               {currentStep < steps.length - 1 ? 'Continue' : 'Get Started'}
               <ArrowRight className="ml-2 h-5 w-5" />
