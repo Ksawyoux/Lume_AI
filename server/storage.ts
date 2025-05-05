@@ -123,7 +123,13 @@ export class MemStorage implements IStorage {
     // Add emotions
     emotions.forEach(emotion => {
       const emotionId = this.emotionIds.current++;
-      this.emotions.set(emotionId, { ...emotion, id: emotionId });
+      this.emotions.set(emotionId, { 
+        id: emotionId,
+        userId: emotion.userId,
+        type: emotion.type as EmotionType,
+        date: emotion.date,
+        notes: emotion.notes || null
+      });
     });
     
     // Add transactions
@@ -215,7 +221,13 @@ export class MemStorage implements IStorage {
   // Emotion methods
   async createEmotion(insertEmotion: InsertEmotion): Promise<Emotion> {
     const id = this.emotionIds.current++;
-    const emotion: Emotion = { ...insertEmotion, id };
+    const emotion: Emotion = { 
+      id,
+      userId: insertEmotion.userId,
+      type: insertEmotion.type as EmotionType,
+      date: insertEmotion.date || new Date(),
+      notes: insertEmotion.notes || null
+    };
     this.emotions.set(id, emotion);
     return emotion;
   }
@@ -238,7 +250,15 @@ export class MemStorage implements IStorage {
   // Transaction methods
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
     const id = this.transactionIds.current++;
-    const transaction: Transaction = { ...insertTransaction, id };
+    const transaction: Transaction = { 
+      id,
+      userId: insertTransaction.userId,
+      amount: insertTransaction.amount,
+      description: insertTransaction.description,
+      category: insertTransaction.category,
+      date: insertTransaction.date || new Date(),
+      emotionId: insertTransaction.emotionId || null
+    };
     this.transactions.set(id, transaction);
     return transaction;
   }
@@ -258,7 +278,15 @@ export class MemStorage implements IStorage {
   // Insight methods
   async createInsight(insertInsight: InsertInsight): Promise<Insight> {
     const id = this.insightIds.current++;
-    const insight: Insight = { ...insertInsight, id };
+    const insight: Insight = { 
+      id,
+      userId: insertInsight.userId,
+      type: insertInsight.type,
+      title: insertInsight.title,
+      description: insertInsight.description,
+      date: insertInsight.date || new Date(),
+      updatedDate: insertInsight.updatedDate || null
+    };
     this.insights.set(id, insight);
     return insight;
   }
@@ -276,7 +304,16 @@ export class MemStorage implements IStorage {
   // Health Data methods
   async createHealthData(insertHealthData: InsertHealthData): Promise<HealthData> {
     const id = this.healthDataIds.current++;
-    const healthData: HealthData = { ...insertHealthData, id };
+    const healthData: HealthData = { 
+      id,
+      userId: insertHealthData.userId,
+      type: insertHealthData.type,
+      value: insertHealthData.value,
+      unit: insertHealthData.unit,
+      source: insertHealthData.source as HealthSource,
+      timestamp: insertHealthData.timestamp || new Date(),
+      metadata: insertHealthData.metadata || null
+    };
     this.healthData.set(id, healthData);
     return healthData;
   }
