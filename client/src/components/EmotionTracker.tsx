@@ -8,7 +8,20 @@ import { format } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import EmojiSelector from './EmojiSelector';
-import { Camera, Mic } from 'lucide-react';
+import { Camera, Mic, Brain, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+
+export interface EmotionAnalysisResult {
+  primaryEmotion: string;
+  emotionIntensity: number; // 0-1 scale
+  detectedEmotions: string[];
+  emotionalTriggers: string[];
+  recommendations: string[];
+  sentiment: 'positive' | 'negative' | 'neutral';
+  confidence: number; // 0-1 scale
+}
 
 export default function EmotionTracker() {
   const { user } = useUser();
@@ -16,6 +29,9 @@ export default function EmotionTracker() {
   const { toast } = useToast();
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionType | null>("content");
   const [notes, setNotes] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<EmotionAnalysisResult | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
   
   const mutation = useMutation({
     mutationFn: async (data: { userId: number; type: EmotionType; notes: string }) => {
@@ -40,6 +56,64 @@ export default function EmotionTracker() {
     },
   });
   
+  // Analyze text emotion
+  const analyzeEmotion = async () => {
+    if (!notes.trim()) {
+      toast({
+        title: "Empty text",
+        description: "Please enter some text to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+      setShowAnalysis(false);
+      
+      const result = await apiRequest<EmotionAnalysisResult>('/api/ml/emotions/analyze', 'POST', {
+        text: notes
+      });
+      
+      setAnalysisResult(result);
+      setShowAnalysis(true);
+      
+      // Auto-select the emotion based on analysis
+      const emotion = mapToEmotionType(result.primaryEmotion);
+      if (emotion) {
+        setSelectedEmotion(emotion);
+      }
+    } catch (error) {
+      console.error('Error analyzing emotion:', error);
+      toast({
+        title: "Analysis failed",
+        description: "We couldn't analyze your emotions. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+  
+  // Map the AI's emotion to our app's emotion types
+  const mapToEmotionType = (emotion: string): EmotionType | null => {
+    const lowerEmotion = emotion.toLowerCase();
+    
+    if (['stressed', 'anxious', 'afraid', 'frightened', 'nervous'].some(e => lowerEmotion.includes(e))) {
+      return "stressed";
+    } else if (['worried', 'concerned', 'unsettled', 'uneasy'].some(e => lowerEmotion.includes(e))) {
+      return "worried";
+    } else if (['neutral', 'okay', 'fine'].some(e => lowerEmotion.includes(e))) {
+      return "neutral";
+    } else if (['content', 'satisfied', 'pleased', 'serene', 'calm'].some(e => lowerEmotion.includes(e))) {
+      return "content";
+    } else if (['happy', 'joyful', 'excited', 'delighted', 'cheerful'].some(e => lowerEmotion.includes(e))) {
+      return "happy";
+    }
+    
+    return null;
+  };
+
   const handleSaveEmotion = () => {
     if (!user || !selectedEmotion) return;
     
@@ -48,6 +122,23 @@ export default function EmotionTracker() {
       type: selectedEmotion,
       notes: notes,
     });
+  };
+  
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'negative':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case 'neutral':
+      default:
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    }
+  };
+  
+  const truncateAndCapitalize = (text: string) => {
+    // Capitalize first letter and truncate if too long
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
   };
 
   return (
@@ -69,14 +160,39 @@ export default function EmotionTracker() {
         <div className="mt-3">
           <Textarea
             className="w-full px-4 py-3 text-sm rounded-lg border border-border bg-background focus-visible:ring-primary focus-visible:ring-offset-0 resize-none transition"
-            placeholder="Add notes about how you're feeling (optional)"
+            placeholder="Add notes about how you're feeling and we'll analyze your emotions (optional)"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            rows={2}
+            rows={3}
           />
+          
+          {showAnalysis && analysisResult && (
+            <Card className="mt-3 overflow-hidden bg-card/60 backdrop-blur-md dark:bg-card/60 relative border-border">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-cyan-500"></div>
+              <CardContent className="p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">AI Analysis</span>
+                  </div>
+                  <Badge className={getSentimentColor(analysisResult.sentiment)}>
+                    {truncateAndCapitalize(analysisResult.sentiment)}
+                  </Badge>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-medium">{truncateAndCapitalize(analysisResult.primaryEmotion)}</span>
+                    <span className="text-xs text-muted-foreground">{Math.round(analysisResult.emotionIntensity * 100)}%</span>
+                  </div>
+                  <Progress value={analysisResult.emotionIntensity * 100} className="h-1.5" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="mt-3 flex space-x-3">
-            {/* WHOOP-inspired input methods */}
+            {/* Input methods and analyze button */}
             <Button
               type="button"
               size="icon"
@@ -95,6 +211,24 @@ export default function EmotionTracker() {
             >
               <Camera className="h-5 w-5" />
             </Button>
+            
+            {/* AI Analysis button */}
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              className="rounded-full w-10 h-10 bg-accent/50 text-primary hover:bg-accent/80 transition shadow-sm"
+              title="Analyze with AI"
+              onClick={analyzeEmotion}
+              disabled={!notes.trim() || isAnalyzing}
+            >
+              {isAnalyzing ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Brain className="h-5 w-5" />
+              )}
+            </Button>
+            
             <div className="flex-1"></div>
             <Button
               onClick={handleSaveEmotion}
