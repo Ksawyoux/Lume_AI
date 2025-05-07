@@ -79,11 +79,11 @@ export class MemStorage implements IStorage {
   }
 
   private seedData() {
-    // Create a test user
+    // Create a test user with properly formatted password
     const user: User = {
       id: this.userIds.current++,
       username: "demo",
-      password: "password", // In a real app, this would be hashed
+      password: "password", // Simple password for demo account
       name: "Youness",
       initials: "YS",
     };
