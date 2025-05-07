@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <rect width="300" height="300" fill="none" />
+  <circle cx="150" cy="150" r="60" fill="#9c9c9c" opacity="0.2" />
+  
+  <!-- AI Chatbot -->
+  <g transform="translate(100, 80)">
+    <!-- Robot head -->
+    <rect x="20" y="20" width="60" height="60" rx="10" fill="#9c9c9c" />
+    
+    <!-- Robot eyes -->
+    <circle cx="40" cy="40" r="8" fill="white" />
+    <circle cx="60" cy="40" r="8" fill="white" />
+    <circle cx="40" cy="40" r="4" fill="#00f19f" />
+    <circle cx="60" cy="40" r="4" fill="#00f19f" />
+    
+    <!-- Robot antenna -->
+    <rect x="45" y="10" width="10" height="10" fill="#9c9c9c" />
+    <circle cx="50" cy="5" r="5" fill="#00f19f" />
+    
+    <!-- Robot mouth -->
+    <rect x="35" y="60" width="30" height="5" rx="2" fill="white" />
+    
+    <!-- Chat bubbles -->
+    <circle cx="100" cy="30" r="15" fill="#9c9c9c" opacity="0.5" />
+    <circle cx="110" cy="60" r="10" fill="#9c9c9c" opacity="0.5" />
+    <circle cx="95" cy="80" r="8" fill="#9c9c9c" opacity="0.5" />
+  </g>
+  
+  <text x="150" y="220" text-anchor="middle" font-family="Arial" font-size="20" fill="#9c9c9c">Empathic AI Wellness</text>
+  <text x="150" y="245" text-anchor="middle" font-family="Arial" font-size="16" fill="#9c9c9c">Chatbot For All</text>
+</svg>

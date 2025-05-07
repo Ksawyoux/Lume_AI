@@ -5,16 +5,16 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  SafeAreaView,
   Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
+import { theme } from '../utils/helpers';
 
-export default function AuthScreen() {
+const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,32 +22,17 @@ export default function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const navigation = useNavigation();
   const { login, register } = useAuth();
   
-  const handleAuth = async () => {
-    setError('');
+  const handleSubmit = async () => {
     setLoading(true);
+    setError('');
     
     try {
       if (isLogin) {
-        // For demo purposes, using a simple email/password check
-        if (email === 'demo@example.com' && password === 'password') {
-          await login({ email, name: 'Demo User' });
-          navigation.navigate('Main');
-        } else {
-          setError('Invalid credentials. Try demo@example.com / password');
-        }
+        await login({ email, password });
       } else {
-        // Registration would typically connect to a backend
-        if (!name || !email || !password) {
-          setError('Please fill all fields');
-        } else if (password.length < 6) {
-          setError('Password must be at least 6 characters');
-        } else {
-          await register({ email, name });
-          navigation.navigate('Main');
-        }
+        await register({ email, password, name });
       }
     } catch (err) {
       setError(err.message || 'Authentication failed');
@@ -56,308 +41,223 @@ export default function AuthScreen() {
     }
   };
   
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
+    setError('');
+  };
+  
+  const isSubmitDisabled = () => {
+    if (isLogin) {
+      return !email || !password || loading;
+    } else {
+      return !email || !password || !name || loading;
+    }
+  };
+  
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        style={styles.keyboardAvoidingView}
       >
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
-            <Text style={styles.title}>Lume</Text>
-            <Text style={styles.subtitle}>Where emotions meet finances</Text>
+            <Text style={styles.logo}>LUME</Text>
+            <Text style={styles.tagline}>
+              Financial wellness through emotional intelligence
+            </Text>
           </View>
           
           <View style={styles.formContainer}>
-            <View style={styles.tabContainer}>
-              <TouchableOpacity 
-                style={[styles.tab, isLogin && styles.activeTab]} 
-                onPress={() => setIsLogin(true)}
-              >
-                <Text style={[styles.tabText, isLogin && styles.activeTabText]}>Login</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.tab, !isLogin && styles.activeTab]} 
-                onPress={() => setIsLogin(false)}
-              >
-                <Text style={[styles.tabText, !isLogin && styles.activeTabText]}>Register</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{isLogin ? 'Welcome back' : 'Create an account'}</Text>
-              <Text style={styles.cardSubtitle}>
-                {isLogin 
-                  ? 'Enter your credentials to access your account' 
-                  : 'Enter your details to get started'}
-              </Text>
-              
-              {!isLogin && (
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="John Doe"
-                    placeholderTextColor="#666"
-                    value={name}
-                    onChangeText={setName}
-                  />
-                </View>
-              )}
-              
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="name@example.com"
-                  placeholderTextColor="#666"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-              
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Password</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••••"
-                  placeholderTextColor="#666"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-              </View>
-              
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
-              
-              <TouchableOpacity 
-                style={[styles.button, loading && styles.buttonDisabled]} 
-                onPress={handleAuth}
-                disabled={loading}
-              >
-                <Text style={styles.buttonText}>
-                  {loading 
-                    ? isLogin ? 'Signing in...' : 'Creating account...' 
-                    : isLogin ? 'Sign in' : 'Create account'}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.linkButton} 
-                onPress={() => setIsLogin(!isLogin)}
-              >
-                <Text style={styles.linkText}>
-                  {isLogin 
-                    ? "Don't have an account? Create one" 
-                    : 'Already have an account? Sign in'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          
-          <View style={styles.features}>
-            <Text style={styles.featuresTitle}>Track your emotions, transform your finances</Text>
-            <Text style={styles.featuresSubtitle}>
-              Lume helps you understand how your emotional states influence your financial decisions,
-              providing personalized insights for better financial well-being.
+            <Text style={styles.title}>
+              {isLogin ? 'Sign In' : 'Create Account'}
             </Text>
             
-            <View style={styles.featuresList}>
-              <View style={styles.featureItem}>
-                <View style={styles.featureIcon}>
-                  <Text style={styles.featureIconText}>1</Text>
-                </View>
-                <Text style={styles.featureTitle}>Track emotions</Text>
-                <Text style={styles.featureDescription}>Record and analyze your emotional states</Text>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            
+            {!isLogin && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Full Name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your name"
+                  placeholderTextColor={theme.colors.text.muted}
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                />
               </View>
-              
-              <View style={styles.featureItem}>
-                <View style={styles.featureIcon}>
-                  <Text style={styles.featureIconText}>2</Text>
-                </View>
-                <Text style={styles.featureTitle}>Connect finances</Text>
-                <Text style={styles.featureDescription}>Link your financial data securely</Text>
-              </View>
-              
-              <View style={styles.featureItem}>
-                <View style={styles.featureIcon}>
-                  <Text style={styles.featureIconText}>3</Text>
-                </View>
-                <Text style={styles.featureTitle}>Gain insights</Text>
-                <Text style={styles.featureDescription}>Get personalized recommendations</Text>
-              </View>
+            )}
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                placeholderTextColor={theme.colors.text.muted}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                placeholderTextColor={theme.colors.text.muted}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            
+            {isLogin && (
+              <TouchableOpacity style={styles.forgotPasswordContainer}>
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity
+              style={[
+                styles.button,
+                isSubmitDisabled() && styles.buttonDisabled,
+              ]}
+              onPress={handleSubmit}
+              disabled={isSubmitDisabled()}
+            >
+              <Text style={styles.buttonText}>
+                {loading
+                  ? 'Please wait...'
+                  : isLogin
+                  ? 'Sign In'
+                  : 'Create Account'}
+              </Text>
+            </TouchableOpacity>
+            
+            <View style={styles.toggleContainer}>
+              <Text style={styles.toggleText}>
+                {isLogin
+                  ? "Don't have an account?"
+                  : 'Already have an account?'}
+              </Text>
+              <TouchableOpacity onPress={toggleAuthMode}>
+                <Text style={styles.toggleButton}>
+                  {isLogin ? 'Sign Up' : 'Sign In'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.colors.background.dark,
   },
-  scrollContainer: {
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingBottom: 40,
   },
   header: {
-    padding: 20,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 60,
+    marginBottom: 40,
   },
-  title: {
-    fontSize: 28,
+  logo: {
+    fontSize: 40,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.colors.primary,
+    letterSpacing: 4,
   },
-  subtitle: {
+  tagline: {
     fontSize: 16,
-    color: '#888',
-    marginTop: 5,
+    color: theme.colors.text.secondary,
+    marginTop: 8,
+    textAlign: 'center',
   },
   formContainer: {
     paddingHorizontal: 20,
   },
-  tabContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#1e1e1e',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  activeTab: {
-    backgroundColor: '#2d2d2d',
-  },
-  tabText: {
-    color: '#888',
-    fontWeight: '500',
-  },
-  activeTabText: {
-    color: '#fff',
-  },
-  card: {
-    backgroundColor: '#1e1e1e',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  cardTitle: {
-    fontSize: 20,
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
+    color: theme.colors.text.primary,
+    marginBottom: 24,
   },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 20,
+  error: {
+    color: theme.colors.error,
+    marginBottom: 16,
+    fontWeight: '500',
   },
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#ccc',
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: '#2d2d2d',
-    borderRadius: 8,
-    height: 48,
-    paddingHorizontal: 16,
-    color: '#fff',
-    borderWidth: 1,
-    borderColor: '#444',
-  },
-  errorText: {
-    color: '#ff4d4f',
-    marginTop: 8,
+    fontSize: 16,
+    color: theme.colors.text.secondary,
     marginBottom: 8,
   },
-  button: {
-    backgroundColor: '#00f19f',
+  input: {
+    backgroundColor: theme.colors.background.light,
+    height: 50,
     borderRadius: 8,
-    height: 48,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
+  },
+  forgotPasswordText: {
+    color: theme.colors.primary,
+    fontSize: 14,
+  },
+  button: {
+    backgroundColor: theme.colors.primary,
+    height: 50,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginBottom: 16,
   },
   buttonDisabled: {
+    backgroundColor: theme.colors.border,
     opacity: 0.7,
   },
   buttonText: {
-    color: '#121212',
-    fontWeight: 'bold',
+    color: theme.colors.background.dark,
     fontSize: 16,
-  },
-  linkButton: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#00f19f',
-    fontSize: 14,
-  },
-  features: {
-    padding: 20,
-    marginTop: 20,
-  },
-  featuresTitle: {
-    fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 10,
   },
-  featuresSubtitle: {
-    fontSize: 16,
-    color: '#aaa',
-    textAlign: 'center',
-    marginBottom: 30,
-    lineHeight: 24,
-  },
-  featuresList: {
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-  },
-  featureItem: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  featureIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 241, 159, 0.2)',
+  toggleContainer: {
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
+    marginTop: 16,
   },
-  featureIconText: {
-    color: '#00f19f',
+  toggleText: {
+    color: theme.colors.text.secondary,
+    marginRight: 4,
+  },
+  toggleButton: {
+    color: theme.colors.primary,
     fontWeight: 'bold',
-  },
-  featureTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 5,
-  },
-  featureDescription: {
-    fontSize: 14,
-    color: '#888',
-    textAlign: 'center',
   },
 });
+
+export default AuthScreen;
