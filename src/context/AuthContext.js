@@ -116,10 +116,13 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Logout function
+  // Logout function with Supabase
   const logout = async () => {
     try {
       setLoading(true);
+      
+      // Sign out from Supabase
+      await signOut();
       
       // Remove user from storage
       await storage.removeItem('user');
