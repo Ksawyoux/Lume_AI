@@ -386,7 +386,12 @@ export class MemStorage implements IStorage {
   }
 }
 
+// Use MemStorage (in-memory storage) for now
 export const storage = new MemStorage();
+
+// TODO: Fix Supabase integration
+// import { supabaseStorage } from './supabaseStorage';
+// export const storage = supabaseStorage;
 
 // Add health data after storage is initialized
 const addHealthData = async () => {
