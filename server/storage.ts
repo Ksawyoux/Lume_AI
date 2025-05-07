@@ -1,5 +1,5 @@
 import { emotions, transactions, insights, users, healthData } from "@shared/schema";
-import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType, InsertHealthData, HealthData, HealthMetricType, HealthSource } from "@shared/schema";
+import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType, InsertHealthData, HealthData, HealthMetricType } from "@shared/schema";
 import { format, subDays } from "date-fns";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -79,11 +79,11 @@ export class MemStorage implements IStorage {
   }
 
   private seedData() {
-    // Create a test user with properly formatted password
+    // Create a test user
     const user: User = {
       id: this.userIds.current++,
       username: "demo",
-      password: "password", // Simple password for demo account
+      password: "password", // In a real app, this would be hashed
       name: "Youness",
       initials: "YS",
     };
@@ -123,13 +123,7 @@ export class MemStorage implements IStorage {
     // Add emotions
     emotions.forEach(emotion => {
       const emotionId = this.emotionIds.current++;
-      this.emotions.set(emotionId, { 
-        id: emotionId,
-        userId: emotion.userId,
-        type: emotion.type as EmotionType,
-        date: emotion.date || new Date(),
-        notes: emotion.notes || null
-      });
+      this.emotions.set(emotionId, { ...emotion, id: emotionId });
     });
     
     // Add transactions
@@ -221,13 +215,7 @@ export class MemStorage implements IStorage {
   // Emotion methods
   async createEmotion(insertEmotion: InsertEmotion): Promise<Emotion> {
     const id = this.emotionIds.current++;
-    const emotion: Emotion = { 
-      id,
-      userId: insertEmotion.userId,
-      type: insertEmotion.type as EmotionType,
-      date: insertEmotion.date || new Date(),
-      notes: insertEmotion.notes || null
-    };
+    const emotion: Emotion = { ...insertEmotion, id };
     this.emotions.set(id, emotion);
     return emotion;
   }
@@ -250,15 +238,7 @@ export class MemStorage implements IStorage {
   // Transaction methods
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
     const id = this.transactionIds.current++;
-    const transaction: Transaction = { 
-      id,
-      userId: insertTransaction.userId,
-      amount: insertTransaction.amount,
-      description: insertTransaction.description,
-      category: insertTransaction.category,
-      date: insertTransaction.date || new Date(),
-      emotionId: insertTransaction.emotionId || null
-    };
+    const transaction: Transaction = { ...insertTransaction, id };
     this.transactions.set(id, transaction);
     return transaction;
   }
@@ -278,15 +258,7 @@ export class MemStorage implements IStorage {
   // Insight methods
   async createInsight(insertInsight: InsertInsight): Promise<Insight> {
     const id = this.insightIds.current++;
-    const insight: Insight = { 
-      id,
-      userId: insertInsight.userId,
-      type: insertInsight.type,
-      title: insertInsight.title,
-      description: insertInsight.description,
-      date: insertInsight.date || new Date(),
-      updatedDate: insertInsight.updatedDate || null
-    };
+    const insight: Insight = { ...insertInsight, id };
     this.insights.set(id, insight);
     return insight;
   }
@@ -304,16 +276,7 @@ export class MemStorage implements IStorage {
   // Health Data methods
   async createHealthData(insertHealthData: InsertHealthData): Promise<HealthData> {
     const id = this.healthDataIds.current++;
-    const healthData: HealthData = { 
-      id,
-      userId: insertHealthData.userId,
-      type: insertHealthData.type,
-      value: insertHealthData.value,
-      unit: insertHealthData.unit,
-      source: insertHealthData.source as HealthSource,
-      timestamp: insertHealthData.timestamp || new Date(),
-      metadata: insertHealthData.metadata || null
-    };
+    const healthData: HealthData = { ...insertHealthData, id };
     this.healthData.set(id, healthData);
     return healthData;
   }
@@ -386,12 +349,7 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use MemStorage (in-memory storage) for now
 export const storage = new MemStorage();
-
-// TODO: Fix Supabase integration
-// import { supabaseStorage } from './supabaseStorage';
-// export const storage = supabaseStorage;
 
 // Add health data after storage is initialized
 const addHealthData = async () => {

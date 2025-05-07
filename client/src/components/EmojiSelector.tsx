@@ -1,6 +1,5 @@
 import React from "react";
-import { EmotionType } from "@shared/schema";
-import { emotionConfig } from "@/types";
+import { EmotionType, emotionConfig } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface EmojiSelectorProps {
