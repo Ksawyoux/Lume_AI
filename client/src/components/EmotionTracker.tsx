@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useUser } from '@/context/UserContext';
-import { EmotionType } from '@/types';
+import { EmotionType } from '@shared/schema';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -222,7 +222,8 @@ export default function EmotionTracker() {
               size="icon"
               variant="outline"
               className="rounded-full w-10 h-10 bg-accent/50 text-primary hover:bg-accent/80 transition shadow-sm"
-              title="Take a selfie"
+              title="Detect emotion from facial expression"
+              onClick={() => setIsCameraModalOpen(true)}
             >
               <Camera className="h-5 w-5" />
             </Button>
@@ -255,6 +256,21 @@ export default function EmotionTracker() {
           </div>
         </div>
       </div>
+      
+      {/* Facial Emotion Detection Modal */}
+      <Dialog open={isCameraModalOpen} onOpenChange={setIsCameraModalOpen}>
+        <DialogContent className="max-w-md p-0 overflow-hidden bg-background">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle>Facial Emotion Analysis</DialogTitle>
+            <DialogDescription>
+              We'll analyze your facial expressions to detect your emotional state
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4">
+            <FacialEmotionDetector onEmotionDetected={handleFacialEmotionDetected} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
