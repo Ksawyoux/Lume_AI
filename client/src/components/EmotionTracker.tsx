@@ -8,10 +8,12 @@ import { format } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import EmojiSelector from './EmojiSelector';
-import { Camera, Mic, Brain, Loader2 } from 'lucide-react';
+import FacialEmotionDetector from './FacialEmotionDetector';
+import { Camera, Mic, Brain, Loader2, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export interface EmotionAnalysisResult {
   primaryEmotion: string;
@@ -32,6 +34,7 @@ export default function EmotionTracker() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<EmotionAnalysisResult | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   
   const mutation = useMutation({
     mutationFn: async (data: { userId: number; type: EmotionType; notes: string }) => {
@@ -71,10 +74,11 @@ export default function EmotionTracker() {
       setIsAnalyzing(true);
       setShowAnalysis(false);
       
-      const result = await apiRequest<EmotionAnalysisResult>('/api/ml/emotions/analyze', 'POST', {
+      const res = await apiRequest('POST', '/api/ml/emotions/analyze', {
         text: notes
       });
       
+      const result = await res.json();
       setAnalysisResult(result);
       setShowAnalysis(true);
       
@@ -93,6 +97,17 @@ export default function EmotionTracker() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+  
+  // Handle facial emotion detection
+  const handleFacialEmotionDetected = (emotion: EmotionType, confidence: number) => {
+    setSelectedEmotion(emotion);
+    setIsCameraModalOpen(false);
+    
+    toast({
+      title: "Emotion detected",
+      description: `Detected ${emotion} with ${Math.round(confidence * 100)}% confidence`,
+    });
   };
   
   // Map the AI's emotion to our app's emotion types
