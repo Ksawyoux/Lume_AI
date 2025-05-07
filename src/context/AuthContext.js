@@ -1,241 +1,137 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../lib/supabase';
 
-// Create a fallback localStorage implementation for environments
-// where AsyncStorage is not available (web)
-const localStorage = {
-  async getItem(key) {
-    try {
-      return await AsyncStorage.getItem(key);
-    } catch (e) {
-      // Fallback to browser localStorage if AsyncStorage fails
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem(key);
-      }
-      return null;
-    }
-  },
-  async setItem(key, value) {
-    try {
-      return await AsyncStorage.setItem(key, value);
-    } catch (e) {
-      // Fallback to browser localStorage if AsyncStorage fails
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.setItem(key, value);
-      }
-    }
-  },
-  async removeItem(key) {
-    try {
-      return await AsyncStorage.removeItem(key);
-    } catch (e) {
-      // Fallback to browser localStorage if AsyncStorage fails
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.removeItem(key);
-      }
-    }
-  },
-};
-
-// Create the auth context
+// Simple Auth Context for development
+// This is a mock version since Supabase is having integration issues
 const AuthContext = createContext({
   user: null,
-  session: null,
-  loading: true,
+  isAuthenticated: false,
+  loading: false,
   login: async () => {},
   register: async () => {},
   logout: async () => {},
-  forgotPassword: async () => {},
-  resetPassword: async () => {},
+  hasCompletedOnboarding: false,
+  completeOnboarding: () => {},
 });
+
+// Storage keys
+const USER_STORAGE_KEY = '@lume_user';
+const ONBOARDING_STORAGE_KEY = '@lume_onboarding_completed';
 
 // Provider component that wraps the app and makes auth available
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
-  // Listen for auth state changes when the component mounts
+  // Load stored user and onboarding status on mount
   useEffect(() => {
-    let mounted = true;
-    
-    // Check for existing session
-    const checkSession = async () => {
+    const initializeAuth = async () => {
       setLoading(true);
-      
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error.message);
-          throw error;
+        // Load user from storage
+        const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
         }
-        
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user || null);
-        }
+
+        // Load onboarding status
+        const onboardingCompleted = await AsyncStorage.getItem(ONBOARDING_STORAGE_KEY);
+        setHasCompletedOnboarding(onboardingCompleted === 'true');
       } catch (error) {
-        console.error('Session retrieval error:', error.message);
+        console.error('Error initializing auth:', error);
       } finally {
-        if (mounted) setLoading(false);
+        setLoading(false);
       }
     };
-    
-    checkSession();
-    
-    // Set up a subscription to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user || null);
-          setLoading(false);
-        }
-      }
-    );
-    
-    // Clean up the subscription on unmount
-    return () => {
-      mounted = false;
-      if (subscription) subscription.unsubscribe();
-    };
+
+    initializeAuth();
   }, []);
 
-  // Login with email and password
-  const login = async ({ email, password }) => {
-    setLoading(true);
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Login error:', error.message);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Register with email and password
+  // Register a new user
   const register = async ({ email, password, name }) => {
     setLoading(true);
-    
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // For development, just create a mock user
+      const newUser = {
+        id: Date.now().toString(),
         email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-          },
+        user_metadata: {
+          full_name: name,
         },
-      });
-      
-      if (error) throw error;
-      
-      // If successful and not requiring email confirmation
-      if (data?.user && !data?.user?.identities?.[0]?.identity_data?.email_confirmed_at) {
-        // Store metadata into profile table if needed
-        // This approach depends on your specific DB schema
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert([
-              { 
-                id: data.user.id,
-                full_name: name,
-                email: email,
-              },
-            ]);
-            
-          if (profileError) throw profileError;
-        } catch (profileError) {
-          console.error('Error creating profile:', profileError.message);
-        }
-      }
-      
-      return data;
+        created_at: new Date().toISOString(),
+      };
+
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
+      setUser(newUser);
+      return { user: newUser };
     } catch (error) {
       console.error('Registration error:', error.message);
-      throw error;
+      throw new Error('Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
-  // Logout
+  // Login a user
+  const login = async ({ email, password }) => {
+    setLoading(true);
+    try {
+      // For development, simulate login with mock user
+      const mockUser = {
+        id: '12345',
+        email,
+        user_metadata: {
+          full_name: 'Demo User',
+        },
+        created_at: new Date().toISOString(),
+      };
+
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(mockUser));
+      setUser(mockUser);
+      return { user: mockUser };
+    } catch (error) {
+      console.error('Login error:', error.message);
+      throw new Error('Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Logout the current user
   const logout = async () => {
     setLoading(true);
-    
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
+      await AsyncStorage.removeItem(USER_STORAGE_KEY);
       setUser(null);
-      setSession(null);
     } catch (error) {
       console.error('Logout error:', error.message);
-      throw error;
+      throw new Error('Logout failed');
     } finally {
       setLoading(false);
     }
   };
 
-  // Forgot password
-  const forgotPassword = async (email) => {
-    setLoading(true);
-    
+  // Mark onboarding as completed
+  const completeOnboarding = async () => {
     try {
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'lume://reset-password',
-      });
-      
-      if (error) throw error;
-      return data;
+      await AsyncStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+      setHasCompletedOnboarding(true);
     } catch (error) {
-      console.error('Forgot password error:', error.message);
-      throw error;
-    } finally {
-      setLoading(false);
+      console.error('Error saving onboarding status:', error);
     }
   };
 
-  // Reset password
-  const resetPassword = async (newPassword) => {
-    setLoading(true);
-    
-    try {
-      const { data, error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-      
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Reset password error:', error.message);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Make the provider value available
+  // Create the context value
   const value = {
     user,
-    session,
+    isAuthenticated: !!user,
     loading,
     login,
     register,
     logout,
-    forgotPassword,
-    resetPassword,
+    hasCompletedOnboarding,
+    completeOnboarding,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
