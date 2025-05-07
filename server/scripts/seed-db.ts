@@ -38,7 +38,7 @@ async function seed() {
   const existingEmotions = await db
     .select()
     .from(emotions)
-    .where(emotions => emotions.userId.eq(userId))
+    .where(eq(emotions.userId, userId))
     .limit(1);
 
   if (existingEmotions.length === 0) {
@@ -83,7 +83,7 @@ async function seed() {
   const existingTransactions = await db
     .select()
     .from(transactions)
-    .where(transactions => transactions.userId.eq(userId))
+    .where(eq(transactions.userId, userId))
     .limit(1);
 
   if (existingTransactions.length === 0) {
@@ -93,7 +93,7 @@ async function seed() {
     const userEmotions = await db
       .select()
       .from(emotions)
-      .where(emotions => emotions.userId.eq(userId));
+      .where(eq(emotions.userId, userId));
     
     const transactionData = [
       {
@@ -142,7 +142,7 @@ async function seed() {
   const existingInsights = await db
     .select()
     .from(insights)
-    .where(insights => insights.userId.eq(userId))
+    .where(eq(insights.userId, userId))
     .limit(1);
 
   if (existingInsights.length === 0) {
@@ -187,7 +187,7 @@ async function seed() {
   const existingHealthData = await db
     .select()
     .from(healthData)
-    .where(healthData => healthData.userId.eq(userId))
+    .where(eq(healthData.userId, userId))
     .limit(1);
 
   if (existingHealthData.length === 0) {
