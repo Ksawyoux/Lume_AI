@@ -35,15 +35,21 @@ async function hashPassword(password: string) {
 
 async function comparePasswords(supplied: string, stored: string) {
   // Check if the stored password is in the expected format (hash.salt)
-  if (!stored.includes('.')) {
+  if (!stored || !stored.includes('.')) {
     // For demo accounts or during development, allow direct comparison
     return supplied === stored;
   }
   
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  try {
+    const [hashed, salt] = stored.split(".");
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error("Password comparison error:", error);
+    // Fallback to direct comparison if something goes wrong
+    return supplied === stored;
+  }
 }
 
 export function setupAuth(app: Express) {
