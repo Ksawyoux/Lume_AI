@@ -1,68 +1,109 @@
-# Lume - Emotional Finance Mobile App
+# Lume: Emotional Finance App
 
-Lume is a mobile-first fintech application that helps users understand how their emotional and health states influence financial decisions. The app captures user emotional states through text, voice, and facial expressions to establish correlations with spending patterns.
+Lume (formerly MoodMoney) is a mobile-first fintech application that leverages emotional intelligence to provide personalized financial insights through advanced psychological-financial correlations.
 
 ## Features
 
-- **User Authentication**: Secure login and registration functionality
-- **Emotional Tracking**: Record emotions manually or through facial expression analysis
-- **Health Metrics**: Track and visualize sleep, recovery, heart rate, and other health data
-- **Financial Insights**: Discover correlations between emotional health and spending patterns
-- **Personalized Recommendations**: Receive customized financial advice based on your emotional patterns
+- 📱 React Native mobile application
+- 🧠 AI-powered emotion analysis
+- 📊 Financial tracking and insights
+- 🔄 Health data integration with Apple Watch
+- 🔒 Secure Supabase authentication
+- 📉 Psychological-financial correlation analytics
+- 🧘 Emotional wellness tracking
 
-## Mobile App (React Native + Expo)
-
-This project has been converted to a React Native mobile application using Expo. The application follows a WHOOP-inspired minimalist design with dark mode and circular visualizations.
-
-### Key Technologies
-
-- React Native for cross-platform mobile development
-- Expo for easy mobile development workflow
-- Facial expression detection through Expo Camera and Face Detector
-- Navigation with React Navigation
-- Secure authentication flow
-- Themed UI components
-
-## Running the App
+## Running the App with Expo
 
 ### Prerequisites
 
-- Node.js (LTS version)
-- Expo CLI: `npm install -g expo-cli`
-- Expo Go app on your mobile device (iOS/Android) or an iOS/Android simulator
+Before you start, make sure you have the following installed:
+- [Node.js](https://nodejs.org/) (version 16 or later)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+- [Expo Go](https://expo.dev/client) app installed on your iOS or Android device
 
 ### Installation
 
-1. Clone this repository
-2. Install dependencies:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/lume-app.git
+   cd lume-app
    ```
+
+2. Install the dependencies:
+   ```bash
    npm install
    ```
-3. Start the development server:
+
+3. Set up environment variables:
+   Create a `.env` file in the root directory with the following content:
    ```
-   npm start
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
    ```
-4. Scan the QR code with the Expo Go app on your mobile device or press 'i' or 'a' in the terminal to open in iOS or Android simulator
+
+### Running the App
+
+1. Start the Expo development server:
+   ```bash
+   npx expo start
+   ```
+
+2. Scan the QR code with your device:
+   - iOS: Use the Camera app to scan the QR code
+   - Android: Use the Expo Go app to scan the QR code
+
+3. The app will open in the Expo Go app on your device
+
+### Building for Production
+
+To create a standalone binary for iOS or Android:
+
+1. Build for iOS:
+   ```bash
+   expo build:ios
+   ```
+
+2. Build for Android:
+   ```bash
+   expo build:android
+   ```
 
 ## Project Structure
 
-- `/assets` - Images, icons and other static assets
-- `/src` - Source code
-  - `/components` - Reusable UI components
-  - `/context` - React Context providers (Auth, Theme)
-  - `/hooks` - Custom React hooks
-  - `/screens` - Screen components
-  - `/utils` - Helper functions and utilities
-  - `/api` - API service functions
+```
+/
+├── App.js              # Entry point
+├── app.json            # Expo configuration
+├── assets/             # App assets (images, fonts, etc.)
+├── src/
+│   ├── api/            # API service modules
+│   ├── components/     # Reusable components
+│   ├── context/        # Context providers
+│   ├── lib/            # Utility libraries
+│   ├── navigation/     # Navigation configuration
+│   ├── screens/        # App screens
+│   └── utils/          # Utility functions
+├── babel.config.js     # Babel configuration
+└── package.json        # Dependencies
+```
 
-## Features to Add
+## Authentication
 
-- Connect to Apple HealthKit/Google Fit for health data
-- Implement financial account connections
-- Enhance emotion detection accuracy
-- Add more personalized insights
-- Build offline support
+The app uses Supabase for authentication. Users can:
+- Sign up with email and password
+- Sign in with existing credentials
+- Reset password
+- Sign out
+
+## Development
+
+- The app is built using React Native with Expo
+- Styling is done with React Native StyleSheet
+- Navigation uses React Navigation
+- State management uses React Context API
+- API calls use async/await pattern
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.

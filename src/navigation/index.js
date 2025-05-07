@@ -13,6 +13,7 @@ import EmotionsScreen from '../screens/EmotionsScreen';
 import HealthScreen from '../screens/HealthScreen';
 import InsightsScreen from '../screens/InsightsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 
 // Stacks
 const AuthStack = createNativeStackNavigator();
@@ -103,7 +104,9 @@ const AuthNavigator = () => {
       screenOptions={{
         headerShown: false,
       }}
+      initialRouteName="Onboarding"
     >
+      <AuthStack.Screen name="Onboarding" component={OnboardingScreen} />
       <AuthStack.Screen name="Auth" component={AuthScreen} />
     </AuthStack.Navigator>
   );
