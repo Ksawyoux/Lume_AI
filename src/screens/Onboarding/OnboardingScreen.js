@@ -10,6 +10,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
 import { theme } from '../../utils/helpers';
 
 const { width, height } = Dimensions.get('window');
@@ -252,11 +253,15 @@ const OnboardingScreen = () => {
     }
   };
 
-  const endOnboarding = () => {
+  const { completeOnboarding } = useAuth();
+
+  const endOnboarding = async () => {
+    await completeOnboarding();
     navigation.replace('Auth');
   };
 
-  const skipOnboarding = () => {
+  const skipOnboarding = async () => {
+    await completeOnboarding();
     navigation.replace('Auth');
   };
 
