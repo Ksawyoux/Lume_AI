@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -9,6 +9,8 @@ import {
   Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
+import { theme } from '../utils/helpers';
 
 // Circle Progress Component
 const CircleProgress = ({ percentage, size, color, title, value, subtitle }) => {
@@ -51,7 +53,7 @@ const InsightCard = ({ icon, title, message, actionText }) => {
   return (
     <View style={styles.insightCard}>
       <View style={styles.insightIconContainer}>
-        <Ionicons name={icon} size={24} color="#00f19f" />
+        <Ionicons name={icon} size={24} color={theme.colors.primary} />
       </View>
       <View style={styles.insightContent}>
         <Text style={styles.insightTitle}>{title}</Text>
@@ -86,6 +88,30 @@ const ActivityItem = ({ type, amount, date, description }) => {
 };
 
 export default function HomeScreen() {
+  const { user } = useAuth();
+  const [greeting, setGreeting] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
+  
+  // Set greeting based on time of day
+  useEffect(() => {
+    const hours = new Date().getHours();
+    let greetingText = '';
+    
+    if (hours < 12) {
+      greetingText = 'Good morning';
+    } else if (hours >= 12 && hours < 17) {
+      greetingText = 'Good afternoon';
+    } else {
+      greetingText = 'Good evening';
+    }
+    
+    setGreeting(greetingText);
+    
+    // Format current date
+    const options = { month: 'long', day: 'numeric', year: 'numeric' };
+    setCurrentDate(new Date().toLocaleDateString('en-US', options));
+  }, []);
+
   // Sample data
   const recoveryScore = 85;
   const sleepScore = 76;
@@ -100,8 +126,10 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.greeting}>Good afternoon, Demo User</Text>
-        <Text style={styles.date}>May 7, 2025</Text>
+        <Text style={styles.greeting}>
+          {greeting}, {user?.user_metadata?.full_name || 'User'}
+        </Text>
+        <Text style={styles.date}>{currentDate}</Text>
       </View>
       
       <ScrollView style={styles.scrollView}>
@@ -170,29 +198,29 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.colors.background.dark,
   },
   header: {
     padding: 20,
     paddingBottom: 10,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: theme.fontSizes.xxl,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.colors.text.primary,
   },
   date: {
-    fontSize: 16,
-    color: '#888',
+    fontSize: theme.fontSizes.md,
+    color: theme.colors.text.secondary,
     marginTop: 4,
   },
   scrollView: {
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: theme.fontSizes.lg,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.colors.text.primary,
     marginBottom: 16,
     paddingHorizontal: 20,
   },
@@ -210,7 +238,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   circleBackground: {
-    backgroundColor: '#2d2d2d',
+    backgroundColor: theme.colors.background.light,
     position: 'absolute',
   },
   circleProgress: {
@@ -226,38 +254,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   circleTitle: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.text.secondary,
     marginBottom: 2,
   },
   circleValue: {
-    fontSize: 24,
+    fontSize: theme.fontSizes.xl,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.colors.text.primary,
   },
   circleSubtitle: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.text.secondary,
     marginTop: 2,
   },
   insightsContainer: {
     marginBottom: 24,
   },
   insightCard: {
-    backgroundColor: '#1e1e1e',
-    borderRadius: 12,
+    backgroundColor: theme.colors.background.card,
+    borderRadius: theme.borderRadius.lg,
     padding: 16,
     marginHorizontal: 20,
     marginBottom: 12,
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: theme.colors.border,
   },
   insightIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(0, 241, 159, 0.1)',
+    backgroundColor: 'rgba(0, 241, 159, 0.1)', // Primary color with 10% opacity
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -266,14 +294,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   insightTitle: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.md,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.colors.text.primary,
     marginBottom: 4,
   },
   insightMessage: {
-    fontSize: 14,
-    color: '#aaa',
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.text.secondary,
     marginBottom: 8,
     lineHeight: 20,
   },
@@ -281,8 +309,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   insightActionText: {
-    color: '#00f19f',
-    fontSize: 14,
+    color: theme.colors.primary,
+    fontSize: theme.fontSizes.sm,
     fontWeight: '500',
   },
   activityContainer: {
@@ -297,7 +325,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: theme.colors.border,
   },
   activityLeft: {
     flexDirection: 'row',
@@ -312,17 +340,17 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   activityDescription: {
-    fontSize: 14,
+    fontSize: theme.fontSizes.sm,
     fontWeight: '500',
-    color: '#fff',
+    color: theme.colors.text.primary,
   },
   activityDate: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.text.secondary,
     marginTop: 2,
   },
   activityAmount: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.md,
     fontWeight: 'bold',
   },
   viewAllButton: {
@@ -330,8 +358,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   viewAllText: {
-    color: '#00f19f',
-    fontSize: 14,
+    color: theme.colors.primary,
+    fontSize: theme.fontSizes.sm,
     fontWeight: '500',
   },
 });
