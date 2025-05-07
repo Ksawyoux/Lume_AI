@@ -1,5 +1,37 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Use local storage for web environment since AsyncStorage isn't installed
+const storage = {
+  async getItem(key) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem(key);
+      }
+      return null;
+    } catch (e) {
+      console.error('Failed to get item from storage', e);
+      return null;
+    }
+  },
+  async setItem(key, value) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, value);
+      }
+    } catch (e) {
+      console.error('Failed to set item in storage', e);
+    }
+  },
+  async removeItem(key) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(key);
+      }
+    } catch (e) {
+      console.error('Failed to remove item from storage', e);
+    }
+  }
+};
 
 // Create Auth Context
 const AuthContext = createContext(null);
@@ -14,7 +46,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const loadStoredUser = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem('user');
+        const storedUser = await storage.getItem('user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
@@ -42,8 +74,8 @@ export function AuthProvider({ children }) {
         name: credentials.name || 'Demo User',
       };
       
-      // Store user in AsyncStorage
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      // Store user in storage
+      await storage.setItem('user', JSON.stringify(userData));
       
       // Update state
       setUser(userData);
@@ -70,8 +102,8 @@ export function AuthProvider({ children }) {
         name: userData.name,
       };
       
-      // Store user in AsyncStorage
-      await AsyncStorage.setItem('user', JSON.stringify(newUser));
+      // Store user in storage
+      await storage.setItem('user', JSON.stringify(newUser));
       
       // Update state
       setUser(newUser);
@@ -89,8 +121,8 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       
-      // Remove user from AsyncStorage
-      await AsyncStorage.removeItem('user');
+      // Remove user from storage
+      await storage.removeItem('user');
       
       // Update state
       setUser(null);
@@ -110,8 +142,8 @@ export function AuthProvider({ children }) {
       // Update user with new profile data
       const updatedUser = { ...user, ...profileData };
       
-      // Store updated user in AsyncStorage
-      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      // Store updated user in storage
+      await storage.setItem('user', JSON.stringify(updatedUser));
       
       // Update state
       setUser(updatedUser);
