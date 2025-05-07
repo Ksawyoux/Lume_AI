@@ -1,8 +1,6 @@
 import { emotions, transactions, insights, users, healthData } from "@shared/schema";
 import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType, InsertHealthData, HealthData, HealthMetricType } from "@shared/schema";
 import { format, subDays } from "date-fns";
-import session from "express-session";
-import createMemoryStore from "memorystore";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -36,12 +34,7 @@ export interface IStorage {
 
   // Analytics
   getSpendingByEmotion(userId: number): Promise<Array<{ emotion: EmotionType, amount: number }>>;
-  
-  // Session store
-  sessionStore: session.Store;
 }
-
-const MemoryStore = createMemoryStore(session);
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
@@ -54,7 +47,6 @@ export class MemStorage implements IStorage {
   private transactionIds: { current: number };
   private insightIds: { current: number };
   private healthDataIds: { current: number };
-  sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
@@ -68,11 +60,6 @@ export class MemStorage implements IStorage {
     this.transactionIds = { current: 1 };
     this.insightIds = { current: 1 };
     this.healthDataIds = { current: 1 };
-    
-    // Initialize session store
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // 24 hours
-    });
     
     // Add seed data
     this.seedData();
