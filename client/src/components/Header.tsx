@@ -63,9 +63,7 @@ export default function Header() {
               <span className="text-2xl font-bold text-[#00f19f]">
                 {recoveryScore}%
               </span>
-              <span className="text-sm text-[#00f19f]">
-                +{scoreDiff}
-              </span>
+              {/* No score difference shown */}
             </div>
             <span className="text-xs text-gray-400 uppercase tracking-wider">RECOVERY</span>
           </div>
