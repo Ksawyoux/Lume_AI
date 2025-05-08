@@ -239,33 +239,36 @@ export class PgStorage implements IStorage {
   }
   
   async getActiveBudgetsByUserId(userId: number, type?: string): Promise<Budget[]> {
-    const currentDate = new Date();
-    const currentDateStr = currentDate.toISOString();
-    
-    // Build conditions array
-    const conditions = [
-      eq(budgets.userId, userId),
-      eq(budgets.isActive, true),
-      sql`${budgets.startDate}::timestamp <= ${currentDateStr}::timestamp`,
-      or(
-        isNull(budgets.endDate),
-        sql`${budgets.endDate}::timestamp >= ${currentDateStr}::timestamp`
-      )
-    ];
-    
-    // Add type filter if provided
-    if (type) {
-      conditions.push(eq(budgets.type, type));
+    try {
+      const currentDate = new Date();
+      const currentDateStr = currentDate.toISOString();
+      
+      // Create base conditions first
+      const conditions = [
+        eq(budgets.userId, userId),
+        eq(budgets.isActive, true),
+        sql`${budgets.startDate}::timestamp <= ${currentDateStr}::timestamp`,
+        or(
+          isNull(budgets.endDate),
+          sql`${budgets.endDate}::timestamp >= ${currentDateStr}::timestamp`
+        )
+      ];
+      
+      // Add type filter if provided
+      if (type) {
+        conditions.push(eq(budgets.type, type));
+      }
+      
+      // Execute the query with all conditions and order by
+      return await db
+        .select()
+        .from(budgets)
+        .where(and(...conditions))
+        .orderBy(desc(budgets.startDate));
+    } catch (error) {
+      console.error('Error getting active budgets:', error);
+      return [];
     }
-    
-    // Execute query with all conditions in a single where clause
-    const result = await db
-      .select()
-      .from(budgets)
-      .where(and(...conditions))
-      .orderBy(desc(budgets.startDate));
-    
-    return result;
   }
   
   async updateBudget(id: number, budgetUpdate: Partial<Budget>): Promise<Budget> {
