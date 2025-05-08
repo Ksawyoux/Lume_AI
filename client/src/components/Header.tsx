@@ -13,7 +13,7 @@ export default function Header() {
   const { user } = useUser();
   
   // WHOOP-style recovery score (67-100% is high recovery)
-  const recoveryScore = 51;
+  const recoveryScore = 87;
   const scoreDiff = 15;
   const isScoreUp = scoreDiff > 0;
   
@@ -81,7 +81,7 @@ export default function Header() {
           </button>
           {user && (
             <div className="w-7 h-7 bg-[#2A363D] text-white rounded-full flex items-center justify-center shadow-sm">
-              <span className="text-xs font-semibold uppercase">YS</span>
+              <span className="text-xs font-semibold uppercase">{user.username ? user.username.substring(0, 1) : 'K'}</span>
             </div>
           )}
         </div>
