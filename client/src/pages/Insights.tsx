@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useQuery } from '@tanstack/react-query';
@@ -19,7 +20,6 @@ interface AnalyticsData {
 }
 
 export default function Analytics() {
-  // All hooks must be called at the top level, unconditionally
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState("spending");
   const [budgetError, setBudgetError] = useState<string | null>(null);
@@ -29,8 +29,14 @@ export default function Analytics() {
     data, 
     isLoading 
   } = useQuery<AnalyticsData>({
-    queryKey: user ? [`/api/users/${user.id}/analytics/spending-by-emotion`] : [],
-    enabled: !!user,
+    queryKey: [`/api/users/${user?.id}/analytics/spending-by-emotion`],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const response = await fetch(`/api/users/${user.id}/analytics/spending-by-emotion`);
+      if (!response.ok) throw new Error('Failed to fetch analytics data');
+      return response.json();
+    },
+    enabled: !!user?.id,
   });
 
   // Handle loading state for user
