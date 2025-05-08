@@ -17,7 +17,7 @@ export default function BottomNavigation() {
         
         <NavItem 
           href="/insights" 
-          label="ANALYTICS" 
+          label="INSIGHTS" 
           icon={<BarChart3 size={20} />} 
           isActive={location === "/insights"} 
         />
