@@ -20,7 +20,14 @@ function RouteContent({ Component }: { Component: React.ComponentType }) {
   }
 
   if (!user) {
-    return <Redirect to="/auth" />;
+    // Force redirect to auth page
+    window.location.href = "/auth";
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Redirecting to login...</p>
+      </div>
+    );
   }
 
   return <Component />;

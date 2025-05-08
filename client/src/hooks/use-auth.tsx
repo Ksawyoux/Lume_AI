@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data,
     error,
     isLoading,
+    refetch: refetchUser
   } = useQuery({
     queryKey: ["/api/user"],
     queryFn: async () => {
@@ -44,14 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await fetch("/api/user");
         if (!response.ok) {
           if (response.status === 401) {
-            return null;
+            // If we're not on the auth page, redirect to it
+            if (window.location.pathname !== "/auth") {
+              window.location.href = "/auth";
+            }
+            return { user: null };
           }
           throw new Error("Failed to fetch user");
         }
         return await response.json();
       } catch (error) {
         console.error("Error fetching user:", error);
-        return null;
+        return { user: null };
       }
     },
     retry: false,
@@ -59,7 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  const user = data?.user || null;
+  // Check localStorage for stored user data as well
+  const localUser = localStorage.getItem('lumeUser');
+  const parsedLocalUser = localUser ? JSON.parse(localUser) : null;
+  
+  // Use API data if available, otherwise fall back to localStorage
+  const user = data?.user || parsedLocalUser;
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
@@ -80,6 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/user"], data);
+      // Store user data in localStorage
+      localStorage.setItem('lumeUser', JSON.stringify(data.user));
+      // Redirect to home
+      window.location.href = "/";
       toast({
         title: "Login successful",
         description: `Welcome back, ${data.user.name}!`,
@@ -113,6 +127,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/user"], data);
+      // Store user data in localStorage
+      localStorage.setItem('lumeUser', JSON.stringify(data.user));
+      // Redirect to home
+      window.location.href = "/";
       toast({
         title: "Registration successful",
         description: `Welcome to Lume, ${data.user.name}!`,
@@ -140,6 +158,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
+      // Clear user data from localStorage
+      localStorage.removeItem('lumeUser');
+      // Redirect to auth page
+      window.location.href = "/auth";
       toast({
         title: "Logged out",
         description: "You have been logged out successfully.",
