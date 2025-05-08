@@ -1,6 +1,6 @@
-import { createContext, useState, useContext, ReactNode } from 'react';
-import { User } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import { createContext, useContext, ReactNode } from 'react';
+import { User } from '@shared/schema';
+import { useAuth } from '@/hooks/use-auth';
 
 interface UserContextType {
   user: User | null;
@@ -11,36 +11,14 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  // Use the auth context to manage the user state
+  const { user, isLoading } = useAuth();
   
-  // Auto-login the demo user for demonstration purposes
-  const { isLoading } = useQuery({
-    queryKey: ['/api/login'],
-    queryFn: async () => {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: 'demo',
-          password: 'password',
-        }),
-        credentials: 'include',
-      });
-      
-      if (!res.ok) {
-        throw new Error('Failed to login');
-      }
-      
-      const data = await res.json();
-      setUser(data.user);
-      return data;
-    },
-    retry: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
+  // This is only kept for backward compatibility with existing components
+  // New components should use useAuth() directly
+  const setUser = (newUser: User | null) => {
+    console.warn('setUser in UserContext is deprecated. Use useAuth() instead.');
+  };
 
   return (
     <UserContext.Provider value={{ user, setUser, isLoading }}>

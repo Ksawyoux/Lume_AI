@@ -1,17 +1,24 @@
 import { useState } from 'react';
 import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ChevronRight, Bell, Lock, Eye, HelpCircle, LogOut, Activity, Zap } from 'lucide-react';
+import { ChevronRight, Bell, Lock, Eye, HelpCircle, LogOut, Activity, Zap, Loader2 } from 'lucide-react';
 
 export default function Profile() {
   const { user } = useUser();
+  const { logoutMutation } = useAuth();
+  
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [trendAnalysis, setTrendAnalysis] = useState(true);
   const [emotionTracking, setEmotionTracking] = useState(true);
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
   
   if (!user) return null;
   
@@ -175,12 +182,22 @@ export default function Profile() {
               
               <Separator className="bg-border" />
               
-              <button className="w-full flex items-center justify-between py-3 text-sm text-foreground hover:text-[hsl(var(--recovery-low))] transition-colors">
+              <button 
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+                className="w-full flex items-center justify-between py-3 text-sm text-foreground hover:text-[hsl(var(--recovery-low))] transition-colors"
+              >
                 <div className="flex items-center">
                   <div className="w-10 h-10 rounded-full bg-[hsl(var(--recovery-low)/0.1)] flex items-center justify-center text-[hsl(var(--recovery-low))] mr-3">
-                    <LogOut size={16} />
+                    {logoutMutation.isPending ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <LogOut size={16} />
+                    )}
                   </div>
-                  <span className="uppercase tracking-wider font-medium">LOG OUT</span>
+                  <span className="uppercase tracking-wider font-medium">
+                    {logoutMutation.isPending ? "LOGGING OUT..." : "LOG OUT"}
+                  </span>
                 </div>
                 <ChevronRight size={16} className="text-muted-foreground" />
               </button>
