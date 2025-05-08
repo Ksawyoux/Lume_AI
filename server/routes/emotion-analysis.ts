@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
-import { analyzeEmotion, analyzeEmotionalPatterns, generatePersonalizedInsights } from '../services/claude';
+import { analyzeEmotion, analyzeEmotionalPatterns, generatePersonalizedInsights } from '../services/gemini';
 
 const router = Router();
 
-// Analyze text for emotional content using Claude API
+// Analyze text for emotional content using Google Gemini API
 router.post('/analyze', async (req: Request, res: Response) => {
   try {
     const { text } = req.body;
@@ -40,7 +40,7 @@ router.post('/patterns', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'No emotion data found for this user' });
     }
     
-    // Convert emotions to the format expected by Claude service
+    // Convert emotions to the format expected by Gemini service
     const entries = emotions.map(emotion => ({
       text: emotion.notes || '',
       date: new Date(emotion.date).toISOString(),
@@ -83,7 +83,7 @@ router.post('/insights/finance', async (req: Request, res: Response) => {
     const emotionData = emotions.map(emotion => ({
       type: emotion.type,
       date: new Date(emotion.date).toISOString(),
-      notes: emotion.notes
+      notes: emotion.notes || undefined
     }));
     
     const transactionData = transactions.map(tx => ({
@@ -91,7 +91,7 @@ router.post('/insights/finance', async (req: Request, res: Response) => {
       category: tx.category,
       description: tx.description,
       date: new Date(tx.date).toISOString(),
-      emotionId: tx.emotionId
+      emotionId: tx.emotionId || undefined
     }));
     
     const insights = await generatePersonalizedInsights(emotionData, transactionData);
