@@ -50,7 +50,7 @@ export default function QuickAddTransaction() {
       date?: Date;
       currency: string;
     }) => {
-      return await apiRequest('POST', 'api/transactions', data);
+      return await apiRequest('/transactions', 'POST', data);
     },
     onSuccess: () => {
       toast({

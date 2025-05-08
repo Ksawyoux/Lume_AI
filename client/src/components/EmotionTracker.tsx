@@ -38,7 +38,7 @@ export default function EmotionTracker() {
 
   const mutation = useMutation({
     mutationFn: async (data: { userId: number; type: EmotionType; notes: string }) => {
-      return await apiRequest('/api/emotions', 'POST', data);
+      return await apiRequest('/emotions', 'POST', data);
     },
     onSuccess: () => {
       toast({
@@ -73,7 +73,7 @@ export default function EmotionTracker() {
       setIsAnalyzing(true);
       setShowAnalysis(false);
 
-      const result = await apiRequest<EmotionAnalysisResult>('api/ml/emotions/analyze', 'POST', {
+      const result = await apiRequest<EmotionAnalysisResult>('/ml/emotions/analyze', 'POST', {
         text: notes
       });
 
