@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -114,6 +114,15 @@ export default function PersonalizedInsights() {
   // Determine if we have no insights
   const hasNoInsights = insights && insights.length === 0;
   
+  // Auto-generate insights when we have transactions but no insights
+  useEffect(() => {
+    if (!isLoadingTransactions && !isLoadingInsights && 
+        hasEnoughTransactions && hasNoInsights && 
+        !generating && !generateInsightsMutation.isPending) {
+      handleGenerateInsights();
+    }
+  }, [isLoadingTransactions, isLoadingInsights, hasEnoughTransactions, hasNoInsights, generating, generateInsightsMutation.isPending]);
+
   return (
     <section className="px-4 py-2">
       <div className="flex items-center justify-between mb-5">
@@ -121,16 +130,7 @@ export default function PersonalizedInsights() {
           <Sparkles className="h-6 w-6 mr-3 text-[#00f19f]" />
           INSIGHTS
         </h3>
-        {!isLoadingTransactions && hasEnoughTransactions ? (
-          <Button
-            onClick={handleGenerateInsights}
-            disabled={generating || generateInsightsMutation.isPending}
-            variant="outline"
-            className="text-md rounded-full px-5 py-2 bg-transparent text-white border-gray-700 hover:bg-gray-800"
-          >
-            {generating || generateInsightsMutation.isPending ? "Generating..." : "Update Insights"}
-          </Button>
-        ) : null}
+        {/* Removed "Update Insights" button as requested */}
       </div>
 
       {isLoadingInsights || isLoadingTransactions ? (
