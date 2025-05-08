@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Sparkles, AlertTriangle, Lightbulb, TrendingUp, BarChart3 } from 'lucide-react';
+import { Sparkles, AlertTriangle, Lightbulb, TrendingUp, BarChart3, ActivitySquare } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface Insight {
   id: number;
@@ -82,29 +83,31 @@ export default function PersonalizedInsights() {
   const getInsightIcon = (type: string) => {
     switch (type) {
       case 'emotion-finance-correlation':
-        return <TrendingUp className="h-4 w-4 text-[hsl(var(--recovery-high))]" />;
+        return <BarChart3 className="h-5 w-5 text-[#00f19f]" />;
       case 'spending-trigger':
-        return <AlertTriangle className="h-4 w-4 text-[hsl(var(--recovery-low))]" />;
+        return <TrendingUp className="h-5 w-5 text-[#00f19f]" />;
       case 'action-recommendation':
-        return <Lightbulb className="h-4 w-4 text-[hsl(var(--recovery-medium))]" />;
+        return <ActivitySquare className="h-5 w-5 text-[#00f19f]" />;
       default:
-        return <BarChart3 className="h-4 w-4 text-primary" />;
+        return <Lightbulb className="h-5 w-5 text-[#00f19f]" />;
     }
   };
 
-  // Generate appropriate class based on insight type
-  const getInsightCardClass = (type: string) => {
+  // Get title based on the insight type
+  const getInsightTitle = (type: string) => {
     switch (type) {
       case 'emotion-finance-correlation':
-        return 'border-[hsl(var(--recovery-high))]';
+        return 'Positive Spending Pattern';
       case 'spending-trigger':
-        return 'border-[hsl(var(--recovery-low))]';
+        return 'Stress-Triggered Spending';
       case 'action-recommendation':
-        return 'border-[hsl(var(--recovery-medium))]';
+        return 'Mood-Boosting Activities';
       default:
-        return 'border-border';
+        return 'Financial Insight';
     }
   };
+  
+  // No longer using card classes since we're styling directly now
 
   // Check if we have enough transactions to generate insights
   const hasEnoughTransactions = transactions && transactions.length >= 3;
@@ -114,18 +117,17 @@ export default function PersonalizedInsights() {
   
   return (
     <section className="px-4 py-2">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-medium text-foreground uppercase tracking-wider flex items-center">
-          <Sparkles className="h-4 w-4 mr-2 text-[hsl(var(--primary))]" />
-          Insights
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-2xl font-medium text-foreground flex items-center">
+          <Sparkles className="h-6 w-6 mr-3 text-[#00f19f]" />
+          INSIGHTS
         </h3>
         {!isLoadingTransactions && hasEnoughTransactions ? (
           <Button
             onClick={handleGenerateInsights}
             disabled={generating || generateInsightsMutation.isPending}
-            size="sm"
             variant="outline"
-            className="text-xs border-border"
+            className="text-md rounded-full px-5 py-2 bg-transparent text-white border-gray-700 hover:bg-gray-800"
           >
             {generating || generateInsightsMutation.isPending ? "Generating..." : "Update Insights"}
           </Button>
@@ -133,16 +135,16 @@ export default function PersonalizedInsights() {
       </div>
 
       {isLoadingInsights || isLoadingTransactions ? (
-        <div className="space-y-3">
-          <Skeleton className="w-full h-[100px] rounded-lg" />
-          <Skeleton className="w-full h-[100px] rounded-lg" />
+        <div className="space-y-4">
+          <Skeleton className="w-full h-[120px] rounded-lg" />
+          <Skeleton className="w-full h-[120px] rounded-lg" />
         </div>
       ) : hasNoInsights ? (
-        <div className="bg-accent/50 rounded-lg p-4 border border-border">
-          <div className="flex flex-col items-center justify-center text-center p-2">
-            <Sparkles className="h-8 w-8 mb-3 text-[hsl(var(--primary))]" />
-            <h4 className="text-sm font-medium text-foreground mb-1">No insights available yet</h4>
-            <p className="text-xs text-muted-foreground mb-3">
+        <div className="bg-[#1c2127] rounded-lg p-5 border border-gray-800">
+          <div className="flex flex-col items-center justify-center text-center p-3">
+            <Sparkles className="h-10 w-10 mb-4 text-[#00f19f]" />
+            <h4 className="text-lg font-medium text-white mb-2">No insights available yet</h4>
+            <p className="text-sm text-gray-400 mb-4">
               {hasEnoughTransactions 
                 ? "Generate insights to see patterns in your financial behavior and emotions."
                 : "Record at least 3 transactions to generate personalized insights."}
@@ -151,8 +153,7 @@ export default function PersonalizedInsights() {
               <Button
                 onClick={handleGenerateInsights}
                 disabled={generating || generateInsightsMutation.isPending}
-                size="sm"
-                className="text-xs"
+                className="text-sm bg-[#00f19f] text-black hover:bg-[#00d88a] rounded-full px-5"
               >
                 {generating || generateInsightsMutation.isPending ? "Generating..." : "Generate Insights"}
               </Button>
@@ -160,25 +161,23 @@ export default function PersonalizedInsights() {
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {insights && insights.map((insight) => (
-            <Card 
+            <div 
               key={insight.id} 
-              className={`border ${getInsightCardClass(insight.type)} bg-accent/20 shadow-sm overflow-hidden`}
+              className="bg-[#1c2127] rounded-lg p-5 border border-gray-800"
             >
-              <CardHeader className="p-3 pb-1">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  {getInsightIcon(insight.type)}
-                  <span className="ml-2">{insight.title}</span>
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  {new Date(insight.date).toLocaleDateString()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-3 pt-0 text-xs">
+              <div className="flex items-center gap-3 mb-1">
+                {getInsightIcon(insight.type)}
+                <h3 className="text-lg font-medium text-white">{getInsightTitle(insight.type)}</h3>
+              </div>
+              <p className="text-sm text-gray-400 mb-3">
+                {format(new Date(insight.date), 'M/d/yyyy')}
+              </p>
+              <p className="text-white text-sm leading-relaxed">
                 {insight.description}
-              </CardContent>
-            </Card>
+              </p>
+            </div>
           ))}
         </div>
       )}
