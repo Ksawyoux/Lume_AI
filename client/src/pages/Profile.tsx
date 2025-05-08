@@ -77,12 +77,12 @@ export default function Profile() {
                       stroke="hsl(var(--recovery-high))"
                       strokeWidth="8"
                       strokeDasharray="251.2"
-                      strokeDashoffset={251.2 * (1 - 0.87)}
+                      strokeDashoffset={251.2 * (1 - 0.51)}
                       strokeLinecap="round"
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-lg font-bold text-[hsl(var(--recovery-high))]">87%</span>
+                    <span className="text-lg font-bold text-[hsl(var(--recovery-high))]">51%</span>
                   </div>
                 </div>
                 <span className="text-xs text-muted-foreground uppercase tracking-widest mt-1">RECOVERY</span>
