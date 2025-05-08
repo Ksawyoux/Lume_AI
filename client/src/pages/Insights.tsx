@@ -21,6 +21,7 @@ interface AnalyticsData {
 export default function Analytics() {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState("spending");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   // Get analytics data
   const { 
@@ -33,8 +34,6 @@ export default function Analytics() {
   });
   
   // Handle analytics data errors
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
   useEffect(() => {
     if (analyticsError) {
       const errorMsg = analyticsError?.message || "Failed to load analytics data";
@@ -89,94 +88,130 @@ export default function Analytics() {
                 </TabsList>
                 
                 <TabsContent value="spending" className="mt-4">
-                  <div className="bg-[#1c2127] rounded-lg p-4">
-                    <h3 className="text-xl font-bold mb-4">Spending Report</h3>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      {/* Monthly Spending */}
-                      <div className="bg-[#252a2e] rounded-lg p-3">
-                        <p className="text-xs text-gray-400 mb-2">MONTHLY SPENDING</p>
-                        <div className="h-6 flex items-end space-x-1 mb-2">
-                          {[3, 5, 2, 3, 2, 6, 3, 4].map((height, index) => (
-                            <div 
-                              key={index} 
-                              className="w-5 bg-gray-500 rounded-sm"
-                              style={{ height: `${height * 4}px` }}
-                            ></div>
-                          ))}
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xl font-bold">${totalSpending.toFixed(2)}</span>
-                          <span className="text-xs text-gray-400">Total</span>
-                        </div>
-                      </div>
-                      
-                      {/* Emotion Impact */}
-                      <div className="bg-[#252a2e] rounded-lg p-3">
-                        <p className="text-xs text-gray-400 mb-2">EMOTION IMPACT</p>
-                        <div className="relative h-6 mb-2">
-                          <svg viewBox="0 0 100 20" className="w-full h-6">
-                            <path
-                              d="M0,10 Q25,5 50,10 T100,10"
-                              fill="none"
-                              stroke="white"
-                              strokeWidth="1.5"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xl font-bold">{emotionImpact}%</span>
-                          <span className="text-xs text-gray-400">Variance</span>
-                        </div>
-                      </div>
+                  {/* Loading State */}
+                  {isLoading && (
+                    <div className="bg-[#1c2127] rounded-lg p-4 flex justify-center items-center h-40">
+                      <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
                     </div>
-                    
-                    <div className="grid grid-cols-3 gap-3">
-                      {/* Top Emotion */}
-                      <div className="bg-[#252a2e] rounded-lg p-3">
-                        <p className="text-xs text-gray-400 mb-1">TOP EMOTION</p>
-                        <p className="text-lg font-bold">
-                          {topEmotion.charAt(0).toUpperCase() + topEmotion.slice(1)}
-                        </p>
-                        <p className="text-xs text-gray-400">Most frequent</p>
-                      </div>
-                      
-                      {/* Impulse */}
-                      <div className="bg-[#252a2e] rounded-lg p-3">
-                        <p className="text-xs text-gray-400 mb-1">IMPULSE</p>
-                        <p className="text-lg font-bold">{impulsePercentage}%</p>
-                        <p className="text-xs text-gray-400">Of purchases</p>
-                      </div>
-                      
-                      {/* Savings */}
-                      <div className="bg-[#252a2e] rounded-lg p-3">
-                        <p className="text-xs text-gray-400 mb-1">SAVINGS</p>
-                        <p className="text-lg font-bold text-red-500">{savingsTarget}%</p>
-                        <p className="text-xs text-gray-400">vs Target</p>
-                      </div>
-                    </div>
-                    
-                    <div className="text-right mt-3">
-                      <p className="text-xs text-gray-400">POWERED BY LUME</p>
-                    </div>
-                  </div>
+                  )}
                   
-                  {/* Budget Manager */}
-                  <div className="mt-4">
-                    <BudgetManager />
-                  </div>
-                  
-                  {/* Mindful spending recommendation */}
-                  <div className="bg-[#1c2127] rounded-lg p-4 mt-4 flex justify-between items-center">
-                    <div>
-                      <div className="text-sm mb-1">New</div>
-                      <h3 className="text-xl font-bold">Get back in the Green</h3>
-                      <p className="text-gray-400">Mindful spending meditation</p>
+                  {/* Error Message Display */}
+                  {!isLoading && errorMessage && (
+                    <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 mb-4 flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium text-red-400">Error loading analytics data</h4>
+                        <p className="text-sm text-gray-400">{errorMessage}</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="mt-2 text-xs h-8 border-gray-700 hover:bg-gray-800"
+                          onClick={() => {
+                            setErrorMessage(null);
+                            if (user) {
+                              window.location.reload();
+                            }
+                          }}
+                        >
+                          Try Again
+                        </Button>
+                      </div>
                     </div>
-                    <Button variant="outline" className="rounded-full border-gray-700 h-10 w-10 flex items-center justify-center p-0">
-                      <Activity size={18} />
-                    </Button>
-                  </div>
+                  )}
+                  
+                  {/* Content when not loading and no errors */}
+                  {!isLoading && !errorMessage && (
+                    <>
+                      <div className="bg-[#1c2127] rounded-lg p-4">
+                        <h3 className="text-xl font-bold mb-4">Spending Report</h3>
+                        
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          {/* Monthly Spending */}
+                          <div className="bg-[#252a2e] rounded-lg p-3">
+                            <p className="text-xs text-gray-400 mb-2">MONTHLY SPENDING</p>
+                            <div className="h-6 flex items-end space-x-1 mb-2">
+                              {[3, 5, 2, 3, 2, 6, 3, 4].map((height, index) => (
+                                <div 
+                                  key={index} 
+                                  className="w-5 bg-gray-500 rounded-sm"
+                                  style={{ height: `${height * 4}px` }}
+                                ></div>
+                              ))}
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xl font-bold">${totalSpending.toFixed(2)}</span>
+                              <span className="text-xs text-gray-400">Total</span>
+                            </div>
+                          </div>
+                          
+                          {/* Emotion Impact */}
+                          <div className="bg-[#252a2e] rounded-lg p-3">
+                            <p className="text-xs text-gray-400 mb-2">EMOTION IMPACT</p>
+                            <div className="relative h-6 mb-2">
+                              <svg viewBox="0 0 100 20" className="w-full h-6">
+                                <path
+                                  d="M0,10 Q25,5 50,10 T100,10"
+                                  fill="none"
+                                  stroke="white"
+                                  strokeWidth="1.5"
+                                />
+                              </svg>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xl font-bold">{emotionImpact}%</span>
+                              <span className="text-xs text-gray-400">Variance</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-3">
+                          {/* Top Emotion */}
+                          <div className="bg-[#252a2e] rounded-lg p-3">
+                            <p className="text-xs text-gray-400 mb-1">TOP EMOTION</p>
+                            <p className="text-lg font-bold">
+                              {topEmotion.charAt(0).toUpperCase() + topEmotion.slice(1)}
+                            </p>
+                            <p className="text-xs text-gray-400">Most frequent</p>
+                          </div>
+                          
+                          {/* Impulse */}
+                          <div className="bg-[#252a2e] rounded-lg p-3">
+                            <p className="text-xs text-gray-400 mb-1">IMPULSE</p>
+                            <p className="text-lg font-bold">{impulsePercentage}%</p>
+                            <p className="text-xs text-gray-400">Of purchases</p>
+                          </div>
+                          
+                          {/* Savings */}
+                          <div className="bg-[#252a2e] rounded-lg p-3">
+                            <p className="text-xs text-gray-400 mb-1">SAVINGS</p>
+                            <p className="text-lg font-bold text-red-500">{savingsTarget}%</p>
+                            <p className="text-xs text-gray-400">vs Target</p>
+                          </div>
+                        </div>
+                        
+                        <div className="text-right mt-3">
+                          <p className="text-xs text-gray-400">POWERED BY LUME</p>
+                        </div>
+                      </div>
+                      
+                      {/* Budget Manager */}
+                      <div className="mt-4">
+                        <BudgetManager />
+                      </div>
+                      
+                      {/* Mindful spending recommendation */}
+                      <div className="bg-[#1c2127] rounded-lg p-4 mt-4 flex justify-between items-center">
+                        <div>
+                          <div className="text-sm mb-1">New</div>
+                          <h3 className="text-xl font-bold">Get back in the Green</h3>
+                          <p className="text-gray-400">Mindful spending meditation</p>
+                        </div>
+                        <Button variant="outline" className="rounded-full border-gray-700 h-10 w-10 flex items-center justify-center p-0">
+                          <Activity size={18} />
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="trends" className="mt-4">
