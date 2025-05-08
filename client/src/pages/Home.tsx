@@ -68,7 +68,7 @@ export default function Home() {
           <div className="whoop-container">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-medium text-foreground">Your Dashboard</h3>
-              <span className="text-xs text-muted-foreground">{format(new Date(), 'MMMM d, yyyy')}</span>
+              <span className="text-xs text-muted-foreground">{format(new Date(), 'MMM d, yyyy')}</span>
             </div>
             
             {isEmotionLoading ? (
@@ -97,16 +97,36 @@ export default function Home() {
               </div>
             ) : (
               <>
-                {/* Current Mood Status - No Data Available */}
+                {/* Current Mood Status */}
                 <div className="p-3 mb-4 rounded-lg bg-accent/50 border border-border">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-muted/50">
-                      <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-foreground">Current Mood: No Data</div>
-                      <div className="text-xs text-muted-foreground">Track your first mood to get started</div>
-                    </div>
+                    {latestEmotion ? (
+                      <>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                          latestEmotion.type === 'happy' ? 'bg-[#6554C0]/20 text-[#6554C0]' :
+                          latestEmotion.type === 'content' ? 'bg-[#00B8D9]/20 text-[#00B8D9]' :
+                          latestEmotion.type === 'neutral' ? 'bg-[#36B37E]/20 text-[#36B37E]' :
+                          latestEmotion.type === 'worried' ? 'bg-[#FFAB00]/20 text-[#FFAB00]' :
+                          'bg-[#FF5630]/20 text-[#FF5630]'
+                        }`}>
+                          <span className="text-sm font-semibold capitalize">{latestEmotion.type.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-foreground capitalize">Current Mood: {latestEmotion.type}</div>
+                          <div className="text-xs text-muted-foreground">Last updated: {new Date(latestEmotion.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-muted/50">
+                          <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-foreground">Current Mood: No Data</div>
+                          <div className="text-xs text-muted-foreground">Track your first mood to get started</div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 

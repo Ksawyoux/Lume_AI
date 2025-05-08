@@ -21,7 +21,7 @@ export default function Header() {
   
   // Calculate recovery average from weekly emotions
   const calculateRecoveryAverage = (): number => {
-    if (!weeklyEmotions || weeklyEmotions.length === 0) return 51; // Default to 51% if no data
+    if (!weeklyEmotions || weeklyEmotions.length === 0) return 0; // Show 0% if no data
     
     const moods = weeklyEmotions.map(emotion => emotion.type as EmotionType);
     const total = moods.reduce((sum, mood) => {
@@ -32,8 +32,7 @@ export default function Header() {
   };
   
   const recoveryScore = calculateRecoveryAverage();
-  const scoreDiff = 15;
-  const isScoreUp = scoreDiff > 0;
+  // We're not showing score difference anymore since we're focusing on actual data
   
   // Get active budgets
   const { data: budgets } = useQuery<Budget[]>({
@@ -76,14 +75,33 @@ export default function Header() {
         
         {/* Center - WHOOP-style recovery score display as a badge - exact match for screenshot */}
         <div className="w-1/3 flex justify-center">
-          <div className="flex flex-col items-center">
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-[#00f19f]">
-                {recoveryScore}%
-              </span>
-              {/* No score difference shown */}
+          <div className="flex flex-col items-center relative">
+            {/* Arc background for recovery percentage */}
+            <div className="w-14 h-14 relative flex items-center justify-center">
+              {/* Semi-circle background track */}
+              <div className="absolute w-full h-full rounded-full border-4 border-gray-700 opacity-30"></div>
+              
+              {/* Recovery arc - dynamic based on percentage */}
+              <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle 
+                  cx="50" cy="50" r="40" 
+                  fill="none" 
+                  stroke="#00f19f" 
+                  strokeWidth="8" 
+                  strokeDasharray="251.2" 
+                  strokeDashoffset={251.2 - (251.2 * recoveryScore / 100)}
+                  strokeLinecap="round"
+                />
+              </svg>
+              
+              {/* Percentage display */}
+              <div className="z-10 text-center">
+                <span className="text-xl font-bold text-[#00f19f]">
+                  {recoveryScore}%
+                </span>
+              </div>
             </div>
-            <span className="text-xs text-gray-400 uppercase tracking-wider">RECOVERY</span>
+            <span className="text-xs text-gray-400 uppercase tracking-wider mt-1">RECOVERY</span>
           </div>
         </div>
         
