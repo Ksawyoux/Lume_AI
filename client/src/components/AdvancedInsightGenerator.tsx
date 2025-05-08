@@ -25,12 +25,54 @@ export default function AdvancedInsightGenerator() {
   const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
 
+  // Type definition for our insights response
+  interface AdvancedAnalysisResponse {
+    message: string;
+    analysis: {
+      emotionPatterns: Array<{
+        patternName: string;
+        description: string;
+        confidence: number;
+        affectedMetrics: string[];
+        recommendedActions: string[];
+        severity: 'low' | 'medium' | 'high';
+      }>;
+      emotionFinanceCorrelations: Array<{
+        emotionType: string;
+        spendingCategory: string;
+        correlation: number;
+        averageAmount: number;
+        description: string;
+        recommendedAction: string;
+      }>;
+      emotionHealthCorrelations: Array<{
+        emotionType: string;
+        healthMetric: string;
+        correlation: number;
+        description: string;
+        recommendedAction: string;
+      }>;
+      overallInsights: string;
+      primaryInfluencers: string[];
+      actionPlan: string[];
+    };
+    storedInsights: Array<{
+      id: number;
+      userId: number;
+      type: string;
+      title: string;
+      description: string;
+      date: string;
+    }>;
+  }
+
   // Mutation for generating advanced insights
-  const generateAdvancedInsightsMutation = useMutation({
+  const generateAdvancedInsightsMutation = useMutation<AdvancedAnalysisResponse, Error>({
     mutationFn: async () => {
-      if (!user) return null;
+      if (!user) throw new Error("User not authenticated");
       
-      return await apiRequest('/api/advanced-analytics/analyze', 'POST', {});
+      const response = await apiRequest('/api/advanced-analytics/analyze', 'POST', {});
+      return await response.json();
     },
     onSuccess: (data) => {
       if (user) {
