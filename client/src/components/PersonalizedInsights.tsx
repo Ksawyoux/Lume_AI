@@ -48,7 +48,7 @@ export default function PersonalizedInsights() {
       if (!user) return null;
       
       // Fixed parameter order: url, method, data
-      return await apiRequest('/api/insights/generate', 'POST', {
+      return await apiRequest('/insights/generate', 'POST', {
         userId: user.id
       });
     },
