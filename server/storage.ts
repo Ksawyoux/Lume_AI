@@ -1,4 +1,4 @@
-import { emotions, transactions, insights, users, healthData, budgets } from "@shared/schema";
+import { emotions, transactions, insights, users, healthData, budgets, emotionReferenceImages } from "@shared/schema";
 import type { 
   User, InsertUser, 
   Emotion, InsertEmotion, 
@@ -6,7 +6,8 @@ import type {
   Insight, InsertInsight, 
   EmotionType, 
   InsertHealthData, HealthData, HealthMetricType,
-  Budget, InsertBudget
+  Budget, InsertBudget,
+  EmotionReferenceImage, InsertEmotionReferenceImage
 } from "@shared/schema";
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from "date-fns";
 
@@ -51,6 +52,14 @@ export interface IStorage {
   updateBudget(id: number, budget: Partial<Budget>): Promise<Budget>;
   deleteBudget(id: number): Promise<boolean>;
   getBudgetSpending(userId: number, budgetId: number): Promise<{ spent: number, remaining: number, percentage: number }>;
+  
+  // Emotion Reference Images
+  createEmotionReferenceImage(image: InsertEmotionReferenceImage): Promise<EmotionReferenceImage>;
+  getEmotionReferenceImagesByUserId(userId: number): Promise<EmotionReferenceImage[]>;
+  getEmotionReferenceImagesByEmotion(userId: number, emotion: EmotionType): Promise<EmotionReferenceImage[]>;
+  getEmotionReferenceImageById(id: number): Promise<EmotionReferenceImage | undefined>;
+  deleteEmotionReferenceImage(id: number): Promise<boolean>;
+  findMostSimilarEmotionFromImage(userId: number, imageData: string): Promise<{emotion: EmotionType, confidence: number}>;
 }
 
 export class MemStorage implements IStorage {
@@ -60,12 +69,14 @@ export class MemStorage implements IStorage {
   private insights: Map<number, Insight>;
   private healthData: Map<number, HealthData>;
   private budgets: Map<number, Budget>;
+  private emotionReferenceImages: Map<number, EmotionReferenceImage>;
   private userIds: { current: number };
   private emotionIds: { current: number };
   private transactionIds: { current: number };
   private insightIds: { current: number };
   private healthDataIds: { current: number };
   private budgetIds: { current: number };
+  private emotionReferenceImageIds: { current: number };
 
   constructor() {
     this.users = new Map();
@@ -74,6 +85,7 @@ export class MemStorage implements IStorage {
     this.insights = new Map();
     this.healthData = new Map();
     this.budgets = new Map();
+    this.emotionReferenceImages = new Map();
     
     this.userIds = { current: 1 };
     this.emotionIds = { current: 1 };
@@ -81,6 +93,7 @@ export class MemStorage implements IStorage {
     this.insightIds = { current: 1 };
     this.healthDataIds = { current: 1 };
     this.budgetIds = { current: 1 };
+    this.emotionReferenceImageIds = { current: 1 };
     
     // Add seed data
     this.seedData();
@@ -440,6 +453,60 @@ export class MemStorage implements IStorage {
       spent: totalSpent,
       remaining,
       percentage: Math.min(100, percentage) // Cap at 100%
+    };
+  }
+  
+  // Emotion Reference Image methods
+  async createEmotionReferenceImage(insertImage: InsertEmotionReferenceImage): Promise<EmotionReferenceImage> {
+    const id = this.emotionReferenceImageIds.current++;
+    const now = new Date();
+    const image: EmotionReferenceImage = { 
+      ...insertImage, 
+      id, 
+      createdAt: now, 
+      updatedAt: now 
+    };
+    this.emotionReferenceImages.set(id, image);
+    return image;
+  }
+  
+  async getEmotionReferenceImagesByUserId(userId: number): Promise<EmotionReferenceImage[]> {
+    return Array.from(this.emotionReferenceImages.values())
+      .filter(image => image.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async getEmotionReferenceImagesByEmotion(userId: number, emotion: EmotionType): Promise<EmotionReferenceImage[]> {
+    return Array.from(this.emotionReferenceImages.values())
+      .filter(image => image.userId === userId && image.emotion === emotion)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async getEmotionReferenceImageById(id: number): Promise<EmotionReferenceImage | undefined> {
+    return this.emotionReferenceImages.get(id);
+  }
+  
+  async deleteEmotionReferenceImage(id: number): Promise<boolean> {
+    return this.emotionReferenceImages.delete(id);
+  }
+  
+  async findMostSimilarEmotionFromImage(userId: number, imageData: string): Promise<{emotion: EmotionType, confidence: number}> {
+    // Get all reference images for this user
+    const referenceImages = await this.getEmotionReferenceImagesByUserId(userId);
+    
+    if (referenceImages.length === 0) {
+      // If no reference images exist, return a default value
+      return { emotion: 'neutral', confidence: 0.5 };
+    }
+    
+    // In a real implementation, we would use a similarity algorithm to find the most similar image
+    // For now, just return a random emotion from the user's reference images
+    const randomIndex = Math.floor(Math.random() * referenceImages.length);
+    const randomConfidence = 0.5 + Math.random() * 0.5; // Random value between 0.5 and 1.0
+    
+    return {
+      emotion: referenceImages[randomIndex].emotion,
+      confidence: randomConfidence
     };
   }
 }

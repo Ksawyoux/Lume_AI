@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { eq, desc, and, gte, lte, isNull, sql, or } from "drizzle-orm";
-import { emotions, transactions, insights, users, healthData, budgets } from "@shared/schema";
+import { emotions, transactions, insights, users, healthData, budgets, emotionReferenceImages } from "@shared/schema";
 import type { 
   User, 
   InsertUser, 
@@ -15,7 +15,9 @@ import type {
   HealthData, 
   HealthMetricType,
   Budget,
-  InsertBudget 
+  InsertBudget,
+  EmotionReferenceImage,
+  InsertEmotionReferenceImage 
 } from "@shared/schema";
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from "date-fns";
 import { IStorage } from "./storage";
@@ -332,5 +334,76 @@ export class PgStorage implements IStorage {
       remaining,
       percentage: Math.min(100, percentage) // Cap at 100%
     };
+  }
+  
+  // Emotion Reference Image methods
+  async createEmotionReferenceImage(insertImage: InsertEmotionReferenceImage): Promise<EmotionReferenceImage> {
+    const result = await db.insert(emotionReferenceImages).values(insertImage).returning();
+    return result[0];
+  }
+  
+  async getEmotionReferenceImagesByUserId(userId: number): Promise<EmotionReferenceImage[]> {
+    return await db
+      .select()
+      .from(emotionReferenceImages)
+      .where(eq(emotionReferenceImages.userId, userId))
+      .orderBy(desc(emotionReferenceImages.createdAt));
+  }
+  
+  async getEmotionReferenceImagesByEmotion(userId: number, emotion: EmotionType): Promise<EmotionReferenceImage[]> {
+    return await db
+      .select()
+      .from(emotionReferenceImages)
+      .where(and(
+        eq(emotionReferenceImages.userId, userId),
+        eq(emotionReferenceImages.emotion, emotion)
+      ))
+      .orderBy(desc(emotionReferenceImages.createdAt));
+  }
+  
+  async getEmotionReferenceImageById(id: number): Promise<EmotionReferenceImage | undefined> {
+    const result = await db
+      .select()
+      .from(emotionReferenceImages)
+      .where(eq(emotionReferenceImages.id, id))
+      .limit(1);
+    return result[0];
+  }
+  
+  async deleteEmotionReferenceImage(id: number): Promise<boolean> {
+    const result = await db
+      .delete(emotionReferenceImages)
+      .where(eq(emotionReferenceImages.id, id))
+      .returning({ id: emotionReferenceImages.id });
+    
+    return result.length > 0;
+  }
+  
+  async findMostSimilarEmotionFromImage(userId: number, imageData: string): Promise<{emotion: EmotionType, confidence: number}> {
+    // Get all reference images for this user
+    const referenceImages = await this.getEmotionReferenceImagesByUserId(userId);
+    
+    if (referenceImages.length === 0) {
+      // If no reference images exist, return a default value
+      return { emotion: 'neutral', confidence: 0.5 };
+    }
+    
+    // As a placeholder implementation, we'll return a random emotion from the user's reference images
+    // with a random confidence value. In a real implementation, this would use a visual similarity
+    // algorithm to find the most similar image and return its emotion.
+    const randomIndex = Math.floor(Math.random() * referenceImages.length);
+    const randomConfidence = 0.5 + Math.random() * 0.5; // Random value between 0.5 and 1.0
+    
+    return {
+      emotion: referenceImages[randomIndex].emotion,
+      confidence: randomConfidence
+    };
+    
+    // TODO: Implement actual image similarity comparison using Gemini or a similar service
+    // This would involve:
+    // 1. Processing the input image
+    // 2. Comparing it to each reference image
+    // 3. Finding the most similar image(s) 
+    // 4. Returning the emotion associated with the most similar image
   }
 }
