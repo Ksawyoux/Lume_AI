@@ -165,7 +165,13 @@ export default function EmotionTracker() {
     <section className="px-4 py-4">
       {/* Facial Expression Analyzer Dialog */}
       <Dialog open={showFacialAnalyzer} onOpenChange={setShowFacialAnalyzer}>
-        <DialogContent className="sm:max-w-md p-0 border-0 bg-transparent">
+        <DialogContent 
+          className="sm:max-w-md p-0 border-0 bg-transparent"
+          aria-describedby="facial-analyzer-description"
+        >
+          <div id="facial-analyzer-description" className="sr-only">
+            Facial expression analyzer uses your camera to detect emotions
+          </div>
           <FacialEmotionAnalyzer 
             onEmotionDetected={handleFacialEmotionDetected}
             onClose={() => setShowFacialAnalyzer(false)}
