@@ -29,7 +29,7 @@ export default function Home() {
     <div className="max-w-md mx-auto bg-background min-h-screen flex flex-col relative">
       <Header />
       
-      {/* Quick Add Button - Fixed Position */}
+      {/* Quick Add Button with fixed positioning is within the QuickAddTransaction component */}
       <QuickAddTransaction />
       
       <main className="flex-1 overflow-y-auto pb-16">

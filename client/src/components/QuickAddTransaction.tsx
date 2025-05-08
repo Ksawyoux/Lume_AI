@@ -161,8 +161,8 @@ export default function QuickAddTransaction() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="absolute z-10 bottom-20 right-4 rounded-full h-14 w-14 shadow-lg bg-primary hover:bg-primary/90">
-          <Plus size={24} />
+        <Button className="fixed z-10 bottom-20 right-4 rounded-full h-14 w-14 shadow-lg bg-[#00f19f] hover:bg-[#00d88a] flex items-center justify-center">
+          <Plus size={24} color="black" strokeWidth={3} />
         </Button>
       </DialogTrigger>
       <DialogContent>
