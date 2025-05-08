@@ -319,7 +319,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Calculate impulse percentage
         const emotionPurchases = transactions.filter(t => t.emotionId !== null).length;
-        impulsePercentage = Math.round((emotionPurchases / transactions.length) * 100);
+        if (transactions.length > 0) {
+          impulsePercentage = Math.round((emotionPurchases / transactions.length) * 100);
+        } else {
+          impulsePercentage = 0; // Set to 0 explicitly when no transactions
+        }
         
         // Calculate emotion impact - variance in spending
         if (spendingByEmotion.length > 1) {
@@ -332,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get budget information for savings calculation
       const budgets = await storage.getActiveBudgetsByUserId(userId);
-      let savingsTarget = -12; // default value
+      let savingsTarget = 0; // default to 0 when no data instead of -12
       
       if (budgets && budgets.length > 0) {
         const monthlyBudget = budgets.find(b => 
@@ -369,10 +373,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error getting analytics data:', error);
       res.status(500).json({ 
         message: "Internal server error",
-        totalSpending: 225.57,
+        totalSpending: 0,
         emotionImpact: 32,
-        impulsePercentage: 43,
-        savingsTarget: -12,
+        impulsePercentage: 0,
+        savingsTarget: 0,
         emotionSpending: {
           stressed: 0,
           content: 0,
