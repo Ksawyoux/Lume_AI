@@ -5,7 +5,6 @@ import MoodWeeklyRecovery from '@/components/MoodWeeklyRecovery';
 import { useQuery } from '@tanstack/react-query';
 import { Emotion, EmotionType } from '@shared/schema';
 import { ArrowLeft } from 'lucide-react';
-import { Link } from 'wouter';
 
 export default function MoodDashboard() {
   const { user } = useUser();
@@ -25,12 +24,13 @@ export default function MoodDashboard() {
       
       <main className="flex-1 px-4 pt-4 pb-16">
         <div className="flex items-center justify-between mb-4">
-          <Link href="/">
-            <a className="flex items-center text-gray-400">
-              <ArrowLeft size={18} className="mr-1" />
-              <span className="text-sm">Back</span>
-            </a>
-          </Link>
+          <div 
+            className="flex items-center text-gray-400 cursor-pointer"
+            onClick={() => window.location.href = '/'}
+          >
+            <ArrowLeft size={18} className="mr-1" />
+            <span className="text-sm">Back</span>
+          </div>
           <h1 className="text-lg font-semibold text-white">Mood Analysis</h1>
           <div className="w-8"></div> {/* For spacing balance */}
         </div>

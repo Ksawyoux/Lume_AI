@@ -105,10 +105,11 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
       
       try {
         // Send the form data directly (the server will handle string-to-date conversion)
-        return await apiRequest('/api/budgets', 'POST', {
+        const response = await apiRequest("POST", "/api/budgets", {
           userId: user.id,
           ...data
         });
+        return response.json();
       } catch (err: any) {
         const errorMessage = err?.message || 'Failed to create budget. Please try again.';
         setError(errorMessage);
@@ -382,6 +383,13 @@ function BudgetCard({ budget }: { budget: Budget }) {
     error: spendingQueryError
   } = useQuery<BudgetSpending>({
     queryKey: user ? [`/api/users/${user.id}/budgets/${budget.id}/spending`] : [],
+    queryFn: user ? async () => {
+      const response = await fetch(`/api/users/${user.id}/budgets/${budget.id}/spending`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch budget spending: ${response.statusText}`);
+      }
+      return response.json();
+    } : undefined,
     enabled: !!user,
   });
   
