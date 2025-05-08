@@ -39,9 +39,6 @@ export default function Analytics() {
     enabled: !!user?.id,
   });
 
-  const [activeTab, setActiveTab] = useState("spending");
-  const [budgetError, setBudgetError] = useState<string | null>(null);
-
   const handleBudgetError = (error: string) => {
     setBudgetError(error);
   };
