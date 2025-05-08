@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
 import { analyzeAdvancedEmotionalPatterns } from '../services/advancedEmotionAnalysis';
 import { requireAuth } from '../middleware/auth';
+import { EmotionType, HealthMetricType } from '@shared/schema';
 
 const router = Router();
 
@@ -33,10 +34,10 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
       });
     }
     
-    // Format the data for the AI service
+    // Format the data for the AI service - ensuring proper type safety
     const emotionData = emotions.map(e => ({
       id: e.id,
-      type: e.type,
+      type: e.type as EmotionType, // Ensure proper typing
       date: e.date.toISOString(),
       notes: e.notes
     }));
@@ -51,9 +52,9 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
     
     const healthDataFormatted = healthData.map(h => ({
       id: h.id,
-      type: h.type,
+      type: h.type as HealthMetricType, // Ensure proper typing
       value: h.value,
-      date: h.date.toISOString()
+      date: h.timestamp.toISOString() // Use timestamp instead of date
     }));
     
     // Perform the advanced analysis
@@ -66,6 +67,8 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
     // Store key insights from the analysis
     const storedInsights = [];
     
+    const now = new Date();
+    
     // Store emotion-finance correlations as insights
     if (advancedInsights.emotionFinanceCorrelations && advancedInsights.emotionFinanceCorrelations.length > 0) {
       for (const correlation of advancedInsights.emotionFinanceCorrelations) {
@@ -77,7 +80,8 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
           type: 'advanced-finance-correlation',
           title: `${correlation.emotionType} Spending Pattern`,
           description: correlation.description + ' ' + correlation.recommendedAction,
-          date: new Date()
+          date: now,
+          updatedDate: now
         });
         storedInsights.push(insight);
       }
@@ -94,7 +98,8 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
           type: 'advanced-health-correlation',
           title: `${correlation.emotionType} and ${correlation.healthMetric} Connection`,
           description: correlation.description + ' ' + correlation.recommendedAction,
-          date: new Date()
+          date: now,
+          updatedDate: now
         });
         storedInsights.push(insight);
       }
@@ -110,7 +115,8 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
         type: 'advanced-action-plan',
         title: `Personalized Wellness Action Plan`,
         description: actionPlanDescription,
-        date: new Date()
+        date: now,
+        updatedDate: now
       });
       storedInsights.push(insight);
     }

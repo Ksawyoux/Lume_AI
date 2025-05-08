@@ -21,7 +21,7 @@ interface EmotionEntry {
   id: number;
   type: EmotionType;
   date: string;
-  notes?: string;
+  notes?: string | null;
 }
 
 interface TransactionEntry {
@@ -174,8 +174,22 @@ IMPORTANT:
     });
 
     // Extract and parse the JSON response
-    const content = message.content[0].text;
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    let responseText = '';
+    
+    // Handle different content types safely
+    if (message.content && message.content.length > 0) {
+      const contentBlock = message.content[0]; 
+      
+      if ('text' in contentBlock) {
+        responseText = contentBlock.text;
+      } else {
+        // If we can't get the text directly, convert the entire response to a string
+        responseText = JSON.stringify(message);
+      }
+    }
+    
+    // Try to extract JSON from the response
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     
     if (!jsonMatch) {
       throw new Error('Failed to extract JSON from Claude response');
