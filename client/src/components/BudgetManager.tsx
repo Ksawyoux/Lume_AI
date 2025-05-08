@@ -81,7 +81,7 @@ export default function BudgetManager() {
     mutationFn: async (data: BudgetFormValues) => {
       if (!user) return null;
       
-      const res = await apiRequest('POST', 'api/budgets', {
+      const res = await apiRequest('POST', '/api/budgets', {
         userId: user.id,
         ...data
       });
