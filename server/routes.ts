@@ -467,8 +467,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI-powered Insights Generator routes
   app.use('/api/insights', insightsGeneratorRoutes);
   
-  // Facial Expression Analysis routes
-  app.use('/api/ml/emotions', facialAnalysisRoutes);
+  // Facial Expression Analysis routes - mounted at a separate path to avoid conflicts
+  app.use('/api/ml/facial', facialAnalysisRoutes);
 
   const httpServer = createServer(app);
 
