@@ -1,7 +1,8 @@
 import { useUser } from "@/context/UserContext";
 import { BellIcon, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Budget } from '@shared/schema';
+import { Budget, Emotion, EmotionType } from '@shared/schema';
+import { emotionRecoveryPercentages } from '@/lib/emotionUtils';
 
 interface BudgetSpending {
   spent: number;
@@ -12,8 +13,25 @@ interface BudgetSpending {
 export default function Header() {
   const { user } = useUser();
   
-  // WHOOP-style recovery score (67-100% is high recovery)
-  const recoveryScore = 51;
+  // Get weekly emotions data to calculate mood recovery
+  const { data: weeklyEmotions } = useQuery<Emotion[]>({
+    queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
+    enabled: !!user,
+  });
+  
+  // Calculate recovery average from weekly emotions
+  const calculateRecoveryAverage = (): number => {
+    if (!weeklyEmotions || weeklyEmotions.length === 0) return 51; // Default to 51% if no data
+    
+    const moods = weeklyEmotions.map(emotion => emotion.type as EmotionType);
+    const total = moods.reduce((sum, mood) => {
+      return sum + emotionRecoveryPercentages[mood];
+    }, 0);
+    
+    return Math.round(total / moods.length);
+  };
+  
+  const recoveryScore = calculateRecoveryAverage();
   const scoreDiff = 15;
   const isScoreUp = scoreDiff > 0;
   
