@@ -147,9 +147,16 @@ export function setupAuth(app: Express) {
 
   // Get current user endpoint
   app.get("/api/user", (req, res) => {
+    console.log("GET /api/user - isAuthenticated:", req.isAuthenticated());
+    
     if (!req.isAuthenticated()) {
+      console.log("User not authenticated");
       return res.status(401).json({ message: "Not authenticated" });
     }
+    
+    console.log("Authenticated user:", { id: req.user.id, username: req.user.username });
+    
+    // Return the user data with password removed for security
     res.json({ user: { ...req.user, password: undefined } });
   });
 
