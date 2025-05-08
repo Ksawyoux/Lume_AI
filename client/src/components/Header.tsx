@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useUser } from "@/context/UserContext";
-import { BellIcon, Settings } from "lucide-react";
+import { BellIcon, Settings, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Budget, Emotion, EmotionType } from '@shared/schema';
 import { emotionRecoveryPercentages } from '@/lib/emotionUtils';
+import BudgetDetails from "./BudgetDetails";
 
 interface BudgetSpending {
   spent: number;
@@ -12,6 +14,7 @@ interface BudgetSpending {
 
 export default function Header() {
   const { user } = useUser();
+  const [budgetDetailsOpen, setBudgetDetailsOpen] = useState(false);
   
   // Get weekly emotions data to calculate mood recovery
   const { data: weeklyEmotions } = useQuery<Emotion[]>({
@@ -121,27 +124,55 @@ export default function Header() {
         </div>
       </header>
       
-      {/* Budget bar below header - only show when there's actual spending data */}
-      {monthlyBudget && budgetSpending && budgetSpending.spent > 0 && (
-        <div className="bg-[#222a32] px-4 py-2 border-b border-[#2A363D]">
-          <div className="flex justify-between items-center text-xs mb-1">
-            <span className="text-gray-400 uppercase tracking-wider">MONTHLY BUDGET</span>
-            <span className="text-gray-300">
-              {formatCurrency(budgetSpending.spent, monthlyBudget.currency)} of {formatCurrency(monthlyBudget.amount, monthlyBudget.currency)}
-            </span>
+      {/* Budget bar below header - always shown when there's a monthly budget */}
+      {monthlyBudget && budgetSpending && (
+        <>
+          <div 
+            className="bg-[#222a32] px-4 py-2 border-b border-[#2A363D] cursor-pointer"
+            onClick={() => setBudgetDetailsOpen(true)}
+          >
+            <div className="flex justify-between items-center text-xs mb-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#00f19f]"></div>
+                <span className="text-gray-400 uppercase tracking-wider">MONTHLY BUDGET</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-gray-300 mr-2">
+                  ${budgetSpending.spent} of ${monthlyBudget.amount}
+                </span>
+                <ChevronRight className="h-4 w-4 text-gray-400" />
+              </div>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-[#00f19f]" 
+                style={{ 
+                  width: `${budgetSpending.percentage}%`,
+                  backgroundColor: budgetSpending.percentage > 90 ? '#FB5607' : 
+                                  budgetSpending.percentage > 75 ? '#EEB868' : '#00f19f'
+                }}
+              ></div>
+            </div>
+            
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-gray-400">Remaining: ${budgetSpending.remaining}</span>
+              <span className="text-sm text-[#00f19f] flex items-center">
+                {budgetSpending.percentage < 75 ? "On track" : "Warning"}
+              </span>
+            </div>
           </div>
-          {/* Progress bar */}
-          <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-[#00f19f]" 
-              style={{ 
-                width: `${budgetSpending.percentage}%`,
-                backgroundColor: budgetSpending.percentage > 90 ? '#FB5607' : 
-                                budgetSpending.percentage > 75 ? '#EEB868' : '#00f19f'
-              }}
-            ></div>
-          </div>
-        </div>
+          
+          {/* Budget Details Modal */}
+          {monthlyBudget && (
+            <BudgetDetails 
+              budget={monthlyBudget} 
+              open={budgetDetailsOpen} 
+              onOpenChange={setBudgetDetailsOpen} 
+            />
+          )}
+        </>
       )}
     </div>
   );

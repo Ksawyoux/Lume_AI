@@ -169,28 +169,24 @@ export default function Home() {
                   <div className="flex flex-col p-3 bg-[#1a2126] rounded-lg">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-sm font-semibold text-foreground uppercase tracking-wider">FINANCIAL</span>
-                      {monthlyBudget ? (
-                        <span className="text-sm font-medium text-[#00f19f]">{monthlyBudget.currency}</span>
-                      ) : (
-                        <span className="text-sm font-medium text-muted-foreground">--</span>
-                      )}
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {budgets && budgets.length > 0 ? budgets[0].currency : '--'}
+                      </span>
                     </div>
                     <div className="space-y-3">
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-gray-400 uppercase tracking-wider">SPENDING</span>
-                          {budgetSpending ? (
-                            <span className="text-gray-400">{budgetSpending.spent.toFixed(0)}</span>
-                          ) : (
-                            <span className="text-gray-400">--</span>
-                          )}
+                          <span className="text-gray-400">
+                            {budgetSpending ? budgetSpending.spent.toFixed(0) : '--'}
+                          </span>
                         </div>
                         <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
                           <div className="h-full bg-[#00f19f]" 
                             style={{ 
                               width: budgetSpending ? `${budgetSpending.percentage}%` : '0%',
-                              backgroundColor: budgetSpending?.percentage > 90 ? '#FF5630' : 
-                                              budgetSpending?.percentage > 75 ? '#FFAB00' : '#00f19f'
+                              backgroundColor: budgetSpending && budgetSpending.percentage && budgetSpending.percentage > 90 ? '#FF5630' : 
+                                              budgetSpending && budgetSpending.percentage && budgetSpending.percentage > 75 ? '#FFAB00' : '#00f19f'
                             }}
                           ></div>
                         </div>
@@ -198,17 +194,19 @@ export default function Home() {
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-gray-400 uppercase tracking-wider">SAVING</span>
-                          {monthlyBudget && budgetSpending ? (
-                            <span className="text-gray-400">{(monthlyBudget.amount - budgetSpending.spent).toFixed(0)}</span>
-                          ) : (
-                            <span className="text-gray-400">--</span>
-                          )}
+                          <span className="text-gray-400">
+                            {budgets && budgets.length > 0 && budgetSpending ? 
+                              (budgets[0].amount - budgetSpending.spent).toFixed(0) : 
+                              '--'
+                            }
+                          </span>
                         </div>
                         <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
                           <div className="h-full bg-[#4CC9F0]" 
                             style={{ 
-                              width: budgetSpending && monthlyBudget ? 
-                                    `${100 - budgetSpending.percentage}%` : '0%' 
+                              width: budgetSpending && budgetSpending.percentage ? 
+                                    `${100 - budgetSpending.percentage}%` : 
+                                    '0%' 
                             }}
                           ></div>
                         </div>
@@ -216,15 +214,16 @@ export default function Home() {
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-gray-400 uppercase tracking-wider">BUDGET</span>
-                          {monthlyBudget ? (
-                            <span className="text-gray-400">{monthlyBudget.amount.toFixed(0)}</span>
-                          ) : (
-                            <span className="text-gray-400">--</span>
-                          )}
+                          <span className="text-gray-400">
+                            {budgets && budgets.length > 0 ? 
+                              budgets[0].amount.toFixed(0) : 
+                              '--'
+                            }
+                          </span>
                         </div>
                         <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
                           <div className="h-full bg-[#8D99AE]" 
-                            style={{ width: monthlyBudget ? '100%' : '0%' }}></div>
+                            style={{ width: budgets && budgets.length > 0 ? '100%' : '0%' }}></div>
                         </div>
                       </div>
                     </div>
