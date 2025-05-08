@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import PersonalizedInsights from '@/components/PersonalizedInsights';
+import AdvancedInsightGenerator from '@/components/AdvancedInsightGenerator';
 import BudgetManager from '@/components/BudgetManager';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -207,6 +208,7 @@ export default function Insights() {
 
                 <TabsContent value="insights" className="mt-4">
                   <PersonalizedInsights />
+                  <AdvancedInsightGenerator />
                 </TabsContent>
               </Tabs>
             </div>
