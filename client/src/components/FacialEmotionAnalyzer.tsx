@@ -155,27 +155,37 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     
     // Camera capture logic
     if (videoRef.current && canvasRef.current && cameraActive) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-      
-      if (context) {
-        // Set canvas dimensions
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+      try {
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
         
-        // Draw video frame to canvas
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Get base64 image data
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-        imageBase64 = dataUrl.split(',')[1]; // Remove the "data:image/jpeg;base64," part
+        if (context) {
+          // Set canvas dimensions
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          
+          // Draw video frame to canvas
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Get base64 image data
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          imageBase64 = dataUrl.split(',')[1]; // Remove the "data:image/jpeg;base64," part
+        }
+      } catch (err) {
+        console.error("Error capturing video frame:", err);
+        setCameraError("Error capturing video: " + (err instanceof Error ? err.message : String(err)));
+        setIsAnalyzing(false);
+        setManualMode(true);
+        return;
       }
     }
     
     if (!imageBase64) {
-      setCameraError("Failed to capture image");
+      console.log("No image data captured, switching to manual mode");
+      setCameraError("Failed to capture image. Please try the manual selection instead.");
       setIsAnalyzing(false);
+      setManualMode(true);
       return;
     }
     
