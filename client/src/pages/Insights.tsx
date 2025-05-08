@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import PersonalizedInsights from '@/components/PersonalizedInsights';
+import BudgetManager from '@/components/BudgetManager';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -199,6 +200,11 @@ export default function Analytics() {
                         </div>
                       </>
                     )}
+                  </div>
+                  
+                  {/* Budget Manager */}
+                  <div className="mt-4">
+                    <BudgetManager />
                   </div>
                   
                   {/* Mindful spending recommendation */}
