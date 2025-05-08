@@ -50,12 +50,11 @@ export default function Profile() {
           <div className="whoop-container mb-5">
             <div className="grid grid-cols-2 items-center">
               <div className="flex items-center">
-                <div className="w-16 h-16 rounded-full bg-[hsl(var(--primary)/0.1)] flex items-center justify-center">
-                  <span className="text-xl font-bold text-primary uppercase">{user.initials}</span>
+                <div className="w-16 h-16 rounded-full bg-[#2A363D] flex items-center justify-center">
+                  <span className="text-xl font-bold text-[#00f19f] uppercase">K</span>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-base font-semibold text-foreground uppercase">{user.name}</h3>
-          
+                  <h3 className="text-base font-semibold text-foreground uppercase">KADJAD</h3>
                 </div>
               </div>
               
