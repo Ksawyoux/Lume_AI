@@ -35,10 +35,10 @@ export default function EmotionTracker() {
   const [analysisResult, setAnalysisResult] = useState<EmotionAnalysisResult | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showFacialAnalyzer, setShowFacialAnalyzer] = useState(false);
-  
+
   const mutation = useMutation({
     mutationFn: async (data: { userId: number; type: EmotionType; notes: string }) => {
-      return await apiRequest('/api/emotions', 'POST', data);
+      return await apiRequest('/emotions', 'POST', data);
     },
     onSuccess: () => {
       toast({
@@ -57,7 +57,7 @@ export default function EmotionTracker() {
       });
     },
   });
-  
+
   // Analyze text emotion
   const analyzeEmotion = async () => {
     if (!notes.trim()) {
@@ -72,14 +72,14 @@ export default function EmotionTracker() {
     try {
       setIsAnalyzing(true);
       setShowAnalysis(false);
-      
-      const result = await apiRequest<EmotionAnalysisResult>('api/ml/emotions/analyze', 'POST', {
+
+      const result = await apiRequest<EmotionAnalysisResult>('/ml/emotions/analyze', 'POST', {
         text: notes
       });
-      
+
       setAnalysisResult(result);
       setShowAnalysis(true);
-      
+
       // Auto-select the emotion based on analysis
       const emotion = mapToEmotionType(result.primaryEmotion);
       if (emotion) {
@@ -96,11 +96,11 @@ export default function EmotionTracker() {
       setIsAnalyzing(false);
     }
   };
-  
+
   // Map the AI's emotion to our app's emotion types
   const mapToEmotionType = (emotion: string): EmotionType | null => {
     const lowerEmotion = emotion.toLowerCase();
-    
+
     if (['stressed', 'anxious', 'afraid', 'frightened', 'nervous'].some(e => lowerEmotion.includes(e))) {
       return "stressed";
     } else if (['worried', 'concerned', 'unsettled', 'uneasy'].some(e => lowerEmotion.includes(e))) {
@@ -112,21 +112,21 @@ export default function EmotionTracker() {
     } else if (['happy', 'joyful', 'excited', 'delighted', 'cheerful'].some(e => lowerEmotion.includes(e))) {
       return "happy";
     }
-    
+
     return null;
   };
-  
+
   // Handle emotion detected from facial analysis
   const handleFacialEmotionDetected = (emotion: EmotionType, confidence: number) => {
     setSelectedEmotion(emotion);
     setShowFacialAnalyzer(false);
-    
+
     // Add a note about the facial detection
     setNotes(prev => {
       const facialNote = `Facial expression analysis detected ${emotion} emotion with ${Math.round(confidence * 100)}% confidence.`;
       return prev ? `${prev}\n\n${facialNote}` : facialNote;
     });
-    
+
     toast({
       title: "Facial expression analyzed",
       description: `Detected ${emotion} emotion from your expression.`,
@@ -135,14 +135,14 @@ export default function EmotionTracker() {
 
   const handleSaveEmotion = () => {
     if (!user || !selectedEmotion) return;
-    
+
     mutation.mutate({
       userId: user.id,
       type: selectedEmotion,
       notes: notes,
     });
   };
-  
+
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive':
@@ -154,7 +154,7 @@ export default function EmotionTracker() {
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
     }
   };
-  
+
   const truncateAndCapitalize = (text: string) => {
     // Capitalize first letter and truncate if too long
     return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
@@ -178,21 +178,21 @@ export default function EmotionTracker() {
           />
         </DialogContent>
       </Dialog>
-      
+
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-medium text-foreground">How are you feeling today?</h3>
         <span className="text-xs text-muted-foreground">
           {format(new Date(), "MMM d, yyyy")}
         </span>
       </div>
-      
+
       {/* WHOOP-inspired emotion selector */}
       <div className="whoop-container mb-2">
         <EmojiSelector 
           selectedEmotion={selectedEmotion} 
           onSelect={setSelectedEmotion} 
         />
-        
+
         <div className="mt-3">
           <Textarea
             className="w-full px-4 py-3 text-sm rounded-lg border border-border bg-background focus-visible:ring-primary focus-visible:ring-offset-0 resize-none transition"
@@ -201,7 +201,7 @@ export default function EmotionTracker() {
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
           />
-          
+
           {showAnalysis && analysisResult && (
             <Card className="mt-3 overflow-hidden bg-card/60 backdrop-blur-md dark:bg-card/60 relative border-border">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-cyan-500"></div>
@@ -215,7 +215,7 @@ export default function EmotionTracker() {
                     {truncateAndCapitalize(analysisResult.sentiment)}
                   </Badge>
                 </div>
-                
+
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs font-medium">{truncateAndCapitalize(analysisResult.primaryEmotion)}</span>
@@ -248,7 +248,7 @@ export default function EmotionTracker() {
             >
               <Camera className="h-5 w-5" />
             </Button>
-            
+
             {/* AI Analysis button */}
             <Button
               type="button"
@@ -265,7 +265,7 @@ export default function EmotionTracker() {
                 <Brain className="h-5 w-5" />
               )}
             </Button>
-            
+
             <div className="flex-1"></div>
             <Button
               onClick={handleSaveEmotion}
