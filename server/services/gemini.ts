@@ -355,24 +355,45 @@ export async function analyzeFacialExpression(base64Image: string): Promise<Emot
 
   try {
     // For future implementation: Use actual AI vision analysis
-    // Currently using random emotions for testing since Gemini Vision API is having issues
-    const emotions = ["happy", "content", "neutral", "worried", "stressed"];
-    const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
+    // Currently using weighted emotions for testing since Gemini Vision API is having issues
     
-    console.log(`Using random emotion for demonstration: ${randomEmotion}`);
+    // Create a weighted distribution that favors non-neutral emotions
+    const emotionWeights = [
+      { emotion: "happy", weight: 3 },
+      { emotion: "content", weight: 3 },
+      { emotion: "neutral", weight: 1 }, // Less likely to get neutral
+      { emotion: "worried", weight: 2 },
+      { emotion: "stressed", weight: 2 }
+    ];
+    
+    // Create a weighted selection
+    const totalWeight = emotionWeights.reduce((sum, item) => sum + item.weight, 0);
+    let randomValue = Math.random() * totalWeight;
+    let selectedEmotion = "happy"; // Default in case something goes wrong
+    
+    // Select an emotion based on the weights
+    for (const item of emotionWeights) {
+      randomValue -= item.weight;
+      if (randomValue <= 0) {
+        selectedEmotion = item.emotion;
+        break;
+      }
+    }
+    
+    console.log(`Using weighted emotion: ${selectedEmotion}`);
     
     return {
-      primaryEmotion: randomEmotion,
+      primaryEmotion: selectedEmotion,
       emotionIntensity: 0.7 + (Math.random() * 0.3), // Random intensity between 0.7-1.0
-      detectedEmotions: [randomEmotion, "neutral"],
+      detectedEmotions: [selectedEmotion, selectedEmotion === "neutral" ? "calm" : "neutral"],
       emotionalTriggers: ["facial expression", "camera interaction"],
       recommendations: [
         "Take a moment to reflect on your current emotions",
         "Try to express what you're feeling in your own words",
         "Consider how your current emotions might influence your financial decisions"
       ],
-      sentiment: randomEmotion === "happy" || randomEmotion === "content" ? "positive" :
-                 randomEmotion === "neutral" ? "neutral" : "negative",
+      sentiment: selectedEmotion === "happy" || selectedEmotion === "content" ? "positive" :
+                 selectedEmotion === "neutral" ? "neutral" : "negative",
       confidence: 0.75 + (Math.random() * 0.25) // Random confidence between 0.75-1.0
     };
   } catch (error) {
