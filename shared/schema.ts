@@ -32,6 +32,7 @@ export const transactions = pgTable("transactions", {
   category: text("category").notNull(), // grocery, entertainment, income, etc.
   date: timestamp("date").defaultNow().notNull(),
   emotionId: integer("emotion_id"),
+  currency: text("currency").default("USD").notNull(), // USD, MAD, etc.
 });
 
 export const insights = pgTable("insights", {
@@ -77,6 +78,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).pick({
   category: true,
   date: true,
   emotionId: true,
+  currency: true,
 });
 
 export const insertInsightSchema = createInsertSchema(insights).pick({

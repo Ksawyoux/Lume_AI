@@ -15,7 +15,7 @@ import EmojiSelector from '@/components/EmojiSelector';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { CalendarIcon, Plus, Minus } from 'lucide-react';
+import { CalendarIcon, Plus, Minus, RefreshCw } from 'lucide-react';
 
 export default function AddTransaction() {
   const { user } = useUser();
@@ -29,6 +29,7 @@ export default function AddTransaction() {
   const [notes, setNotes] = useState<string>('');
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionType | null>("content");
   const [date, setDate] = useState<Date>(new Date());
+  const [currency, setCurrency] = useState<string>('USD'); // Default to USD
   
   // Fetch the latest emotion to suggest it for the transaction
   const { data: latestEmotion } = useQuery<Emotion>({
@@ -52,6 +53,7 @@ export default function AddTransaction() {
       notes?: string;
       emotionId?: number;
       date?: Date;
+      currency: string;
     }) => {
       const res = await apiRequest('POST', '/api/transactions', data);
       return res.json();
@@ -190,6 +192,33 @@ export default function AddTransaction() {
                 </Popover>
               </div>
               
+              {/* Currency selection */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                  CURRENCY
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={`border-border ${currency === 'USD' ? 'bg-[hsl(var(--primary)/0.1)] text-primary border-primary' : 'bg-card text-foreground'} flex items-center justify-center`}
+                    onClick={() => setCurrency('USD')}
+                  >
+                    USD ($)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={`border-border ${currency === 'MAD' ? 'bg-[hsl(var(--primary)/0.1)] text-primary border-primary' : 'bg-card text-foreground'} flex items-center justify-center`}
+                    onClick={() => setCurrency('MAD')}
+                  >
+                    MAD (د.م.)
+                  </Button>
+                </div>
+              </div>
+              
               {/* Amount */}
               <div>
                 <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
@@ -197,12 +226,12 @@ export default function AddTransaction() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-muted-foreground">$</span>
+                    <span className="text-muted-foreground">{currency === 'USD' ? '$' : 'د.م.'}</span>
                   </div>
                   <Input
                     type="number"
                     placeholder="0.00"
-                    className="pl-7 bg-card border-border text-foreground"
+                    className="pl-10 bg-card border-border text-foreground"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                   />
