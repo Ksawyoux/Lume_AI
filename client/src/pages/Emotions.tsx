@@ -1,41 +1,64 @@
 import { useUser } from '@/context/UserContext';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Emotion, EmotionType } from '@shared/schema';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from '@/components/ui/skeleton';
 import { emotionConfig, getEmotionColor, emotionRecoveryPercentages } from "@/lib/emotionUtils";
+import VoiceEmotionAnalyzer from '@/components/VoiceEmotionAnalyzer';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function Emotions() {
   const { user } = useUser();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   
   const { data: emotions, isLoading } = useQuery<Emotion[]>({
     queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
     enabled: !!user,
   });
   
-  if (!user) return null;
-  
-  // Map emotion types to WHOOP recovery colors
-  const getEmotionColorClass = (type: string): string => {
-    const emotionType = type as EmotionType;
-    switch(emotionType) {
-      case 'stressed':
-        return 'bg-[hsl(var(--recovery-low)/0.1)] text-[hsl(var(--recovery-low))]';
-      case 'worried':
-        return 'bg-[hsl(var(--recovery-medium)/0.1)] text-[hsl(var(--recovery-medium))]';
-      case 'neutral':
-        return 'bg-[hsl(var(--recovery-neutral)/0.1)] text-[hsl(var(--recovery-neutral))]';
-      case 'content':
-        return 'bg-[hsl(var(--strain)/0.1)] text-[hsl(var(--strain))]';
-      case 'happy':
-        return 'bg-[hsl(var(--recovery-high)/0.1)] text-[hsl(var(--recovery-high))]';
-      default:
-        return 'bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]';
+  const handleVoiceEmotionResult = async (result: { emotion: EmotionType, confidence: number, transcript: string }) => {
+    if (!user) return;
+    
+    try {
+      setIsProcessingVoice(true);
+      
+      // Create emotion from the voice analysis result
+      const response = await apiRequest('POST', `/api/users/${user.id}/emotions`, {
+        type: result.emotion,
+        notes: result.transcript || `Voice detected: ${result.emotion} (${Math.round(result.confidence * 100)}% confidence)`,
+        date: new Date().toISOString()
+      });
+      
+      if (response.ok) {
+        // Invalidate emotions query to refresh the list
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/emotions`] });
+        
+        toast({
+          title: 'Mood recorded',
+          description: `Your mood has been recorded as ${result.emotion}`,
+        });
+      } else {
+        throw new Error('Failed to save emotion');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save emotion',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessingVoice(false);
     }
   };
+  
+  if (!user) return null;
   
   return (
     <div className="max-w-md mx-auto bg-background min-h-screen flex flex-col">
@@ -47,6 +70,20 @@ export default function Emotions() {
           <p className="text-sm text-muted-foreground mt-1">
             Track how emotions influence your financial behavior
           </p>
+        </section>
+        
+        {/* Voice Emotion Analyzer */}
+        <section className="px-4 py-2 mb-4">
+          <div className="whoop-container">
+            <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">VOICE EMOTION ANALYZER</h4>
+            <p className="text-xs text-muted-foreground mb-4">
+              Speak naturally about your day, feelings, or financial decisions. Your voice will be analyzed to detect your emotional state.
+            </p>
+            <VoiceEmotionAnalyzer 
+              onResult={handleVoiceEmotionResult} 
+              isProcessing={isProcessingVoice} 
+            />
+          </div>
         </section>
         
         <section className="px-4 py-2">
@@ -94,7 +131,8 @@ export default function Emotions() {
                     } catch (e) {
                       date = new Date(); // Fallback to current date if error
                     }
-                    const colorClass = getEmotionColorClass(emotionType);
+                    const color = getEmotionColor(emotionType as EmotionType);
+                    const colorClass = `bg-[hsl(var(--${color})/0.1)] text-[hsl(var(--${color}))]`;
                     
                     return (
                       <div 
