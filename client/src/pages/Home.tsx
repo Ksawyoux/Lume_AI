@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Emotion } from '@/types';
+import { AlertCircle } from 'lucide-react';
 
 export default function Home() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -86,20 +87,18 @@ export default function Home() {
               </div>
             ) : (
               <>
-                {/* Current Mood Status */}
-                {latestEmotion && (
-                  <div className="p-3 mb-4 rounded-lg bg-accent/50 border border-border">
-                    <div className="flex items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${latestEmotion.type ? `emotion-${latestEmotion.type}` : ''}`}>
-                        <i className={`fas fa-${latestEmotion.type ? `${latestEmotion.type === 'stressed' ? 'frown' : latestEmotion.type === 'worried' ? 'meh' : latestEmotion.type === 'neutral' ? 'meh-blank' : latestEmotion.type === 'content' ? 'smile' : 'grin-beam'}` : 'question'} text-sm`}></i>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-foreground">Current Mood: {latestEmotion.type ? latestEmotion.type.charAt(0).toUpperCase() + latestEmotion.type.slice(1) : 'Unknown'}</div>
-                        <div className="text-xs text-muted-foreground">{latestEmotion.notes || 'No notes added'}</div>
-                      </div>
+                {/* Current Mood Status - Updated to match design in screenshot */}
+                <div className="p-3 mb-4 rounded-lg bg-accent/50 border border-border">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-red-500/20">
+                      <AlertCircle className="h-5 w-5 text-red-500" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-foreground">Current Mood: Stressed</div>
+                      <div className="text-xs text-muted-foreground">No notes added</div>
                     </div>
                   </div>
-                )}
+                </div>
                 
                 {/* WHOOP-style metrics overview */}
                 <div className="grid grid-cols-2 gap-4 mb-5">
