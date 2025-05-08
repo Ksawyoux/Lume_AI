@@ -122,36 +122,27 @@ export class PgStorage implements IStorage {
   }
   
   async getHealthDataByUserId(userId: number, type?: HealthMetricType, limit?: number): Promise<HealthData[]> {
+    // Build the conditions
+    const conditions: any[] = [eq(healthData.userId, userId)];
+    
+    // Add type condition if provided
     if (type) {
-      // If type is provided, we need to filter by both userId and type
-      let query = db
-        .select()
-        .from(healthData)
-        .where(and(
-          eq(healthData.userId, userId),
-          eq(healthData.type, type)
-        ))
-        .orderBy(desc(healthData.timestamp));
-      
-      if (limit) {
-        query = query.limit(limit);
-      }
-      
-      return await query;
-    } else {
-      // If no type is provided, just filter by userId
-      let query = db
-        .select()
-        .from(healthData)
-        .where(eq(healthData.userId, userId))
-        .orderBy(desc(healthData.timestamp));
-      
-      if (limit) {
-        query = query.limit(limit);
-      }
-      
-      return await query;
+      conditions.push(eq(healthData.type, type));
     }
+    
+    // Execute the query with proper condition structure
+    let result = await db
+      .select()
+      .from(healthData)
+      .where(and(...conditions))
+      .orderBy(desc(healthData.timestamp));
+    
+    // Apply limit if needed
+    if (limit && limit > 0) {
+      result = result.slice(0, limit);
+    }
+    
+    return result;
   }
   
   async getLatestHealthDataByType(userId: number, type: HealthMetricType): Promise<HealthData | undefined> {
@@ -162,10 +153,10 @@ export class PgStorage implements IStorage {
         eq(healthData.userId, userId),
         eq(healthData.type, type)
       ))
-      .orderBy(desc(healthData.timestamp))
-      .limit(1);
+      .orderBy(desc(healthData.timestamp));
     
-    return result[0];
+    // Get the first result
+    return result.length > 0 ? result[0] : undefined;
   }
   
   async getHealthDataStats(userId: number, type: HealthMetricType, days: number = 7): Promise<{ min: number, max: number, avg: number, count: number }> {
@@ -249,25 +240,30 @@ export class PgStorage implements IStorage {
     const currentDate = new Date();
     const currentDateStr = currentDate.toISOString();
     
-    let query = db
-      .select()
-      .from(budgets)
-      .where(and(
-        eq(budgets.userId, userId),
-        eq(budgets.isActive, true),
-        sql`${budgets.startDate}::timestamp <= ${currentDateStr}::timestamp`,
-        or(
-          isNull(budgets.endDate),
-          sql`${budgets.endDate}::timestamp >= ${currentDateStr}::timestamp`
-        )
-      ));
+    // Build conditions array
+    const conditions = [
+      eq(budgets.userId, userId),
+      eq(budgets.isActive, true),
+      sql`${budgets.startDate}::timestamp <= ${currentDateStr}::timestamp`,
+      or(
+        isNull(budgets.endDate),
+        sql`${budgets.endDate}::timestamp >= ${currentDateStr}::timestamp`
+      )
+    ];
     
     // Add type filter if provided
     if (type) {
-      query = query.where(eq(budgets.type, type));
+      conditions.push(eq(budgets.type, type));
     }
     
-    return await query.orderBy(desc(budgets.startDate));
+    // Execute query with all conditions in a single where clause
+    const result = await db
+      .select()
+      .from(budgets)
+      .where(and(...conditions))
+      .orderBy(desc(budgets.startDate));
+    
+    return result;
   }
   
   async updateBudget(id: number, budgetUpdate: Partial<Budget>): Promise<Budget> {
@@ -305,26 +301,26 @@ export class PgStorage implements IStorage {
     const startDateStr = budget.startDate.toISOString();
     const endDateStr = budget.endDate ? budget.endDate.toISOString() : new Date().toISOString();
     
-    // Set up the base query with date filters
-    let query = db
+    // Build conditions array
+    const conditions = [
+      eq(transactions.userId, userId),
+      sql`${transactions.amount} < 0`, // Only count expenses
+      sql`${transactions.date}::timestamp >= ${startDateStr}::timestamp`,
+      sql`${transactions.date}::timestamp <= ${endDateStr}::timestamp`
+    ];
+    
+    // If the budget is for a specific category, add category filter
+    if (budget.category) {
+      conditions.push(eq(transactions.category, budget.category));
+    }
+    
+    // Execute the query with all conditions in a single where clause
+    const result = await db
       .select({
         total: sql<number>`SUM(ABS(${transactions.amount}))`
       })
       .from(transactions)
-      .where(and(
-        eq(transactions.userId, userId),
-        sql`${transactions.amount} < 0`, // Only count expenses
-        sql`${transactions.date}::timestamp >= ${startDateStr}::timestamp`,
-        sql`${transactions.date}::timestamp <= ${endDateStr}::timestamp`
-      ));
-    
-    // If the budget is for a specific category, add category filter
-    if (budget.category) {
-      query = query.where(eq(transactions.category, budget.category));
-    }
-    
-    // Execute the query
-    const result = await query;
+      .where(and(...conditions));
     
     // Calculate the spending metrics
     const totalSpent = result[0].total || 0;
