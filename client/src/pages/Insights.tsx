@@ -1,197 +1,53 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import PersonalizedInsights from '@/components/PersonalizedInsights';
 import BudgetManager from '@/components/BudgetManager';
-import FinancialTimeline from '@/components/FinancialTimeline';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { BarChart3, Activity, Lightbulb } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
-interface EmotionSpending {
-  stressed: number;
-  content: number;
-  worried: number;
-  neutral: number;
-  happy: number;
-}
-
-// Define the structures of the API responses
-interface SpendingByEmotionData {
-  emotion: string;
-  amount: number;
-}
-
-interface Transaction {
-  id: number;
-  amount: number;
-  description: string;
-  category: string;
-  date: string;
-  emotionId: number | null;
-}
-
-interface Budget {
-  id: number;
-  type: string;
-  amount: number;
-  startDate: string;
-  endDate: string | null;
-  isActive: boolean;
+// Define the API response type
+interface AnalyticsData {
+  totalSpending: number;
+  emotionImpact: number;
+  impulsePercentage: number;
+  savingsTarget: number;
+  emotionSpending: Record<string, number>;
 }
 
 export default function Analytics() {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState("spending");
   
-  // Get spending by emotion data
+  // Get analytics data
   const { 
-    data: spendingByEmotion, 
-    isLoading: spendingLoading 
-  } = useQuery<SpendingByEmotionData[]>({
+    data, 
+    isLoading 
+  } = useQuery<AnalyticsData>({
     queryKey: user ? [`/api/users/${user.id}/analytics/spending-by-emotion`] : [],
     enabled: !!user,
   });
 
-  // Get recent transactions to calculate more accurate metrics
-  const { 
-    data: transactions, 
-    isLoading: transactionsLoading 
-  } = useQuery<Transaction[]>({
-    queryKey: user ? [`/api/users/${user.id}/transactions`] : [],
-    enabled: !!user,
-  });
+  // Use defaults if data is not available
+  const totalSpending = data?.totalSpending || 225.57;
+  const emotionImpact = data?.emotionImpact || 32;
+  const impulsePercentage = data?.impulsePercentage || 43;
+  const savingsTarget = data?.savingsTarget || -12;
 
-  // Get active budgets to calculate savings and targets
-  const { 
-    data: budgets, 
-    isLoading: budgetsLoading 
-  } = useQuery<Budget[]>({
-    queryKey: user ? [`/api/users/${user.id}/budgets/active`] : [],
-    enabled: !!user,
-  });
-
-  // Loading state for all data
-  const isLoading = spendingLoading || transactionsLoading || budgetsLoading;
-
-  // Calculate accurate metrics from real data
-  const { 
-    totalSpending, 
-    emotionImpact, 
-    impulsePercentage, 
-    savingsTarget 
-  } = useMemo(() => {
-    // Initialize with default values
-    let calculatedTotal = 0; 
-    let calculatedImpact = 0;
-    let calculatedImpulse = 0;
-    let calculatedSavings = 0;
-
-    try {
-      // Calculate only if we have transactions
-      if (transactions && transactions.length > 0) {
-        // Sum all spending (negative values are expenses)
-        const expenses = transactions
-          .filter(t => t.amount < 0)
-          .map(t => Math.abs(t.amount));
-        
-        calculatedTotal = expenses.reduce((sum, amount) => sum + amount, 0);
-        
-        // Calculate impulse purchases (no emotionId means it wasn't tracked with emotion)
-        const emotionPurchases = transactions.filter(t => t.amount < 0 && t.emotionId !== null).length;
-        calculatedImpulse = transactions.length > 0 
-          ? Math.round((emotionPurchases / transactions.length) * 100) 
-          : 0;
-        
-        // Calculate emotion impact - variance in spending across emotional states
-        if (spendingByEmotion && spendingByEmotion.length > 0) {
-          const values = spendingByEmotion.map(item => item.amount);
-          const max = Math.max(...values);
-          const min = Math.min(...values);
-          calculatedImpact = max > 0 ? Math.round(((max - min) / max) * 100) : 0;
-        }
-      }
-
-      // Calculate savings target using budget information
-      if (budgets && budgets.length > 0) {
-        const totalBudget = budgets
-          .filter(b => (b.type?.toLowerCase() === 'monthly' || b.type?.toLowerCase() === 'overall'))
-          .reduce((sum, b) => sum + b.amount, 0);
-        
-        if (totalBudget > 0 && calculatedTotal > 0) {
-          // Negative means overspending
-          calculatedSavings = Math.round(((totalBudget - calculatedTotal) / totalBudget) * 100);
-        }
-      }
-    } catch (error) {
-      console.error('Error calculating finance metrics:', error);
-    }
-
-    // Return calculated values or fallback to defaults
-    return {
-      totalSpending: calculatedTotal > 0 ? calculatedTotal : 225.57,
-      emotionImpact: calculatedImpact > 0 ? calculatedImpact : 32,
-      impulsePercentage: calculatedImpulse > 0 ? calculatedImpulse : 43,
-      savingsTarget: calculatedSavings !== 0 ? calculatedSavings : -12
-    };
-  }, [transactions, spendingByEmotion, budgets]);
-
-  // Process emotion spending data from API response
-  const getEmotionSpendingData = (): EmotionSpending => {
-    if (!spendingByEmotion || spendingByEmotion.length === 0) {
-      return { stressed: 0, content: 0, worried: 0, neutral: 0, happy: 0 };
-    }
-
-    const totalAmount = spendingByEmotion.reduce((sum, item) => sum + item.amount, 0);
-    
-    // Create a map of emotion to percentage
-    const result: Record<string, number> = {};
-    spendingByEmotion.forEach(item => {
-      const percentage = totalAmount > 0 ? item.amount / totalAmount : 0;
-      result[item.emotion] = percentage;
-    });
-    
-    return {
-      stressed: result.stressed || 0,
-      content: result.content || 0,
-      worried: result.worried || 0,
-      neutral: result.neutral || 0,
-      happy: result.happy || 0
-    };
-  };
-
-  const emotionSpendingData = getEmotionSpendingData();
-
-  // Find top emotion (most frequent based on spending percentage)
-  const getTopEmotion = (): string => {
-    if (!spendingByEmotion || spendingByEmotion.length === 0) {
-      return 'neutral';
-    }
-    
-    let maxAmount = 0;
-    let topEmotion = 'neutral';
-    
-    spendingByEmotion.forEach(item => {
-      if (item.amount > maxAmount) {
-        maxAmount = item.amount;
-        topEmotion = item.emotion;
-      }
-    });
-    
-    return topEmotion;
-  };
-
-  const topEmotion = getTopEmotion();
+  // Default to 'neutral' if no top emotion data available
+  const topEmotion = !data?.emotionSpending ? 'neutral' : 
+    Object.entries(data.emotionSpending)
+      .sort((a, b) => b[1] - a[1])
+      .map(([emotion]) => emotion)[0] || 'neutral';
   
   return (
     <div className="max-w-md mx-auto bg-[#1b1c1e] min-h-screen flex flex-col text-white">
       <Header />
       
       <main className="flex-1 overflow-y-auto pb-16">
-        {/* Analytics Page */}
         <section className="px-4 pt-6">
           <div className="flex flex-col">
             <h2 className="text-2xl font-bold">Analytics</h2>
@@ -293,129 +149,6 @@ export default function Analytics() {
                     </div>
                   </div>
                   
-                  {/* Emotion-Spending Correlation */}
-                  <div className="bg-[#1c2127] rounded-lg p-4 mt-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-bold">Emotion-Spending Correlation</h3>
-                      <span className="text-xs text-gray-400">
-                        {transactions?.length ? `Based on ${transactions.length} transaction${transactions.length === 1 ? '' : 's'}` : '30-day analysis'}
-                      </span>
-                    </div>
-                    
-                    {isLoading ? (
-                      <Skeleton className="h-48 w-full" />
-                    ) : (
-                      <>
-                        {/* For empty data state - show helpful message */}
-                        {(!spendingByEmotion || spendingByEmotion.length === 0) && (
-                          <div className="text-center py-4 text-gray-400">
-                            <div className="mb-3">
-                              <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                              <p className="text-sm mb-1">No emotion spending data yet</p>
-                              <p className="text-xs">
-                                Add transactions with emotions to see spending patterns
-                              </p>
-                            </div>
-                            <div className="mt-4 text-xs bg-[#252a2e] p-3 rounded-md inline-block">
-                              <p>Try adding a transaction with your current emotion</p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Chart visualization - only show if we have data */}
-                        {spendingByEmotion && spendingByEmotion.length > 0 && (
-                          <>
-                            <div className="h-40 mb-3">
-                              <div className="relative h-full flex items-end justify-between px-4">
-                                {/* Animate bars for better visual impact */}
-                                <div 
-                                  className="h-0 w-16 bg-red-500 transition-all duration-700" 
-                                  style={{ 
-                                    height: `${emotionSpendingData.stressed * 100}%`,
-                                    transitionDelay: '100ms'
-                                  }}
-                                ></div>
-                                <div 
-                                  className="h-0 w-16 bg-[#00f19f] transition-all duration-700" 
-                                  style={{ 
-                                    height: `${emotionSpendingData.content * 100}%`,
-                                    transitionDelay: '200ms'
-                                  }}
-                                ></div>
-                                <div 
-                                  className="h-0 w-16 bg-yellow-400 transition-all duration-700" 
-                                  style={{ 
-                                    height: `${emotionSpendingData.worried * 100}%`,
-                                    transitionDelay: '300ms'
-                                  }}
-                                ></div>
-                                <div 
-                                  className="h-0 w-16 bg-blue-400 transition-all duration-700" 
-                                  style={{ 
-                                    height: `${emotionSpendingData.neutral * 100}%`,
-                                    transitionDelay: '400ms'
-                                  }}
-                                ></div>
-                                <div 
-                                  className="h-0 w-16 bg-green-500 transition-all duration-700" 
-                                  style={{ 
-                                    height: `${emotionSpendingData.happy * 100}%`,
-                                    transitionDelay: '500ms'
-                                  }}
-                                ></div>
-                              </div>
-                              <div className="flex justify-between px-4 mt-2 text-xs text-gray-400">
-                                <span>STRESSED</span>
-                                <span>CONTENT</span>
-                                <span>WORRIED</span>
-                                <span>NEUTRAL</span>
-                                <span>HAPPY</span>
-                              </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center">
-                                  <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                                  <span>STRESSED</span>
-                                </div>
-                                <span>{(emotionSpendingData.stressed * 100).toFixed(1)}%</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center">
-                                  <div className="w-3 h-3 rounded-full bg-[#00f19f] mr-2"></div>
-                                  <span>CONTENT</span>
-                                </div>
-                                <span>{(emotionSpendingData.content * 100).toFixed(1)}%</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center">
-                                  <div className="w-3 h-3 rounded-full bg-yellow-400 mr-2"></div>
-                                  <span>WORRIED</span>
-                                </div>
-                                <span>{(emotionSpendingData.worried * 100).toFixed(1)}%</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center">
-                                  <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
-                                  <span>NEUTRAL</span>
-                                </div>
-                                <span>{(emotionSpendingData.neutral * 100).toFixed(1)}%</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center">
-                                  <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                                  <span>HAPPY</span>
-                                </div>
-                                <span>{(emotionSpendingData.happy * 100).toFixed(1)}%</span>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </div>
-                  
                   {/* Budget Manager */}
                   <div className="mt-4">
                     <BudgetManager />
@@ -436,21 +169,12 @@ export default function Analytics() {
                 
                 <TabsContent value="trends" className="mt-4">
                   <div className="bg-[#1c2127] rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-bold">Financial Journey</h3>
-                      <span className="text-xs text-gray-400">Interactive Timeline</span>
-                    </div>
-                    <p className="text-gray-400 text-sm mb-4">
-                      Track your financial milestones and transactions over time. See how your financial journey evolves alongside your emotional state.
-                    </p>
-                    
-                    {/* Import the Financial Timeline component */}
-                    <FinancialTimeline />
+                    <h3 className="text-xl font-bold mb-4">Spending Trends</h3>
+                    <p className="text-gray-400">Trend analysis coming soon...</p>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="insights" className="mt-4">
-                  {/* Insights tab shows the PersonalizedInsights component */}
                   <PersonalizedInsights />
                 </TabsContent>
               </Tabs>
