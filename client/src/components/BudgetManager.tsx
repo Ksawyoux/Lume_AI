@@ -114,7 +114,7 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
       try {
         // Send the form data directly (the server will handle string-to-date conversion)
         // Fixed parameter order: path, method, data
-        return await apiRequest("/api/budgets", "POST", {
+        return await apiRequest("/budgets", "POST", {
           userId: user.id,
           ...data
         });
