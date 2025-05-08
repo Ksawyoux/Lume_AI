@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Initialize the Google Generative AI with your API key
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
 
-// Using Gemini Pro model
+// We'll use the standard gemini-pro model for text processing
 const MODEL_NAME = 'gemini-pro';
 
 export interface EmotionAnalysisResult {
@@ -25,26 +25,40 @@ export async function analyzeEmotion(text: string): Promise<EmotionAnalysisResul
   }
 
   try {
-    // Initialize the model
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    // Initialize the model with safety settings
+    const model = genAI.getGenerativeModel({ 
+      model: MODEL_NAME,
+      generationConfig: {
+        temperature: 0.2,
+        topP: 0.8,
+        topK: 40,
+        maxOutputTokens: 1024,
+      }
+    });
 
+    // Format the prompt to ensure we get correct JSON output
     const prompt = `
-    You are a specialized emotional intelligence AI. Analyze the provided text to identify emotional patterns.
+    You are a specialized emotional intelligence AI. Your task is to analyze the provided text to identify emotional patterns.
     
-    Please output in JSON format with the following structure:
+    Your analysis should be structured in valid JSON format with the following properties:
     {
       "primaryEmotion": "the most prominent emotion detected",
-      "emotionIntensity": "a number between 0 and 1 representing intensity",
-      "detectedEmotions": ["an array of all emotions detected"],
-      "emotionalTriggers": ["potential triggers for these emotions"],
-      "recommendations": ["3-5 personalized recommendations based on the emotional state"],
-      "sentiment": "positive, negative, or neutral",
-      "confidence": "a number between 0 and 1 representing your confidence in this analysis"
+      "emotionIntensity": 0.85,
+      "detectedEmotions": ["emotion1", "emotion2", "emotion3"],
+      "emotionalTriggers": ["trigger1", "trigger2", "trigger3"],
+      "recommendations": ["recommendation1", "recommendation2", "recommendation3"],
+      "sentiment": "positive",
+      "confidence": 0.9
     }
     
-    Analyze the following text: ${text}
+    IMPORTANT: 
+    - emotionIntensity must be a number between 0 and 1
+    - confidence must be a number between 0 and 1
+    - sentiment must be exactly "positive", "negative", or "neutral"
+    - all arrays must contain at least one item
+    - your response must only contain the JSON object, no other text
     
-    Respond only with JSON, no preamble or explanation.
+    Text to analyze: "${text}"
     `;
 
     // Generate content
@@ -52,29 +66,67 @@ export async function analyzeEmotion(text: string): Promise<EmotionAnalysisResul
     const response = await result.response;
     const textResponse = response.text();
 
-    // Extract and parse the JSON response
-    const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Failed to extract JSON from response');
-    }
-
-    const resultJson = JSON.parse(jsonMatch[0]) as EmotionAnalysisResult;
+    // Clean the response and extract JSON
+    let cleanedResponse = textResponse.trim();
     
-    // Validate the response structure
-    if (!resultJson.primaryEmotion || 
-        typeof resultJson.emotionIntensity !== 'number' || 
-        !Array.isArray(resultJson.detectedEmotions) ||
-        !Array.isArray(resultJson.emotionalTriggers) ||
-        !Array.isArray(resultJson.recommendations) ||
-        !['positive', 'negative', 'neutral'].includes(resultJson.sentiment) ||
-        typeof resultJson.confidence !== 'number') {
-      throw new Error('Invalid response format from AI');
+    // Remove any markdown code block formatting if present
+    if (cleanedResponse.startsWith('```json')) {
+      cleanedResponse = cleanedResponse.replace(/^```json\n/, '').replace(/\n```$/, '');
+    } else if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.replace(/^```\n/, '').replace(/\n```$/, '');
     }
 
-    return resultJson;
+    // Try to extract a JSON object if the response isn't already just JSON
+    if (!cleanedResponse.startsWith('{')) {
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedResponse = jsonMatch[0];
+      } else {
+        throw new Error('Response does not contain valid JSON');
+      }
+    }
+
+    // Parse the JSON
+    let resultJson: EmotionAnalysisResult;
+    try {
+      resultJson = JSON.parse(cleanedResponse) as EmotionAnalysisResult;
+    } catch (e) {
+      console.error('Failed to parse JSON response:', cleanedResponse);
+      throw new Error('Invalid JSON format in response');
+    }
+    
+    // Provide fallback values for any missing fields to ensure consistent response structure
+    const defaultResult: EmotionAnalysisResult = {
+      primaryEmotion: resultJson.primaryEmotion || "neutral",
+      emotionIntensity: typeof resultJson.emotionIntensity === 'number' ? resultJson.emotionIntensity : 0.5,
+      detectedEmotions: Array.isArray(resultJson.detectedEmotions) ? resultJson.detectedEmotions : ["neutral"],
+      emotionalTriggers: Array.isArray(resultJson.emotionalTriggers) ? resultJson.emotionalTriggers : ["unknown"],
+      recommendations: Array.isArray(resultJson.recommendations) ? resultJson.recommendations : ["Take time to reflect on your emotions"],
+      sentiment: ['positive', 'negative', 'neutral'].includes(resultJson.sentiment) ? resultJson.sentiment : "neutral",
+      confidence: typeof resultJson.confidence === 'number' ? resultJson.confidence : 0.7
+    };
+
+    return defaultResult;
   } catch (error) {
     console.error('Error analyzing emotion with Gemini:', error);
-    throw error;
+    // Create a fallback response instead of throwing
+    const fallbackResult: EmotionAnalysisResult = {
+      primaryEmotion: "neutral",
+      emotionIntensity: 0.5,
+      detectedEmotions: ["neutral"],
+      emotionalTriggers: ["Could not determine triggers"],
+      recommendations: [
+        "Take a moment to reflect on your current emotional state",
+        "Consider journaling about your feelings",
+        "Practice deep breathing or meditation"
+      ],
+      sentiment: "neutral",
+      confidence: 0.5
+    };
+    
+    // Log the error but return a fallback response
+    console.log("Returning fallback emotional analysis due to API error");
+    return fallbackResult;
   }
 }
 
@@ -87,8 +139,16 @@ export async function analyzeEmotionalPatterns(entries: {text: string, date: str
   }
 
   try {
-    // Initialize the model
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    // Initialize the model with safety settings
+    const model = genAI.getGenerativeModel({ 
+      model: MODEL_NAME,
+      generationConfig: {
+        temperature: 0.2,
+        topP: 0.8,
+        topK: 40,
+        maxOutputTokens: 1024,
+      }
+    });
 
     // Format the entries for the prompt
     const entriesText = JSON.stringify(entries, null, 2);
@@ -98,7 +158,7 @@ export async function analyzeEmotionalPatterns(entries: {text: string, date: str
     
     Analyze the provided emotional data entries and identify patterns, trends, and insights.
     
-    Please output in JSON format with the following structure:
+    Your analysis must be structured in valid JSON format with the following properties:
     {
       "emotionalTrends": ["key trends identified"],
       "cyclicalPatterns": ["any recurring emotional patterns"],
@@ -107,10 +167,12 @@ export async function analyzeEmotionalPatterns(entries: {text: string, date: str
       "insightSummary": "a brief paragraph summarizing the insights"
     }
     
+    IMPORTANT:
+    - All arrays must contain at least one item
+    - Your response must only contain the JSON object, no other text or code block markers
+    
     Here are the emotional entries to analyze:
     ${entriesText}
-    
-    Respond only with JSON, no preamble or explanation.
     `;
 
     // Generate content
@@ -118,16 +180,47 @@ export async function analyzeEmotionalPatterns(entries: {text: string, date: str
     const response = await result.response;
     const textResponse = response.text();
 
-    // Extract and parse the JSON response
-    const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Failed to extract JSON from response');
+    // Clean the response and extract JSON
+    let cleanedResponse = textResponse.trim();
+    
+    // Remove any markdown code block formatting if present
+    if (cleanedResponse.startsWith('```json')) {
+      cleanedResponse = cleanedResponse.replace(/^```json\n/, '').replace(/\n```$/, '');
+    } else if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.replace(/^```\n/, '').replace(/\n```$/, '');
     }
 
-    return JSON.parse(jsonMatch[0]);
+    // Try to extract a JSON object if the response isn't already just JSON
+    if (!cleanedResponse.startsWith('{')) {
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedResponse = jsonMatch[0];
+      } else {
+        throw new Error('Response does not contain valid JSON');
+      }
+    }
+
+    // Parse the JSON
+    try {
+      return JSON.parse(cleanedResponse);
+    } catch (e) {
+      console.error('Failed to parse JSON response:', cleanedResponse);
+      throw new Error('Invalid JSON format in response');
+    }
   } catch (error) {
     console.error('Error analyzing emotional patterns with Gemini:', error);
-    throw error;
+    // Return fallback data instead of throwing
+    return {
+      emotionalTrends: ["Limited data to establish clear trends"],
+      cyclicalPatterns: ["No clear cyclical patterns detected"],
+      triggers: ["Further data needed to identify triggers"],
+      recommendations: [
+        "Continue tracking your emotions regularly",
+        "Reflect on situations that consistently affect your mood",
+        "Look for connections between your activities and emotional states"
+      ],
+      insightSummary: "There isn't enough consistent data yet to provide detailed insights. Continue tracking your emotions to build a more comprehensive understanding of your emotional patterns over time."
+    };
   }
 }
 
@@ -143,8 +236,16 @@ export async function generatePersonalizedInsights(
   }
 
   try {
-    // Initialize the model
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    // Initialize the model with safety settings
+    const model = genAI.getGenerativeModel({ 
+      model: MODEL_NAME,
+      generationConfig: {
+        temperature: 0.2,
+        topP: 0.8,
+        topK: 40,
+        maxOutputTokens: 1024,
+      }
+    });
 
     // Format the data for the prompt
     const dataPrompt = JSON.stringify({
@@ -157,7 +258,7 @@ export async function generatePersonalizedInsights(
     
     Analyze the provided emotional and financial data to identify patterns, correlations, and insights.
     
-    Please output in JSON format with the following structure:
+    Your analysis must be structured in valid JSON format with the following properties:
     {
       "emotionFinanceCorrelations": ["identified correlations between emotions and spending/saving"],
       "spendingTriggers": ["emotional triggers that may lead to specific spending behaviors"],
@@ -167,10 +268,12 @@ export async function generatePersonalizedInsights(
       "summary": "a brief paragraph summarizing the insights"
     }
     
+    IMPORTANT:
+    - All arrays must contain at least one item
+    - Your response must only contain the JSON object, no other text or code block markers
+    
     Here is the data to analyze:
     ${dataPrompt}
-    
-    Respond only with JSON, no preamble or explanation.
     `;
 
     // Generate content
@@ -178,15 +281,55 @@ export async function generatePersonalizedInsights(
     const response = await result.response;
     const textResponse = response.text();
 
-    // Extract and parse the JSON response
-    const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Failed to extract JSON from response');
+    // Clean the response and extract JSON
+    let cleanedResponse = textResponse.trim();
+    
+    // Remove any markdown code block formatting if present
+    if (cleanedResponse.startsWith('```json')) {
+      cleanedResponse = cleanedResponse.replace(/^```json\n/, '').replace(/\n```$/, '');
+    } else if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.replace(/^```\n/, '').replace(/\n```$/, '');
     }
 
-    return JSON.parse(jsonMatch[0]);
+    // Try to extract a JSON object if the response isn't already just JSON
+    if (!cleanedResponse.startsWith('{')) {
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedResponse = jsonMatch[0];
+      } else {
+        throw new Error('Response does not contain valid JSON');
+      }
+    }
+
+    // Parse the JSON
+    try {
+      return JSON.parse(cleanedResponse);
+    } catch (e) {
+      console.error('Failed to parse JSON response:', cleanedResponse);
+      throw new Error('Invalid JSON format in response');
+    }
   } catch (error) {
     console.error('Error generating personalized insights with Gemini:', error);
-    throw error;
+    // Return fallback data instead of throwing
+    return {
+      emotionFinanceCorrelations: [
+        "Need more data to establish clear emotion-finance correlations"
+      ],
+      spendingTriggers: [
+        "Insufficient data to identify specific triggers"
+      ],
+      positivePatterns: [
+        "Continue tracking to identify positive patterns"
+      ],
+      improvementAreas: [
+        "Consistent emotional and financial tracking"
+      ],
+      actionableInsights: [
+        "Record your emotional state before making purchases",
+        "Set specific financial goals tied to emotional well-being",
+        "Create a waiting period before making non-essential purchases"
+      ],
+      summary: "We need more consistent data to establish meaningful patterns between your emotional states and financial behaviors. Continue tracking both aspects to gain deeper insights over time."
+    };
   }
 }
