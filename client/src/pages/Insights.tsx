@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
@@ -7,7 +7,7 @@ import PersonalizedInsights from '@/components/PersonalizedInsights';
 import BudgetManager from '@/components/BudgetManager';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity } from 'lucide-react';
+import { Activity, AlertTriangle } from 'lucide-react';
 
 // Define the API response type
 interface AnalyticsData {
@@ -25,11 +25,23 @@ export default function Analytics() {
   // Get analytics data
   const { 
     data, 
-    isLoading 
+    isLoading,
+    error: analyticsError 
   } = useQuery<AnalyticsData>({
     queryKey: user ? [`/api/users/${user.id}/analytics/spending-by-emotion`] : [],
     enabled: !!user,
   });
+  
+  // Handle analytics data errors
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (analyticsError) {
+      const errorMsg = analyticsError?.message || "Failed to load analytics data";
+      setErrorMessage(errorMsg);
+      console.error("Analytics error:", analyticsError);
+    }
+  }, [analyticsError]);
 
   // Use defaults if data is not available
   const totalSpending = data?.totalSpending || 225.57;
