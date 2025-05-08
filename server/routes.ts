@@ -325,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/budgets/active", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const type = req.query.type as string;
+      const type = req.query.type as string | undefined;
       
       if (isNaN(userId)) {
         return res.status(400).json({ message: "Invalid user ID" });
@@ -337,10 +337,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      const budgets = await storage.getActiveBudgetsByUserId(userId, type);
-      res.json(budgets);
+      try {
+        const budgets = await storage.getActiveBudgetsByUserId(userId, type);
+        // If no budgets, return empty array instead of 404
+        return res.json(budgets || []);
+      } catch (budgetError) {
+        console.error('Error getting active budgets:', budgetError);
+        // Return empty array on budget retrieval error
+        return res.json([]);
+      }
     } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
+      console.error('Error in active budgets endpoint:', error);
+      res.status(500).json({ message: "Internal server error", detail: error instanceof Error ? error.message : String(error) });
     }
   });
 
