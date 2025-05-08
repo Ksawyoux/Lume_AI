@@ -103,8 +103,8 @@ export default function Header() {
         </div>
       </header>
       
-      {/* Budget bar below header */}
-      {monthlyBudget && budgetSpending && (
+      {/* Budget bar below header - only show when there's actual spending data */}
+      {monthlyBudget && budgetSpending && budgetSpending.spent > 0 && (
         <div className="bg-[#222a32] px-4 py-2 border-b border-[#2A363D]">
           <div className="flex justify-between items-center text-xs mb-1">
             <span className="text-gray-400 uppercase tracking-wider">MONTHLY BUDGET</span>
