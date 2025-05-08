@@ -1,170 +1,90 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Mic, Square, Loader2 } from 'lucide-react';
 import { EmotionType } from '@shared/schema';
-import { useUser } from '@/context/UserContext';
 import { apiRequest } from '@/lib/queryClient';
-import { emotionConfig } from '@/lib/emotionUtils';
-
-// Extend window interface for speech recognition
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognition;
-    webkitSpeechRecognition?: new () => SpeechRecognition;
-  }
-}
-
-// TypeScript interface for SpeechRecognition
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult: (event: SpeechRecognitionEvent) => void;
-  onerror: (event: SpeechRecognitionErrorEvent) => void;
-}
-
-interface SpeechRecognitionEvent {
-  resultIndex: number;
-  results: {
-    [index: number]: {
-      isFinal: boolean;
-      [index: number]: {
-        transcript: string;
-      };
-    };
-  };
-}
-
-interface SpeechRecognitionErrorEvent {
-  error: string;
-  message: string;
-}
 
 interface VoiceEmotionAnalyzerProps {
-  onEmotionDetected: (emotion: EmotionType, notes: string) => void;
+  onResult: (result: { emotion: EmotionType, confidence: number, transcript: string }) => void;
+  isProcessing: boolean;
 }
 
-export default function VoiceEmotionAnalyzer({ onEmotionDetected }: VoiceEmotionAnalyzerProps) {
-  const { user } = useUser();
-  const { toast } = useToast();
+const VoiceEmotionAnalyzer: React.FC<VoiceEmotionAnalyzerProps> = ({ onResult, isProcessing }) => {
   const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [transcript, setTranscript] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'recording' | 'processing'>('idle');
   const [recordingDuration, setRecordingDuration] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<number | null>(null);
-  const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
+  const durationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize speech recognition
   useEffect(() => {
-    const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (SpeechRecognitionImpl) {
-      speechRecognitionRef.current = new SpeechRecognitionImpl();
-      speechRecognitionRef.current.continuous = true;
-      speechRecognitionRef.current.interimResults = true;
-      
-      speechRecognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < Object.keys(event.results).length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            setTranscript((prev) => prev + ' ' + transcript);
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-        
-        // Update with interim results for real-time feedback
-        const interimElement = document.getElementById('interim-transcript');
-        if (interimElement) {
-          interimElement.textContent = interimTranscript;
-        }
-      };
-      
-      speechRecognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error('Speech recognition error', event.error);
-        toast({
-          title: 'Speech Recognition Error',
-          description: `Error: ${event.error}. Please try again.`,
-          variant: 'destructive',
-        });
-      };
+    // Update recording duration
+    if (isRecording) {
+      durationTimerRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
     } else {
-      toast({
-        title: 'Browser Not Supported',
-        description: 'Your browser does not support speech recognition.',
-        variant: 'destructive',
-      });
+      if (durationTimerRef.current) {
+        clearInterval(durationTimerRef.current);
+      }
     }
-    
+
     return () => {
-      if (speechRecognitionRef.current) {
-        speechRecognitionRef.current.abort();
+      if (durationTimerRef.current) {
+        clearInterval(durationTimerRef.current);
       }
     };
-  }, [toast]);
+  }, [isRecording]);
+
+  useEffect(() => {
+    // Update component status based on isProcessing prop
+    if (isProcessing) {
+      setStatus('processing');
+    } else if (isRecording) {
+      setStatus('recording');
+    } else {
+      setStatus('idle');
+    }
+  }, [isProcessing, isRecording]);
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      setStatus('recording');
+      setRecordingDuration(0);
+      setTranscript('');
       audioChunksRef.current = [];
-      
-      mediaRecorderRef.current.ondataavailable = (event) => {
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
-      
-      mediaRecorderRef.current.onstop = () => {
+
+      mediaRecorder.onstop = async () => {
+        // Create audio blob and analyze it
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        setAudioBlob(audioBlob);
-        
+        await analyzeAudio(audioBlob);
+
         // Stop all audio tracks
-        stream.getAudioTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(track => track.stop());
       };
-      
-      // Start recording
-      mediaRecorderRef.current.start();
+
+      mediaRecorder.start();
       setIsRecording(true);
-      setTranscript('');
-      
-      // Start speech recognition
-      if (speechRecognitionRef.current) {
-        speechRecognitionRef.current.start();
-      }
-      
-      // Start duration timer
-      let seconds = 0;
-      timerRef.current = window.setInterval(() => {
-        seconds++;
-        setRecordingDuration(seconds);
-        
-        // Automatically stop after 60 seconds
-        if (seconds >= 60) {
-          stopRecording();
-        }
-      }, 1000);
-      
-      toast({
-        title: 'Recording Started',
-        description: 'Speak clearly about how you feel right now.',
-      });
     } catch (error) {
-      console.error('Error accessing microphone:', error);
-      toast({
-        title: 'Microphone Access Error',
-        description: 'Could not access your microphone. Please check your permissions.',
-        variant: 'destructive',
-      });
+      console.error('Error starting voice recording:', error);
+      setStatus('idle');
     }
   };
 
@@ -172,155 +92,93 @@ export default function VoiceEmotionAnalyzer({ onEmotionDetected }: VoiceEmotion
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
-      // Stop speech recognition
-      if (speechRecognitionRef.current) {
-        speechRecognitionRef.current.stop();
-      }
-      
-      // Clear duration timer
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-      
-      // Clear interim transcript
-      document.getElementById('interim-transcript')!.textContent = '';
     }
   };
 
-  const analyzeVoiceEmotion = async () => {
-    if (!audioBlob || !user) return;
-    
+  const analyzeAudio = async (audioBlob: Blob) => {
     try {
-      setIsProcessing(true);
-      
-      // Convert audio blob to base64
+      // Convert blob to base64
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
       
       reader.onloadend = async () => {
-        const base64Audio = reader.result?.toString().split(',')[1]; // Remove data URL prefix
-        
-        // Send both audio and transcript for analysis
-        const response = await apiRequest('POST', '/api/ml/emotions/analyze-voice', {
-          audioData: base64Audio,
-          transcript: transcript.trim(),
-          userId: user.id
+        const base64Audio = reader.result?.toString().split(',')[1];
+        if (!base64Audio) {
+          throw new Error('Failed to convert audio to base64');
+        }
+
+        // Send audio for analysis
+        setStatus('processing');
+        const response = await apiRequest('POST', '/api/ml/voice/analyze-voice', {
+          audio: base64Audio
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to analyze voice emotion');
         }
+
+        const result = await response.json();
+        setTranscript(result.transcript || '');
         
-        const { emotion, confidence } = await response.json();
-        
-        // Ensure we have a valid emotion type
-        const detectedEmotion = emotion as EmotionType;
-        
-        toast({
-          title: 'Emotion Detected',
-          description: `You sound ${emotionConfig[detectedEmotion].label.toLowerCase()} (${Math.round(confidence * 100)}% confidence)`,
+        // Pass result to parent component
+        onResult({
+          emotion: result.emotion,
+          confidence: result.confidence,
+          transcript: result.transcript || ''
         });
-        
-        // Pass the detected emotion and transcript as notes
-        onEmotionDetected(detectedEmotion, transcript.trim());
-        
-        // Reset state
-        setAudioBlob(null);
-        setTranscript('');
-        setIsProcessing(false);
       };
     } catch (error) {
-      console.error('Error analyzing voice emotion:', error);
-      toast({
-        title: 'Analysis Failed',
-        description: 'Failed to analyze your voice. Please try again.',
-        variant: 'destructive',
-      });
-      setIsProcessing(false);
+      console.error('Error analyzing audio:', error);
+      setStatus('idle');
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
   return (
-    <div className="whoop-container p-4 space-y-4">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Voice Emotion Analysis</h3>
-      
-      <div className="space-y-4">
-        <div className="flex flex-col items-center justify-center">
-          <div 
-            className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-              isRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-primary/20 text-primary'
-            }`}
-          >
-            {isRecording ? (
-              <MicOff className="h-6 w-6" />
-            ) : (
-              <Mic className="h-6 w-6" />
-            )}
+    <div className="voice-emotion-analyzer">
+      <div className="flex flex-col items-center gap-4">
+        {transcript && (
+          <div className="w-full p-3 bg-card/50 rounded-md mb-2 text-sm">
+            <p className="text-foreground">"{transcript}"</p>
           </div>
-          
-          {isRecording && (
-            <div className="mt-2 text-sm text-muted-foreground">
-              {formatTime(recordingDuration)}
-            </div>
-          )}
-        </div>
+        )}
         
-        <div className="min-h-[100px] bg-card/50 rounded-md p-3 text-sm">
-          <p className="text-foreground">{transcript}</p>
-          <p id="interim-transcript" className="text-muted-foreground italic"></p>
-          
-          {!transcript && !isRecording && !isProcessing && (
-            <p className="text-muted-foreground italic">
-              Your voice will be transcribed here. Speak clearly about how you're feeling.
-            </p>
-          )}
-        </div>
-        
-        <div className="flex gap-2 justify-center">
-          {!isRecording ? (
+        <div className="flex items-center gap-2">
+          {status === 'idle' && (
             <Button 
-              onClick={startRecording} 
-              disabled={isProcessing}
-              variant="default"
-              className="text-background"
+              onClick={startRecording}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
             >
-              Start Recording
-            </Button>
-          ) : (
-            <Button 
-              onClick={stopRecording} 
-              variant="destructive"
-            >
-              Stop Recording
+              <Mic className="h-4 w-4" />
+              Start Voice Analysis
             </Button>
           )}
-          
-          {audioBlob && !isRecording && (
-            <Button 
-              onClick={analyzeVoiceEmotion} 
-              disabled={isProcessing}
-              variant="outline"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                'Analyze Emotion'
-              )}
+
+          {status === 'recording' && (
+            <>
+              <div className="text-sm text-primary animate-pulse mr-2">
+                Recording {formatDuration(recordingDuration)}
+              </div>
+              <Button 
+                onClick={stopRecording}
+                variant="destructive"
+                className="flex items-center gap-2"
+              >
+                <Square className="h-4 w-4" />
+                Stop
+              </Button>
+            </>
+          )}
+
+          {status === 'processing' && (
+            <Button disabled className="bg-primary/50 text-primary-foreground flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Analyzing...
             </Button>
           )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default VoiceEmotionAnalyzer;
