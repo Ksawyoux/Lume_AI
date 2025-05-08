@@ -257,16 +257,17 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         </div>
         
         <div className="relative aspect-video bg-black rounded-lg overflow-hidden mb-4">
+          {/* Always render the video element, but control its visibility */}
+          <video 
+            ref={videoRef}
+            autoPlay 
+            playsInline 
+            muted 
+            className={`w-full h-full object-cover ${cameraActive ? 'block' : 'hidden'}`}
+          />
+          
           {cameraActive ? (
-            <>
-              <video 
-                ref={videoRef}
-                autoPlay 
-                playsInline 
-                muted 
-                className="w-full h-full object-cover"
-              />
-              
+            <>              
               {!emotionResult && !isAnalyzing && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="border-2 border-dashed border-[#00f19f] rounded-full w-28 h-28 flex items-center justify-center opacity-70">
