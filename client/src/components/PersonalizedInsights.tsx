@@ -47,11 +47,10 @@ export default function PersonalizedInsights() {
     mutationFn: async () => {
       if (!user) return null;
       
-      const res = await apiRequest('POST', '/api/insights/generate', {
+      // Fixed parameter order: url, method, data
+      return await apiRequest('/api/insights/generate', 'POST', {
         userId: user.id
       });
-      
-      return res.json();
     },
     onSuccess: () => {
       if (user) {
