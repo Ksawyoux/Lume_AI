@@ -32,7 +32,7 @@ router.post('/analyze-face', async (req: Request, res: Response) => {
     console.log(`Analyzing facial expression from image data (${Math.floor(image.length / 1024)}kb)`);
     
     // Use the Gemini Vision API to analyze the facial expression
-    const result = await analyzeFacialExpression(image);
+    let result = await analyzeFacialExpression(image);
     
     // Validate the response to ensure it has the required fields
     if (!result || !result.primaryEmotion) {
