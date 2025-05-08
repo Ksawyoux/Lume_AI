@@ -344,7 +344,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create emotionSpending object from array data
-      const emotionSpending = {};
+      const emotionSpending: Record<string, number> = {
+        stressed: 0,
+        content: 0,
+        worried: 0,
+        neutral: 0,
+        happy: 0
+      };
+      
       spendingByEmotion.forEach(item => {
         emotionSpending[item.emotion] = item.amount;
       });
