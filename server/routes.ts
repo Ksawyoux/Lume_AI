@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertEmotionSchema, insertHealthDataSchema, insertTransactionSchema, insertUserSchema, HealthMetricType } from "@shared/schema";
+import { insertEmotionSchema, insertHealthDataSchema, insertTransactionSchema, insertUserSchema, insertBudgetSchema, HealthMetricType } from "@shared/schema";
 import emotionAnalysisRoutes from "./routes/emotion-analysis";
 import insightsGeneratorRoutes from "./routes/insights-generator";
 import facialAnalysisRoutes from "./routes/facial-analysis";
@@ -294,6 +294,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const spendingByEmotion = await storage.getSpendingByEmotion(userId);
       res.json(spendingByEmotion);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Budget routes
+  app.get("/api/users/:userId/budgets", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const budgets = await storage.getBudgetsByUserId(userId);
+      res.json(budgets);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/users/:userId/budgets/active", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const type = req.query.type as string;
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const budgets = await storage.getActiveBudgetsByUserId(userId, type);
+      res.json(budgets);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/budgets/:id", async (req, res) => {
+    try {
+      const budgetId = parseInt(req.params.id);
+      
+      if (isNaN(budgetId)) {
+        return res.status(400).json({ message: "Invalid budget ID" });
+      }
+      
+      const budget = await storage.getBudgetById(budgetId);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      res.json(budget);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/budgets", async (req, res) => {
+    try {
+      const budgetData = insertBudgetSchema.parse(req.body);
+      const user = await storage.getUser(budgetData.userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const newBudget = await storage.createBudget(budgetData);
+      res.status(201).json(newBudget);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/budgets/:id", async (req, res) => {
+    try {
+      const budgetId = parseInt(req.params.id);
+      
+      if (isNaN(budgetId)) {
+        return res.status(400).json({ message: "Invalid budget ID" });
+      }
+      
+      const budget = await storage.getBudgetById(budgetId);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      // Only validate partial updates
+      const updatedBudget = await storage.updateBudget(budgetId, req.body);
+      res.json(updatedBudget);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/budgets/:id", async (req, res) => {
+    try {
+      const budgetId = parseInt(req.params.id);
+      
+      if (isNaN(budgetId)) {
+        return res.status(400).json({ message: "Invalid budget ID" });
+      }
+      
+      const budget = await storage.getBudgetById(budgetId);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      const success = await storage.deleteBudget(budgetId);
+      
+      if (success) {
+        res.status(204).send();
+      } else {
+        res.status(500).json({ message: "Failed to delete budget" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/users/:userId/budgets/:budgetId/spending", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const budgetId = parseInt(req.params.budgetId);
+      
+      if (isNaN(userId) || isNaN(budgetId)) {
+        return res.status(400).json({ message: "Invalid user ID or budget ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const budget = await storage.getBudgetById(budgetId);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      const spending = await storage.getBudgetSpending(userId, budgetId);
+      res.json(spending);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
