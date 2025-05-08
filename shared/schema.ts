@@ -71,7 +71,7 @@ export const budgets = pgTable("budgets", {
 export const emotionReferenceImages = pgTable("emotion_reference_images", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  emotion: text("emotion").notNull(), // Must match one of the EmotionType values
+  emotion: text("emotion", { enum: ["stressed", "worried", "neutral", "content", "happy"] }).notNull(), // Matches EmotionType values
   imageData: text("image_data").notNull(), // Base64 encoded image data
   description: text("description"), // Optional description of the image/context
   createdAt: timestamp("created_at").defaultNow().notNull(),
