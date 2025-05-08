@@ -220,16 +220,25 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         const context = canvas.getContext('2d');
         
         if (context) {
-          // Set canvas dimensions
-          canvas.width = video.videoWidth || 640;
-          canvas.height = video.videoHeight || 480;
+          // Set canvas dimensions - resize to smaller size to reduce payload size
+          // Original video dimensions are typically large (e.g., 1280x720)
+          const targetWidth = 320; // Smaller target width for analysis
+          const targetHeight = 240; // Smaller target height for analysis
           
-          // Draw video frame to canvas
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          // Set canvas to target dimensions
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
           
-          // Get base64 image data
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          imageBase64 = dataUrl.split(',')[1]; // Remove the "data:image/jpeg;base64," part
+          // Draw video frame to canvas with resizing
+          context.drawImage(video, 0, 0, targetWidth, targetHeight);
+          
+          // Get base64 image data with reduced quality
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7); // Reduce quality to 70%
+          console.log(`Image size before base64 encoding: approx ${Math.round(dataUrl.length / 1024)}KB`);
+          
+          // Remove the data URI prefix
+          imageBase64 = dataUrl.split(',')[1]; 
+          console.log(`Base64 image size: ${Math.round(imageBase64.length / 1024)}KB`);
         }
       } catch (err) {
         console.error("Error capturing video frame:", err);

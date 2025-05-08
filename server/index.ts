@@ -4,8 +4,10 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Increase JSON body parser limit for handling large image uploads (up to 10MB)
+app.use(express.json({ limit: '10mb' })); 
+// Increase URL-encoded body parser limit as well
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Setup authentication
 setupAuth(app);
