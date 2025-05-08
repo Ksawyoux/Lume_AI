@@ -163,6 +163,16 @@ export default function EmotionTracker() {
 
   return (
     <section className="px-4 py-4">
+      {/* Facial Expression Analyzer Dialog */}
+      <Dialog open={showFacialAnalyzer} onOpenChange={setShowFacialAnalyzer}>
+        <DialogContent className="sm:max-w-md p-0 border-0 bg-transparent">
+          <FacialEmotionAnalyzer 
+            onEmotionDetected={handleFacialEmotionDetected}
+            onClose={() => setShowFacialAnalyzer(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-medium text-foreground">How are you feeling today?</h3>
         <span className="text-xs text-muted-foreground">
@@ -227,7 +237,8 @@ export default function EmotionTracker() {
               size="icon"
               variant="outline"
               className="rounded-full w-10 h-10 bg-accent/50 text-primary hover:bg-accent/80 transition shadow-sm"
-              title="Take a selfie"
+              title="Analyze facial expression"
+              onClick={() => setShowFacialAnalyzer(true)}
             >
               <Camera className="h-5 w-5" />
             </Button>
