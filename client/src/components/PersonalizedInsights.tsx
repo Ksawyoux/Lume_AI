@@ -36,7 +36,7 @@ export default function PersonalizedInsights() {
   const { 
     data: transactions, 
     isLoading: isLoadingTransactions 
-  } = useQuery({
+  } = useQuery<any[]>({
     queryKey: user ? [`/api/users/${user.id}/transactions`] : [],
     enabled: !!user,
   });
@@ -53,7 +53,9 @@ export default function PersonalizedInsights() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/insights`] });
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/insights`] });
+      }
       toast({
         title: "Insights generated",
         description: "Your personalized insights have been updated.",
@@ -117,7 +119,7 @@ export default function PersonalizedInsights() {
           <Sparkles className="h-4 w-4 mr-2 text-[hsl(var(--primary))]" />
           Insights
         </h3>
-        {!isLoadingTransactions && hasEnoughTransactions && (
+        {!isLoadingTransactions && hasEnoughTransactions ? (
           <Button
             onClick={handleGenerateInsights}
             disabled={generating || generateInsightsMutation.isPending}
@@ -127,7 +129,7 @@ export default function PersonalizedInsights() {
           >
             {generating || generateInsightsMutation.isPending ? "Generating..." : "Update Insights"}
           </Button>
-        )}
+        ) : null}
       </div>
 
       {isLoadingInsights || isLoadingTransactions ? (
@@ -145,7 +147,7 @@ export default function PersonalizedInsights() {
                 ? "Generate insights to see patterns in your financial behavior and emotions."
                 : "Record at least 3 transactions to generate personalized insights."}
             </p>
-            {hasEnoughTransactions && (
+            {hasEnoughTransactions ? (
               <Button
                 onClick={handleGenerateInsights}
                 disabled={generating || generateInsightsMutation.isPending}
@@ -154,7 +156,7 @@ export default function PersonalizedInsights() {
               >
                 {generating || generateInsightsMutation.isPending ? "Generating..." : "Generate Insights"}
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
       ) : (

@@ -278,8 +278,10 @@ export async function analyzeEmotion(text: string): Promise<EmotionAnalysisResul
         const textResponse = response.text();
         
         return processResponse(textResponse);
-      } catch (sdkError) {
-        console.log(`SDK fallback also failed: ${sdkError.message}`);
+      } catch (sdkError: unknown) {
+        console.log(`SDK fallback also failed: ${
+          sdkError instanceof Error ? sdkError.message : 'Unknown error'
+        }`);
       }
     }
     
