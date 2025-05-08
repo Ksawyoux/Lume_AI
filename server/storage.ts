@@ -73,12 +73,14 @@ export class MemStorage implements IStorage {
     this.transactions = new Map();
     this.insights = new Map();
     this.healthData = new Map();
+    this.budgets = new Map();
     
     this.userIds = { current: 1 };
     this.emotionIds = { current: 1 };
     this.transactionIds = { current: 1 };
     this.insightIds = { current: 1 };
     this.healthDataIds = { current: 1 };
+    this.budgetIds = { current: 1 };
     
     // Add seed data
     this.seedData();
@@ -352,6 +354,93 @@ export class MemStorage implements IStorage {
     }
     
     return result;
+  }
+
+  // Budget methods
+  async createBudget(insertBudget: InsertBudget): Promise<Budget> {
+    const id = this.budgetIds.current++;
+    const budget: Budget = { ...insertBudget, id };
+    this.budgets.set(id, budget);
+    return budget;
+  }
+  
+  async getBudgetsByUserId(userId: number): Promise<Budget[]> {
+    return Array.from(this.budgets.values())
+      .filter(budget => budget.userId === userId)
+      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  }
+  
+  async getBudgetById(id: number): Promise<Budget | undefined> {
+    return this.budgets.get(id);
+  }
+  
+  async getActiveBudgetsByUserId(userId: number, type?: string): Promise<Budget[]> {
+    const currentDate = new Date();
+    let userBudgets = Array.from(this.budgets.values())
+      .filter(budget => 
+        budget.userId === userId && 
+        budget.isActive && 
+        new Date(budget.startDate) <= currentDate && 
+        (!budget.endDate || new Date(budget.endDate) >= currentDate)
+      );
+    
+    if (type) {
+      userBudgets = userBudgets.filter(budget => budget.type === type);
+    }
+    
+    return userBudgets.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  }
+  
+  async updateBudget(id: number, budgetUpdate: Partial<Budget>): Promise<Budget> {
+    const budget = this.budgets.get(id);
+    if (!budget) {
+      throw new Error(`Budget with id ${id} not found`);
+    }
+    
+    const updatedBudget = { ...budget, ...budgetUpdate };
+    this.budgets.set(id, updatedBudget);
+    return updatedBudget;
+  }
+  
+  async deleteBudget(id: number): Promise<boolean> {
+    return this.budgets.delete(id);
+  }
+  
+  async getBudgetSpending(userId: number, budgetId: number): Promise<{ spent: number, remaining: number, percentage: number }> {
+    const budget = await this.getBudgetById(budgetId);
+    if (!budget) {
+      throw new Error(`Budget with id ${budgetId} not found`);
+    }
+    
+    const transactions = await this.getTransactionsByUserId(userId);
+    
+    // Filter transactions based on budget type and date range
+    const startDate = new Date(budget.startDate);
+    const endDate = budget.endDate ? new Date(budget.endDate) : new Date();
+    
+    let relevantTransactions = transactions.filter(t => 
+      t.amount < 0 && // Only count expenses
+      new Date(t.date) >= startDate &&
+      new Date(t.date) <= endDate
+    );
+    
+    // If budget is for a specific category, filter by that category
+    if (budget.category) {
+      relevantTransactions = relevantTransactions.filter(t => t.category === budget.category);
+    }
+    
+    // Calculate total spent
+    const totalSpent = relevantTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    
+    // Calculate remaining and percentage
+    const remaining = Math.max(0, budget.amount - totalSpent);
+    const percentage = budget.amount > 0 ? (totalSpent / budget.amount) * 100 : 0;
+    
+    return {
+      spent: totalSpent,
+      remaining,
+      percentage: Math.min(100, percentage) // Cap at 100%
+    };
   }
 }
 
