@@ -38,7 +38,7 @@ interface BudgetSpending {
 const budgetFormSchema = z.object({
   type: z.string(),
   amount: z.coerce.number().positive('Budget amount must be positive'),
-  category: z.string().nullable(),
+  category: z.string().nullable().transform((val) => val === "all" ? null : val),
   startDate: z.string(),
   endDate: z.string().nullable(),
   isActive: z.boolean(),
@@ -193,7 +193,7 @@ export default function BudgetManager() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-[#252a2e] border-gray-700">
-                          <SelectItem value="">All categories</SelectItem>
+                          <SelectItem value="all">All categories</SelectItem>
                           <SelectItem value="grocery">Grocery</SelectItem>
                           <SelectItem value="entertainment">Entertainment</SelectItem>
                           <SelectItem value="shopping">Shopping</SelectItem>
