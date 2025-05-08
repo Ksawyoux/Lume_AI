@@ -241,17 +241,50 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     try {
       console.log("Sending image for analysis...");
       
-      // Send to server for analysis (updated endpoint path and method)
-      const response = await fetch('/api/ml/facial/analyze-face', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          image: imageBase64
-        }),
-        credentials: 'include'
-      });
+      // First try to match against the user's reference images
+      let response;
+      try {
+        // Try to analyze using the user's reference images
+        response = await fetch('/api/emotion-reference-images/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            imageData: imageBase64
+          }),
+          credentials: 'include'
+        });
+        
+        // If we don't have enough reference images, the API will return a 400 status
+        // In that case, fall back to the default analyzer
+        if (response.status === 400) {
+          console.log("Not enough reference images, falling back to default analyzer");
+          response = await fetch('/api/ml/facial/analyze-face', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              image: imageBase64
+            }),
+            credentials: 'include'
+          });
+        }
+      } catch (error) {
+        // If the reference image endpoint fails, fall back to default analyzer
+        console.log("Error using reference images, falling back to default analyzer:", error);
+        response = await fetch('/api/ml/facial/analyze-face', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            image: imageBase64
+          }),
+          credentials: 'include'
+        });
+      }
       
       console.log("API Response Status:", response.status);
       
