@@ -129,6 +129,9 @@ export default function BudgetManager() {
           <DialogContent className="bg-[#1c2127] text-white border-gray-800">
             <DialogHeader>
               <DialogTitle>Create New Budget</DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Set up a new budget to track your spending by category or time period.
+              </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
