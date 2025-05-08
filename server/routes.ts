@@ -8,46 +8,7 @@ import insightsGeneratorRoutes from "./routes/insights-generator";
 import facialAnalysisRoutes from "./routes/facial-analysis";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // User routes
-  app.post("/api/users", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUserByUsername(userData.username);
-      
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-      
-      const newUser = await storage.createUser(userData);
-      res.status(201).json(newUser);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-  
-  app.post("/api/login", async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
-      }
-      
-      const user = await storage.getUserByUsername(username);
-      
-      if (!user || user.password !== password) {
-        return res.status(401).json({ message: "Invalid username or password" });
-      }
-      
-      // In a real app, we would create a session and return a token
-      res.json({ user: { ...user, password: undefined } });
-    } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+  // Note: User registration, login, and session management is now handled by the auth.ts module
   
   // Emotion routes
   app.get("/api/users/:userId/emotions", async (req, res) => {
