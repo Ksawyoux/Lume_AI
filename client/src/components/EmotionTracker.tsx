@@ -73,7 +73,7 @@ export default function EmotionTracker() {
       setIsAnalyzing(true);
       setShowAnalysis(false);
       
-      const result = await apiRequest<EmotionAnalysisResult>('/api/ml/emotions/analyze', 'POST', {
+      const result = await apiRequest<EmotionAnalysisResult>('api/ml/emotions/analyze', 'POST', {
         text: notes
       });
       

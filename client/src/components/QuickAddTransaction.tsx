@@ -51,7 +51,7 @@ export default function QuickAddTransaction() {
       currency: string;
     }) => {
       // Fixed parameter order: url, method, data
-      return await apiRequest('/api/transactions', 'POST', data);
+      return await apiRequest('api/transactions', 'POST', data);
     },
     onSuccess: () => {
       toast({
@@ -76,7 +76,7 @@ export default function QuickAddTransaction() {
   const emotionMutation = useMutation({
     mutationFn: async (data: { userId: number; type: EmotionType; notes: string }) => {
       // Fixed parameter order: url, method, data
-      return await apiRequest('/api/emotions', 'POST', data);
+      return await apiRequest('api/emotions', 'POST', data);
     },
   });
 
