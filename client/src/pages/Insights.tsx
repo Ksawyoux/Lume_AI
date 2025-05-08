@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useQuery } from '@tanstack/react-query';
@@ -18,8 +19,7 @@ interface AnalyticsData {
   emotionSpending: Record<string, number>;
 }
 
-export default function Analytics() {
-  // All hooks must be called at the top level, unconditionally
+export default function Insights() {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState("spending");
   const [budgetError, setBudgetError] = useState<string | null>(null);
@@ -29,9 +29,19 @@ export default function Analytics() {
     data, 
     isLoading 
   } = useQuery<AnalyticsData>({
-    queryKey: user ? [`/api/users/${user.id}/analytics/spending-by-emotion`] : [],
-    enabled: !!user,
+    queryKey: [`/api/users/${user?.id}/analytics/spending-by-emotion`],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const response = await fetch(`/api/users/${user.id}/analytics/spending-by-emotion`);
+      if (!response.ok) throw new Error('Failed to fetch analytics data');
+      return response.json();
+    },
+    enabled: !!user?.id,
   });
+
+  const handleBudgetError = (error: string) => {
+    setBudgetError(error);
+  };
 
   // Handle loading state for user
   if (!user) {
@@ -57,10 +67,6 @@ export default function Analytics() {
     Object.entries(data.emotionSpending)
       .sort((a, b) => b[1] - a[1])
       .map(([emotion]) => emotion)[0] || 'neutral';
-
-  const handleBudgetError = (error: string) => {
-    setBudgetError(error);
-  };
 
   return (
     <div className="max-w-md mx-auto bg-[#1b1c1e] min-h-screen flex flex-col text-white">
