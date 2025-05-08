@@ -85,40 +85,80 @@ export const insertUserSchema = createInsertSchema(users).pick({
   initials: true,
 });
 
-export const insertEmotionSchema = createInsertSchema(emotions).pick({
+// Create a base emotion schema without date
+const baseEmotionSchema = createInsertSchema(emotions).pick({
   userId: true,
   type: true,
   notes: true,
-  date: true,
 });
 
-export const insertTransactionSchema = createInsertSchema(transactions).pick({
+// Export the final emotion schema with modified date handling
+export const insertEmotionSchema = baseEmotionSchema.extend({
+  // Handle date as either a string or Date object
+  date: z.union([
+    z.string().transform(str => new Date(str)),
+    z.date()
+  ]).optional().default(() => new Date()),
+});
+
+// Create a base transaction schema without the date field
+const baseTransactionSchema = createInsertSchema(transactions).pick({
   userId: true,
   amount: true,
   description: true,
   category: true,
-  date: true,
   emotionId: true,
   currency: true,
 });
 
-export const insertInsightSchema = createInsertSchema(insights).pick({
+// Export the final transaction schema with modified date handling
+export const insertTransactionSchema = baseTransactionSchema.extend({
+  // Handle date as either a string or Date object
+  date: z.union([
+    z.string().transform(str => new Date(str)),
+    z.date()
+  ]).optional().default(() => new Date()),
+});
+
+// Create a base insight schema without date fields
+const baseInsightSchema = createInsertSchema(insights).pick({
   userId: true,
   type: true,
   title: true,
   description: true,
-  date: true,
-  updatedDate: true,
 });
 
-export const insertHealthDataSchema = createInsertSchema(healthData).pick({
+// Export the final insight schema with modified date handling
+export const insertInsightSchema = baseInsightSchema.extend({
+  // Handle date as either a string or Date object
+  date: z.union([
+    z.string().transform(str => new Date(str)),
+    z.date()
+  ]).optional().default(() => new Date()),
+  // Handle updatedDate as either a string or Date object
+  updatedDate: z.union([
+    z.string().transform(str => new Date(str)),
+    z.date()
+  ]).optional().default(() => new Date()),
+});
+
+// Create a base health data schema without timestamp
+const baseHealthDataSchema = createInsertSchema(healthData).pick({
   userId: true,
   type: true,
   value: true,
   unit: true,
   source: true,
-  timestamp: true,
   metadata: true,
+});
+
+// Export the final health data schema with modified timestamp handling
+export const insertHealthDataSchema = baseHealthDataSchema.extend({
+  // Handle timestamp as either a string or Date object
+  timestamp: z.union([
+    z.string().transform(str => new Date(str)),
+    z.date()
+  ]).optional().default(() => new Date()),
 });
 
 // Create a base budget schema
