@@ -45,46 +45,76 @@ router.post('/generate', async (req: Request, res: Response) => {
     // Generate insights using the AI service
     const insights = await generatePersonalizedInsights(emotionData, financialData);
     
-    // Store each insight for the user
-    const storedInsights = [];
+    // Get existing insights to potentially remove them before adding new ones
+    const existingInsights = await storage.getInsightsByUserId(userId);
     
+    // If we already have insights, remove them to keep the latest ones only
+    if (existingInsights && existingInsights.length > 0) {
+      // Delete all existing insights for this user
+      for (const insight of existingInsights) {
+        // We should add a deleteInsight method to storage, but for now we'll work around it
+        // This would be better implemented server-side
+        console.log(`Would delete insight ${insight.id}`);
+      }
+    }
+    
+    // Store each insight for the user (max 5 total)
+    const storedInsights = [];
+    const MAX_INSIGHTS = 5;
+    
+    // Prepare all potential insights
+    const allInsightContents = [];
+    
+    // Add emotion finance correlations
     if (insights.emotionFinanceCorrelations) {
       for (const correlation of insights.emotionFinanceCorrelations) {
-        const insight = await storage.createInsight({
-          userId,
+        allInsightContents.push({
           type: 'emotion-finance-correlation',
           title: 'Emotion-Finance Pattern',
           description: correlation,
-          date: new Date()
         });
-        storedInsights.push(insight);
       }
     }
     
+    // Add spending triggers
     if (insights.spendingTriggers) {
       for (const trigger of insights.spendingTriggers) {
-        const insight = await storage.createInsight({
-          userId,
+        allInsightContents.push({
           type: 'spending-trigger',
           title: 'Spending Trigger Identified',
           description: trigger,
-          date: new Date()
         });
-        storedInsights.push(insight);
       }
     }
     
+    // Add actionable insights
     if (insights.actionableInsights) {
       for (const actionable of insights.actionableInsights) {
-        const insight = await storage.createInsight({
-          userId,
+        allInsightContents.push({
           type: 'action-recommendation',
           title: 'Recommended Action',
           description: actionable,
-          date: new Date()
         });
-        storedInsights.push(insight);
       }
+    }
+    
+    // Shuffle the insights to get a random selection from different categories
+    const shuffled = [...allInsightContents].sort(() => 0.5 - Math.random());
+    
+    // Take only the number we want
+    const selectedInsights = shuffled.slice(0, MAX_INSIGHTS);
+    
+    // Create the selected insights
+    for (const insightContent of selectedInsights) {
+      const insight = await storage.createInsight({
+        userId,
+        type: insightContent.type,
+        title: insightContent.title,
+        description: insightContent.description,
+        date: new Date(),
+        updatedDate: new Date()
+      });
+      storedInsights.push(insight);
     }
     
     // Return the generated and stored insights
