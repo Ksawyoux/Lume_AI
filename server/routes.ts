@@ -6,6 +6,7 @@ import { insertEmotionSchema, insertHealthDataSchema, insertTransactionSchema, i
 import emotionAnalysisRoutes from "./routes/emotion-analysis";
 import insightsGeneratorRoutes from "./routes/insights-generator";
 import facialAnalysisRoutes from "./routes/facial-analysis";
+import emotionReferenceImageRoutes from "./routes/emotion-reference-images";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Note: User registration, login, and session management is now handled by the auth.ts module
@@ -469,6 +470,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Facial Expression Analysis routes - mounted at a separate path to avoid conflicts
   app.use('/api/ml/facial', facialAnalysisRoutes);
+  
+  // Emotion Reference Images routes
+  app.use('/api/emotion-reference-images', emotionReferenceImageRoutes);
 
   const httpServer = createServer(app);
 
