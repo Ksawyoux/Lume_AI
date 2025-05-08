@@ -395,7 +395,7 @@ export class PgStorage implements IStorage {
     const randomConfidence = 0.5 + Math.random() * 0.5; // Random value between 0.5 and 1.0
     
     return {
-      emotion: referenceImages[randomIndex].emotion,
+      emotion: referenceImages[randomIndex].emotion as EmotionType,
       confidence: randomConfidence
     };
     
