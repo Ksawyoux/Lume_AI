@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
 import { analyzeAdvancedEmotionalPatterns } from '../services/advancedEmotionAnalysis';
-import { requireAuth } from '../middleware/auth';
+import { validateAuthenticatedUser } from '../middleware/auth';
 import { EmotionType, HealthMetricType } from '@shared/schema';
 
 const router = Router();
@@ -16,7 +16,7 @@ router.use((req, res, next) => {
  * Generate advanced emotion insights that combine emotions, health, and finance
  * This endpoint aggregates data across multiple domains to provide deeper insights
  */
-router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
+router.post('/analyze', validateAuthenticatedUser, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     

@@ -8,6 +8,7 @@ import insightsGeneratorRoutes from "./routes/insights-generator";
 import facialAnalysisRoutes from "./routes/facial-analysis";
 import emotionReferenceImageRoutes from "./routes/emotion-reference-images";
 import advancedEmotionAnalysisRoutes from "./routes/advanced-emotion-analysis";
+import voiceEmotionAnalysisRoutes from "./routes/voice-emotion-analysis";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Note: User registration, login, and session management is now handled by the auth.ts module
@@ -567,6 +568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Advanced Emotion Analysis with Health and Finance Data
   app.use('/api/advanced-analytics', advancedEmotionAnalysisRoutes);
+  
+  // Voice Emotion Analysis routes
+  app.use('/api/ml/voice', voiceEmotionAnalysisRoutes);
 
   const httpServer = createServer(app);
 
