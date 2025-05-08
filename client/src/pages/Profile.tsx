@@ -3,10 +3,11 @@ import { useUser } from '@/context/UserContext';
 import { useAuth } from '@/hooks/use-auth';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
+import EmotionReferenceImageManager from '@/components/EmotionReferenceImageManager';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ChevronRight, Bell, Lock, Eye, HelpCircle, LogOut, Activity, Zap, Loader2 } from 'lucide-react';
+import { ChevronRight, Bell, Lock, Eye, HelpCircle, LogOut, Activity, Zap, Loader2, Camera } from 'lucide-react';
 
 export default function Profile() {
   const { user } = useUser();
@@ -161,6 +162,32 @@ export default function Profile() {
                   onCheckedChange={setEmotionTracking}
                   className="data-[state=checked]:bg-primary"
                 />
+              </div>
+            </div>
+          </div>
+          
+          {/* Emotion Reference Images */}
+          <div className="whoop-container mb-5">
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">EMOTION RECOGNITION</h3>
+            
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary)/0.1)] flex items-center justify-center text-primary mr-3">
+                  <Camera size={16} />
+                </div>
+                <div>
+                  <span className="text-sm text-foreground font-medium uppercase tracking-wider">FACIAL RECOGNITION</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">Customize how the app recognizes your emotions</p>
+                </div>
+              </div>
+              
+              <p className="text-xs text-muted-foreground mt-2">
+                To help the app better recognize your facial expressions, you can provide reference images for different emotions.
+                These images are stored securely and used only to improve the accuracy of emotion detection.
+              </p>
+              
+              <div className="mt-2">
+                <EmotionReferenceImageManager />
               </div>
             </div>
           </div>
