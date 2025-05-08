@@ -120,7 +120,7 @@ export default function AddTransaction() {
         emotionId = newEmotion.id;
       }
       
-      // Then create transaction with emotion reference
+      // Then create transaction with emotion reference and currency
       await mutation.mutateAsync({
         userId: user.id,
         amount: amountValue,
@@ -128,7 +128,8 @@ export default function AddTransaction() {
         category,
         notes,
         emotionId,
-        date: date
+        date: date,
+        currency: currency
       });
     } catch (error) {
       console.error("Error creating transaction:", error);
