@@ -58,7 +58,8 @@ export default function Insights() {
 
   // Use defaults if data is not available
   const totalSpending = data?.totalSpending || 0; // Use 0 instead of placeholder data
-  const emotionImpact = data?.emotionImpact || 32;
+  const hasTransactionData = totalSpending > 0;
+  const emotionImpact = hasTransactionData ? (data?.emotionImpact || 0) : 0; // Use 0% when no transaction data
   const impulsePercentage = data?.impulsePercentage || 0; // Use 0 instead of placeholder data
   const savingsTarget = data?.savingsTarget || 0; // Use 0 instead of placeholder data
 
