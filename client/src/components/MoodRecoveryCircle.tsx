@@ -22,27 +22,17 @@ export default function MoodRecoveryCircle({ weeklyMoods }: MoodRecoveryCirclePr
     }
   });
   
-  // Get color for a specific mood
+  // To match the screenshot, all dots are white or dark
   const getMoodColor = (mood: EmotionType | null): string => {
-    switch (mood) {
-      case 'happy':
-        return '#00f19f'; // bright teal
-      case 'content':
-        return '#4CC9F0'; // light blue
-      case 'neutral':
-        return '#8D99AE'; // gray blue
-      case 'worried':
-        return '#EEB868'; // amber
-      case 'stressed':
-        return '#FB5607'; // orange
-      default:
-        return '#2A363D'; // background color for empty slots
+    if (mood === null) {
+      return '#2A363D'; // dark for empty slots
     }
+    return '#FFFFFF'; // white for filled slots
   };
   
   // Get opacity for a specific position
   const getOpacity = (index: number, mood: EmotionType | null): number => {
-    if (mood === null) return 0.5; // Empty slots are dimmed
+    if (mood === null) return 0.7; // Empty slots are dimmed
     return 1;
   };
   
@@ -82,22 +72,14 @@ export default function MoodRecoveryCircle({ weeklyMoods }: MoodRecoveryCirclePr
             );
           })}
           
-          {/* Middle mood indicator */}
+          {/* Middle mood text - matching the screenshot exactly */}
           <text 
             x="50" 
-            y="45" 
+            y="55" 
             textAnchor="middle" 
-            fontSize="12" 
+            dominantBaseline="middle"
+            fontSize="9" 
             fontWeight="bold" 
-            fill="white"
-          >
-            --
-          </text>
-          <text 
-            x="50" 
-            y="60" 
-            textAnchor="middle" 
-            fontSize="7" 
             fill="#94A3B8"
             style={{ textTransform: 'uppercase' }}
           >
