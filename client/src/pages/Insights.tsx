@@ -300,10 +300,17 @@ export default function Analytics() {
                 </TabsContent>
                 
                 <TabsContent value="trends" className="mt-4">
-                  {/* This would be the Trends tab content */}
                   <div className="bg-[#1c2127] rounded-lg p-4">
-                    <h3 className="text-xl font-bold mb-4">Spending Trends</h3>
-                    <p className="text-gray-400">Trend analysis coming soon...</p>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-bold">Financial Journey</h3>
+                      <span className="text-xs text-gray-400">Interactive Timeline</span>
+                    </div>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Track your financial milestones and transactions over time. See how your financial journey evolves alongside your emotional state.
+                    </p>
+                    
+                    {/* Import the Financial Timeline component */}
+                    <FinancialTimeline />
                   </div>
                 </TabsContent>
                 
