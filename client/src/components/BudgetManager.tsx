@@ -84,17 +84,6 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
     }
   }, [budgetsError]);
   
-  // Display an error message if there's an error
-  if (error) {
-    return (
-      <div className="mt-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-        <h3 className="text-lg font-bold mb-2">Error Loading Budgets</h3>
-        <p className="text-sm text-gray-300">{error}</p>
-        <p className="text-xs text-gray-400 mt-2">Try refreshing the page or contact support if the issue persists.</p>
-      </div>
-    );
-  }
-  
   // Create budget form
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetFormSchema),
@@ -327,6 +316,29 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mt-4 mb-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+          <h3 className="text-lg font-bold mb-2">Error Loading Budgets</h3>
+          <p className="text-sm text-gray-300">{error}</p>
+          <div className="flex mt-2 space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs border-gray-700 hover:bg-gray-800"
+              onClick={() => {
+                setError(null);
+                if (user) {
+                  window.location.reload();
+                }
+              }}
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+      )}
 
       {isLoadingBudgets ? (
         <div className="space-y-3">

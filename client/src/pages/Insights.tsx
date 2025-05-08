@@ -19,7 +19,7 @@ interface AnalyticsData {
   emotionSpending: Record<string, number>;
 }
 
-export default function Analytics() {
+export default function Insights() {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState("spending");
   const [budgetError, setBudgetError] = useState<string | null>(null);
@@ -67,10 +67,6 @@ export default function Analytics() {
     Object.entries(data.emotionSpending)
       .sort((a, b) => b[1] - a[1])
       .map(([emotion]) => emotion)[0] || 'neutral';
-
-  const handleBudgetError = (error: string) => {
-    setBudgetError(error);
-  };
 
   return (
     <div className="max-w-md mx-auto bg-[#1b1c1e] min-h-screen flex flex-col text-white">
