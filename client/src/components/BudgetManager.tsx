@@ -115,17 +115,11 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
       if (!user) return null;
       
       try {
-        const res = await apiRequest('POST', '/api/budgets', {
+        // Fixed the apiRequest call to properly handle the method parameter
+        return await apiRequest('/api/budgets', 'POST', {
           userId: user.id,
           ...data
         });
-        
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to create budget');
-        }
-        
-        return res.json();
       } catch (err: any) {
         const errorMessage = err?.message || 'Failed to create budget. Please try again.';
         setError(errorMessage);
