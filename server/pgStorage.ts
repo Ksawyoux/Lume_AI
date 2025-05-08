@@ -394,8 +394,17 @@ export class PgStorage implements IStorage {
     const randomIndex = Math.floor(Math.random() * referenceImages.length);
     const randomConfidence = 0.5 + Math.random() * 0.5; // Random value between 0.5 and 1.0
     
+    // Get emotion and ensure it's a valid EmotionType
+    const randomEmotion = referenceImages[randomIndex].emotion;
+    const validEmotions: EmotionType[] = ["stressed", "worried", "neutral", "content", "happy"];
+    
+    // Verify that the emotion is valid
+    const emotion: EmotionType = validEmotions.includes(randomEmotion as EmotionType) 
+      ? (randomEmotion as EmotionType) 
+      : 'neutral';
+    
     return {
-      emotion: referenceImages[randomIndex].emotion as EmotionType,
+      emotion,
       confidence: randomConfidence
     };
     
