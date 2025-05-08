@@ -68,7 +68,7 @@ export default function Home() {
           <div className="whoop-container">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-medium text-foreground">Your Dashboard</h3>
-              <span className="text-xs text-muted-foreground">{format(new Date(), 'MMM d, yyyy')}</span>
+              <span className="text-xs text-muted-foreground">{format(new Date(), 'MMMM d, yyyy')}</span>
             </div>
             
             {isEmotionLoading ? (

@@ -380,9 +380,43 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
 }
 
 // Budget Card component for displaying a single budget
-function BudgetCard({ budget }: { budget: Budget }) {
+function BudgetCard({ budget, onDelete }: { budget: Budget, onDelete?: (id: number) => void }) {
   const { user } = useUser();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [spendingError, setSpendingError] = useState<string | null>(null);
+  
+  // Delete budget mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (budgetId: number) => {
+      const response = await fetch(`/api/budgets/${budgetId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete budget: ${response.statusText}`);
+      }
+      
+      return true;
+    },
+    onSuccess: () => {
+      // Invalidate budget queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/budgets/active`] });
+      toast({
+        title: "Budget deleted",
+        description: "The budget has been removed successfully",
+      });
+      if (onDelete) onDelete(budget.id);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error deleting budget",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
   
   // Get budget spending data
   const { 
@@ -449,13 +483,50 @@ function BudgetCard({ budget }: { budget: Budget }) {
   };
   
   return (
-    <div className="bg-[#252a2e] rounded-lg p-4">
+    <div className="bg-[#252a2e] rounded-lg p-4 relative">
+      {showDeleteConfirm ? (
+        <div className="absolute inset-0 bg-[#252a2e] rounded-lg p-4 flex flex-col items-center justify-center z-10">
+          <p className="text-sm text-center mb-4">Are you sure you want to delete this budget?</p>
+          <div className="flex space-x-3">
+            <Button 
+              variant="destructive" 
+              size="sm"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate(budget.id)}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowDeleteConfirm(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center">
           <Circle className="h-3 w-3 mr-2 text-[#00f19f]" fill="#00f19f" />
           <h4 className="text-md font-medium">{getBudgetTypeName(budget.type)}</h4>
         </div>
-        <ChevronRight className="h-4 w-4 text-gray-500" />
+        <div className="flex items-center">
+          <Button 
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+          </Button>
+          <ChevronRight className="h-4 w-4 text-gray-500 ml-1" />
+        </div>
       </div>
       
       {budget.category && (

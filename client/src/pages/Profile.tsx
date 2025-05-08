@@ -51,10 +51,10 @@ export default function Profile() {
             <div className="grid grid-cols-2 items-center">
               <div className="flex items-center">
                 <div className="w-16 h-16 rounded-full bg-[#2A363D] flex items-center justify-center">
-                  <span className="text-xl font-bold text-[#00f19f] uppercase">K</span>
+                  <span className="text-xl font-bold text-[#00f19f] uppercase">{user.username.charAt(0)}</span>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-base font-semibold text-foreground uppercase">KADJAD</h3>
+                  <h3 className="text-base font-semibold text-foreground uppercase">{user.username}</h3>
                 </div>
               </div>
               
