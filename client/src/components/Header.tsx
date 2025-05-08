@@ -13,7 +13,7 @@ export default function Header() {
   const { user } = useUser();
   
   // WHOOP-style recovery score (67-100% is high recovery)
-  const recoveryScore = 87;
+  const recoveryScore = 51;
   const scoreDiff = 15;
   const isScoreUp = scoreDiff > 0;
   
