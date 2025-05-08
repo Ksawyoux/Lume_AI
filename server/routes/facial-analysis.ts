@@ -3,6 +3,12 @@ import { analyzeFacialExpression } from '../services/gemini';
 
 const router = express.Router();
 
+// Debug middleware for this route
+router.use((req, res, next) => {
+  console.log(`[Facial Analysis] ${req.method} ${req.path}`);
+  next();
+});
+
 // API endpoint to analyze facial expressions
 router.post('/analyze-face', async (req: Request, res: Response) => {
   try {
