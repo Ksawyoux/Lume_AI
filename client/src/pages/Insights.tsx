@@ -57,10 +57,10 @@ export default function Insights() {
   }
 
   // Use defaults if data is not available
-  const totalSpending = data?.totalSpending || 225.57;
+  const totalSpending = data?.totalSpending || 0; // Use 0 instead of placeholder data
   const emotionImpact = data?.emotionImpact || 32;
-  const impulsePercentage = data?.impulsePercentage || 43;
-  const savingsTarget = data?.savingsTarget || -12;
+  const impulsePercentage = data?.impulsePercentage || 0; // Use 0 instead of placeholder data
+  const savingsTarget = data?.savingsTarget || 0; // Use 0 instead of placeholder data
 
   // Default to 'neutral' if no top emotion data available
   const topEmotion = !data?.emotionSpending ? 'neutral' : 
@@ -164,7 +164,9 @@ export default function Insights() {
                       {/* Savings */}
                       <div className="bg-[#252a2e] rounded-lg p-3">
                         <p className="text-xs text-gray-400 mb-1">SAVINGS</p>
-                        <p className="text-lg font-bold text-red-500">{savingsTarget}%</p>
+                        <p className={`text-lg font-bold ${savingsTarget >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {savingsTarget}%
+                        </p>
                         <p className="text-xs text-gray-400">vs Target</p>
                       </div>
                     </div>
