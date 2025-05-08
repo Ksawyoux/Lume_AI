@@ -71,7 +71,7 @@ export default function AdvancedInsightGenerator() {
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated");
       
-      const response = await apiRequest('/api/advanced-analytics/analyze', 'POST', {});
+      const response = await apiRequest('/advanced-analytics/analyze', 'POST', {});
       return await response.json();
     },
     onSuccess: (data) => {
