@@ -72,6 +72,14 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
     error: budgetsError
   } = useQuery<Budget[]>({
     queryKey: user ? [`/api/users/${user.id}/budgets/active`] : [],
+    queryFn: async () => {
+      if (!user) return [];
+      const response = await fetch(`/api/users/${user.id}/budgets/active`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch budgets');
+      }
+      return response.json();
+    },
     enabled: !!user,
   });
   
