@@ -37,12 +37,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data,
     error,
     isLoading,
-  } = useQuery<{ user: User }>({
+  } = useQuery({
     queryKey: ["/api/user"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/user");
+        if (!response.ok) {
+          if (response.status === 401) {
+            return null;
+          }
+          throw new Error("Failed to fetch user");
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+      }
+    },
     retry: false,
-    onError: () => {
-      // Just ignore 401 errors - they're expected when not logged in
-    }
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const user = data?.user || null;
