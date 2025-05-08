@@ -26,17 +26,42 @@ export default function Home() {
     enabled: !!user,
   });
   
-  // Latest emotion data
-  const { data: latestEmotion } = useQuery<Emotion>({
-    queryKey: user ? [`/api/users/${user.id}/emotions/latest`] : [],
-    enabled: !!user,
-  });
-  
-  // Weekly emotions data for mood recovery circle
+  // Weekly emotions data
   const { data: weeklyEmotions } = useQuery<Emotion[]>({
     queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
     enabled: !!user,
   });
+  
+  // Find the most frequent emotion
+  const getMostFrequentEmotion = (): { emotion: EmotionType, count: number } | null => {
+    if (!weeklyEmotions || weeklyEmotions.length === 0) return null;
+    
+    const emotionCounts: Record<EmotionType, number> = {
+      happy: 0,
+      content: 0,
+      neutral: 0,
+      worried: 0,
+      stressed: 0
+    };
+    
+    weeklyEmotions.forEach(emotion => {
+      emotionCounts[emotion.type as EmotionType]++;
+    });
+    
+    let mostFrequentEmotion: EmotionType = 'neutral';
+    let highestCount = 0;
+    
+    for (const [emotion, count] of Object.entries(emotionCounts) as [EmotionType, number][]) {
+      if (count > highestCount) {
+        mostFrequentEmotion = emotion;
+        highestCount = count;
+      }
+    }
+    
+    return { emotion: mostFrequentEmotion, count: highestCount };
+  };
+  
+  const topEmotion = getMostFrequentEmotion();
   
   // Get active budgets
   const { data: budgets } = useQuery<Budget[]>({
@@ -118,35 +143,23 @@ export default function Home() {
               </div>
             ) : (
               <>
-                {/* Current Mood Status */}
-                <div className="p-3 mb-4 rounded-lg bg-accent/50 border border-border">
-                  <div className="flex items-center">
-                    {latestEmotion ? (
-                      <>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                          latestEmotion.type === 'happy' ? 'bg-[#6554C0]/20 text-[#6554C0]' :
-                          latestEmotion.type === 'content' ? 'bg-[#00B8D9]/20 text-[#00B8D9]' :
-                          latestEmotion.type === 'neutral' ? 'bg-[#36B37E]/20 text-[#36B37E]' :
-                          latestEmotion.type === 'worried' ? 'bg-[#FFAB00]/20 text-[#FFAB00]' :
-                          'bg-[#FF5630]/20 text-[#FF5630]'
-                        }`}>
-                          <span className="text-sm font-semibold capitalize">{latestEmotion.type.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-foreground capitalize">Current Mood: {latestEmotion.type}</div>
-                          <div className="text-xs text-muted-foreground">Last updated: {new Date(latestEmotion.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                        </div>
-                      </>
+                {/* Top Emotion Box */}
+                <div className="p-3 mb-4 rounded-lg bg-[#1a2126] border border-[#2A363D]">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-400 uppercase mb-1 tracking-wider">TOP EMOTION</span>
+                    
+                    {topEmotion ? (
+                      <div className="flex flex-col">
+                        <span className="text-lg font-semibold text-white capitalize mb-1">
+                          {topEmotion.emotion}
+                        </span>
+                        <span className="text-xs text-gray-400">Most frequent</span>
+                      </div>
                     ) : (
-                      <>
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-muted/50">
-                          <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-foreground">Current Mood: No Data</div>
-                          <div className="text-xs text-muted-foreground">Track your first mood to get started</div>
-                        </div>
-                      </>
+                      <div className="flex flex-col">
+                        <span className="text-lg font-semibold text-gray-400">No Data</span>
+                        <span className="text-xs text-gray-500">Track your mood to see trends</span>
+                      </div>
                     )}
                   </div>
                 </div>
