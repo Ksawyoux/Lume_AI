@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Emotion } from '@/types';
-import { AlertCircle } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 
 export default function Home() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -87,22 +87,22 @@ export default function Home() {
               </div>
             ) : (
               <>
-                {/* Current Mood Status - Updated to match design in screenshot */}
+                {/* Current Mood Status - No Data Available */}
                 <div className="p-3 mb-4 rounded-lg bg-accent/50 border border-border">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-red-500/20">
-                      <AlertCircle className="h-5 w-5 text-red-500" />
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-muted/50">
+                      <HelpCircle className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-foreground">Current Mood: Stressed</div>
-                      <div className="text-xs text-muted-foreground">No notes added</div>
+                      <div className="text-sm font-medium text-foreground">Current Mood: No Data</div>
+                      <div className="text-xs text-muted-foreground">Track your first mood to get started</div>
                     </div>
                   </div>
                 </div>
                 
-                {/* WHOOP-style metrics overview */}
+                {/* WHOOP-style metrics overview - Empty State */}
                 <div className="grid grid-cols-2 gap-4 mb-5">
-                  {/* WHOOP-inspired Mood Recovery */}
+                  {/* WHOOP-inspired Mood Recovery - Empty State */}
                   <div className="flex flex-col items-center justify-center p-3">
                     <div className="relative w-24 h-24 mb-2">
                       <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
@@ -115,21 +115,20 @@ export default function Home() {
                           stroke="hsl(var(--muted))"
                           strokeWidth="8"
                         />
-                        {/* Progress circle */}
+                        {/* Empty progress circle */}
                         <circle
                           cx="50"
                           cy="50"
                           r="40"
                           fill="transparent"
-                          stroke="hsl(var(--recovery-high))" /* Using WHOOP official recovery high color */
+                          stroke="hsl(var(--muted-foreground))"
                           strokeWidth="8"
-                          strokeDasharray="251.2"
-                          strokeDashoffset={251.2 * (1 - 0.87)} // 87% progress
+                          strokeDasharray="4, 12"
                           strokeLinecap="round"
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-2xl font-bold text-[hsl(var(--recovery-high))]">87%</span>
+                        <span className="text-2xl font-bold text-muted-foreground">--</span>
                         <span className="text-xs text-muted-foreground uppercase tracking-widest">MOOD</span>
                       </div>
                     </div>
@@ -138,75 +137,71 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Financial Health Chart - Using WHOOP recovery colors */}
+                  {/* Financial Health Chart - Empty State */}
                   <div className="flex flex-col p-3">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-sm font-semibold text-foreground uppercase tracking-wider">FINANCIAL</span>
-                      <span className="text-sm font-medium text-[hsl(var(--recovery-high))]">75</span>
+                      <span className="text-sm font-medium text-muted-foreground">--</span>
                     </div>
                     <div className="space-y-3">
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-muted-foreground uppercase tracking-wider">SPENDING</span>
-                          <span className="text-[hsl(var(--recovery-medium))]">GOOD</span>
+                          <span className="text-muted-foreground">NO DATA</span>
                         </div>
                         <div className="progress-bar">
                           <div className="progress-bar-fill" 
-                            style={{ width: '68%', backgroundColor: 'hsl(var(--recovery-medium))' }}></div>
+                            style={{ width: '0%', backgroundColor: 'hsl(var(--muted-foreground))' }}></div>
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-muted-foreground uppercase tracking-wider">SAVING</span>
-                          <span className="text-[hsl(var(--recovery-high))]">EXCELLENT</span>
+                          <span className="text-muted-foreground">NO DATA</span>
                         </div>
                         <div className="progress-bar">
                           <div className="progress-bar-fill" 
-                            style={{ width: '89%', backgroundColor: 'hsl(var(--recovery-high))' }}></div>
+                            style={{ width: '0%', backgroundColor: 'hsl(var(--muted-foreground))' }}></div>
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-muted-foreground uppercase tracking-wider">EMOTION</span>
-                          <span className="text-[hsl(var(--recovery-neutral))]">MODERATE</span>
+                          <span className="text-muted-foreground">NO DATA</span>
                         </div>
                         <div className="progress-bar">
                           <div className="progress-bar-fill" 
-                            style={{ width: '45%', backgroundColor: 'hsl(var(--recovery-neutral))' }}></div>
+                            style={{ width: '0%', backgroundColor: 'hsl(var(--muted-foreground))' }}></div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Weekly Trends - WHOOP style visualization */}
+                {/* Weekly Trends - Empty State */}
                 <div className="mt-4 pt-4 border-t border-border">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-sm font-semibold text-foreground uppercase tracking-wider">DAILY TRENDS</span>
                     <span className="text-xs text-[hsl(var(--primary))] uppercase tracking-wider">VIEW ALL</span>
                   </div>
                   <div className="h-24 flex items-end justify-between">
-                    {[65, 72, 45, 32, 58, 84, 76].map((value, index) => {
-                      // WHOOP color scale function - maps to official recovery colors
-                      const getColor = (val: number) => {
-                        if (val >= 67) return 'hsl(var(--recovery-high))';
-                        if (val >= 34) return 'hsl(var(--recovery-medium))';
-                        return 'hsl(var(--recovery-low))';
-                      };
-                      
-                      return (
-                        <div key={index} className="flex flex-col items-center">
-                          <div 
-                            className="w-5 rounded-sm" 
-                            style={{ 
-                              height: `${(value / 100) * 100}%`,
-                              backgroundColor: getColor(value)
-                            }}
-                          ></div>
-                          <span className="text-xs text-muted-foreground mt-2">{index + 1}</span>
-                        </div>
-                      );
-                    })}
+                    {[1, 2, 3, 4, 5, 6, 7].map((index) => (
+                      <div key={index} className="flex flex-col items-center">
+                        <div 
+                          className="w-5 rounded-sm border border-dashed border-muted-foreground/30" 
+                          style={{ 
+                            height: '10%',
+                            backgroundColor: 'transparent'
+                          }}
+                        ></div>
+                        <span className="text-xs text-muted-foreground mt-2">{index}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex justify-center">
+                    <span className="text-xs text-muted-foreground italic">
+                      Track your mood over time to see trends
+                    </span>
                   </div>
                 </div>
               </>
