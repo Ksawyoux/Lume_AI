@@ -1,0 +1,198 @@
+The image you provided shows the "Emotion-Spending Correlation" section of your `Analytics` component, which displays a 30-day analysis with 0.0% for all emotions (`stressed`, `content`, `worried`, `neutral`, `happy`). This section is currently hardcoded with static data, and since the `spendingByEmotion` data from the API isn't being properly utilized or fetched, it defaults to these values. To remove this section from the `Analytics` page, we need to exclude the corresponding `TabsContent` block for the "Emotion-Spending Correlation" from the `spending` tab.
+
+### Updated Code
+Here’s the modified `Analytics` component with the "Emotion-Spending Correlation" section removed:
+
+```javascript
+import { useState } from 'react';
+import { useUser } from '@/context/UserContext';
+import { useQuery } from '@tanstack/react-query';
+import Header from '@/components/Header';
+import BottomNavigation from '@/components/BottomNavigation';
+import PersonalizedInsights from '@/components/PersonalizedInsights';
+import BudgetManager from '@/components/BudgetManager';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { BarChart3, Activity, Lightbulb } from 'lucide-react';
+
+export default function Analytics() {
+  const { user } = useUser();
+  const [activeTab, setActiveTab] = useState("spending");
+
+  // Get spending by emotion data
+  const { 
+    data: spendingByEmotion, 
+    isLoading 
+  } = useQuery({
+    queryKey: user ? [`/api/users/${user.id}/analytics/spending-by-emotion`] : [],
+    enabled: !!user,
+  });
+
+  // Derive stats from spendingByEmotion or use defaults if not available
+  const totalSpending = spendingByEmotion?.totalSpending || 225.57;
+  const emotionImpact = spendingByEmotion?.emotionImpact || 32;
+  const impulsePercentage = spendingByEmotion?.impulsePercentage || 43;
+  const savingsTarget = spendingByEmotion?.savingsTarget || -12;
+
+  // Top emotion (most frequent based on spending percentage)
+  const topEmotion = isLoading || !spendingByEmotion?.emotionSpending 
+    ? 'stressed'
+    : Object.keys(spendingByEmotion.emotionSpending || {}).reduce((a, b) => 
+        (spendingByEmotion.emotionSpending[a] || 0) > (spendingByEmotion.emotionSpending[b] || 0) ? a : b
+      );
+
+  return (
+    <div className="max-w-md mx-auto bg-[#1b1c1e] min-h-screen flex flex-col text-white">
+      <Header />
+
+      <main className="flex-1 overflow-y-auto pb-16">
+        <section className="px-4 pt-6">
+          <div className="flex flex-col">
+            <h2 className="text-2xl font-bold">Analytics</h2>
+            <p className="text-gray-400 mt-1">Financial behavior insights</p>
+
+            <div className="mt-4">
+              <Tabs defaultValue="spending" className="w-full" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full grid grid-cols-3 bg-[#252a2e] rounded-lg p-1 h-auto">
+                  <TabsTrigger 
+                    value="spending" 
+                    className={`rounded-md py-3 ${activeTab === 'spending' ? 'bg-[#00f19f] text-black' : 'bg-transparent text-gray-400'}`}
+                  >
+                    Spending
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="trends" 
+                    className={`rounded-md py-3 ${activeTab === 'trends' ? 'bg-[#00f19f] text-black' : 'bg-transparent text-gray-400'}`}
+                  >
+                    Trends
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="insights" 
+                    className={`rounded-md py-3 ${activeTab === 'insights' ? 'bg-[#00f19f] text-black' : 'bg-transparent text-gray-400'}`}
+                  >
+                    Insights
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="spending" className="mt-4">
+                  <div className="bg-[#1c2127] rounded-lg p-4">
+                    <h3 className="text-xl font-bold mb-4">Spending Report</h3>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      {/* Monthly Spending */}
+                      <div className="bg-[#252a2e] rounded-lg p-3">
+                        <p className="text-xs text-gray-400 mb-2">MONTHLY SPENDING</p>
+                        <div className="h-6 flex items-end space-x-1 mb-2">
+                          {[3, 5, 2, 3, 2, 6, 3, 4].map((height, index) => (
+                            <div 
+                              key={index} 
+                              className="w-5 bg-gray-500 rounded-sm"
+                              style={{ height: `${height * 4}px` }}
+                            ></div>
+                          ))}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xl font-bold">${totalSpending.toFixed(2)}</span>
+                          <span className="text-xs text-gray-400">Total</span>
+                        </div>
+                      </div>
+
+                      {/* Emotion Impact */}
+                      <div className="bg-[#252a2e] rounded-lg p-3">
+                        <p className="text-xs text-gray-400 mb-2">EMOTION IMPACT</p>
+                        <div className="relative h-6 mb-2">
+                          <svg viewBox="0 0 100 20" className="w-full h-6">
+                            <path
+                              d="M0,10 Q25,5 50,10 T100,10"
+                              fill="none"
+                              stroke="white"
+                              strokeWidth="1.5"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xl font-bold">{emotionImpact}%</span>
+                          <span className="text-xs text-gray-400">Variance</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      {/* Top Emotion */}
+                      <div className="bg-[#252a2e] rounded-lg p-3">
+                        <p className="text-xs text-gray-400 mb-1">TOP EMOTION</p>
+                        <p className="text-lg font-bold">{topEmotion.charAt(0).toUpperCase() + topEmotion.slice(1)}</p>
+                        <p className="text-xs text-gray-400">Most frequent</p>
+                      </div>
+
+                      {/* Impulse */}
+                      <div className="bg-[#252a2e] rounded-lg p-3">
+                        <p className="text-xs text-gray-400 mb-1">IMPULSE</p>
+                        <p className="text-lg font-bold">{impulsePercentage}%</p>
+                        <p className="text-xs text-gray-400">Of purchases</p>
+                      </div>
+
+                      {/* Savings */}
+                      <div className="bg-[#252a2e] rounded-lg p-3">
+                        <p className="text-xs text-gray-400 mb-1">SAVINGS</p>
+                        <p className="text-lg font-bold text-red-500">{savingsTarget}%</p>
+                        <p className="text-xs text-gray-400">vs Target</p>
+                      </div>
+                    </div>
+
+                    <div className="text-right mt-3">
+                      <p className="text-xs text-gray-400">POWERED BY LUME</p>
+                    </div>
+                  </div>
+
+                  {/* Budget Manager */}
+                  <div className="mt-4">
+                    <BudgetManager />
+                  </div>
+
+                  {/* Mindful spending recommendation */}
+                  <div className="bg-[#1c2127] rounded-lg p-4 mt-4 flex justify-between items-center">
+                    <div>
+                      <div className="text-sm mb-1">New</div>
+                      <h3 className="text-xl font-bold">Get back in the Green</h3>
+                      <p className="text-gray-400">Mindful spending meditation</p>
+                    </div>
+                    <Button variant="outline" className="rounded-full border-gray-700 h-10 w-10 flex items-center justify-center p-0">
+                      <Activity size={18} />
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="trends" className="mt-4">
+                  <div className="bg-[#1c2127] rounded-lg p-4">
+                    <h3 className="text-xl font-bold mb-4">Spending Trends</h3>
+                    <p className="text-gray-400">Trend analysis coming soon...</p>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="insights" className="mt-4">
+                  <PersonalizedInsights />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <BottomNavigation />
+    </div>
+  );
+}
+```
+
+### Changes Made
+- **Removed "Emotion-Spending Correlation" Section**: The entire block within the `TabsContent value="spending"` that contained the emotion-spending correlation chart and percentage list has been deleted. This includes the `div` with the bar chart, the `Skeleton` loader, and the emotion percentage breakdown.
+- **Kept Other Functionality**: The rest of the `spending` tab (e.g., "Spending Report", "Budget Manager", and "Mindful spending recommendation") remains intact.
+- **Adjusted Logic**: The `topEmotion` calculation still uses `spendingByEmotion.emotionSpending`, but since the correlation section is removed, this won’t affect the UI unless you reintroduce it later.
+
+### Verification
+- The page should now display the "Spending Report", "Budget Manager", and "Get back in the Green" sections without the "Emotion-Spending Correlation" part.
+- If you want to reintroduce this section later with real data, ensure the `spendingByEmotion.emotionSpending` API response is properly integrated (as discussed in the previous fix).
+
+Let me know if you need further adjustments or want to add a different section in its place!
