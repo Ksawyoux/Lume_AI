@@ -220,23 +220,19 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         const context = canvas.getContext('2d');
         
         if (context) {
-          // Set canvas dimensions - resize to smaller size to reduce payload size
-          // Original video dimensions are typically large (e.g., 1280x720)
-          const targetWidth = 320; // Smaller target width for analysis
-          const targetHeight = 240; // Smaller target height for analysis
+          // Set canvas dimensions to reduce payload size
+          const targetWidth = 320;
+          const targetHeight = 240;
           
-          // Set canvas to target dimensions
           canvas.width = targetWidth;
           canvas.height = targetHeight;
-          
-          // Draw video frame to canvas with resizing
           context.drawImage(video, 0, 0, targetWidth, targetHeight);
           
           // Get base64 image data with reduced quality
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7); // Reduce quality to 70%
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
           console.log(`Image size before base64 encoding: approx ${Math.round(dataUrl.length / 1024)}KB`);
           
-          // Remove the data URI prefix
+          // Remove data URI prefix
           imageBase64 = dataUrl.split(',')[1]; 
           console.log(`Base64 image size: ${Math.round(imageBase64.length / 1024)}KB`);
         }
@@ -260,49 +256,61 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     try {
       console.log("Sending image for analysis...");
       
-      // First try to match against the user's reference images
-      let result;
+      let analysisResult;
       
+      // First try reference images, then fall back to default analyzer
       try {
-        // Try to analyze using the user's reference images
-        result = await apiRequest('/api/emotion-reference-images/analyze', 'POST', {
-          imageData: imageBase64
+        // Use fetch directly to better handle different response codes
+        const referenceResponse = await fetch('/api/emotion-reference-images/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageData: imageBase64 }),
+          credentials: 'include'
         });
-      } catch (referenceError) {
-        console.log("Error using reference images, falling back to default analyzer:", referenceError);
         
-        // If the reference image endpoint fails, fall back to default analyzer
-        try {
-          result = await apiRequest('/api/ml/facial/analyze-face', 'POST', {
-            image: imageBase64
-          });
-        } catch (analysisError) {
-          console.error("All facial analysis methods failed:", analysisError);
-          throw new Error("Failed to analyze facial expression. Please try again or use manual selection.");
+        // If not enough reference images (400), use default analyzer
+        if (referenceResponse.status === 400) {
+          throw new Error("Not enough reference images");
         }
+        
+        if (!referenceResponse.ok) {
+          throw new Error(`Reference image analysis failed: ${referenceResponse.status}`);
+        }
+        
+        analysisResult = await referenceResponse.json();
+      } catch (referenceError) {
+        console.log("Using default analyzer:", referenceError.message);
+        
+        // Fall back to default analyzer
+        const defaultResponse = await fetch('/api/ml/facial/analyze-face', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: imageBase64 }),
+          credentials: 'include'
+        });
+        
+        if (!defaultResponse.ok) {
+          throw new Error(`Default analysis failed: ${defaultResponse.status}`);
+        }
+        
+        analysisResult = await defaultResponse.json();
       }
       
-      // Result is already received from apiRequest which parses the JSON
-      console.log("API Response Data:", result);
+      console.log("Analysis result:", analysisResult);
       
-      // Process the result
-      console.log("Result from facial analysis:", result);
-      
-      // Handle different response formats from different endpoints
-      // If primary emotion is undefined, make sure to provide a fallback
-      const primaryEmotion = result.primaryEmotion || result.emotion || "neutral";
-      
-      // Map the primary emotion to our emotion types
+      // Handle different response formats
+      const primaryEmotion = analysisResult.primaryEmotion || analysisResult.emotion || "neutral";
       console.log("Primary emotion before mapping:", primaryEmotion);
+      
       const mappedEmotion = mapEmotionToType(primaryEmotion);
       console.log("Mapped emotion:", mappedEmotion);
       
-      const confidence = result.confidence || result.emotionIntensity || 0.75;
+      const confidence = analysisResult.confidence || analysisResult.emotionIntensity || 0.75;
       
       setEmotionResult({
         emotion: mappedEmotion,
         confidence: confidence,
-        description: result.description || `Detected ${primaryEmotion} in your expression`
+        description: analysisResult.description || `Detected ${primaryEmotion} in your expression`
       });
       
       // Reset attempts counter on success
@@ -311,9 +319,9 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
       console.error("Error analyzing expression:", error);
       
       // Increment attempt counter
-      setAnalysisAttempts(attempts => attempts + 1);
+      setAnalysisAttempts(prev => prev + 1);
       
-      if (analysisAttempts >= 2) { // After 3 attempts (0, 1, 2)
+      if (analysisAttempts >= 2) {
         setCameraError("Unable to analyze facial expression. Please select your mood manually.");
         setManualMode(true);
       } else {

@@ -105,11 +105,11 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
       
       try {
         // Send the form data directly (the server will handle string-to-date conversion)
-        const response = await apiRequest("POST", "/api/budgets", {
+        // Fixed parameter order: path, method, data
+        return await apiRequest("/api/budgets", "POST", {
           userId: user.id,
           ...data
         });
-        return response.json();
       } catch (err: any) {
         const errorMessage = err?.message || 'Failed to create budget. Please try again.';
         setError(errorMessage);
