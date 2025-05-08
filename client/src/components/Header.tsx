@@ -16,23 +16,23 @@ export default function Header() {
         <h1 className="text-2xl font-bold tracking-wider uppercase">LUME</h1>
       </div>
       
-      {/* Center - WHOOP-style recovery score display */}
+      {/* Center - WHOOP-style recovery score display as a badge */}
       <div className="w-1/3 flex justify-center">
         <div className="flex flex-col items-center">
           <div className="flex items-center">
-            {/* Main recovery score with color matching screenshot */}
-            <span className="text-2xl font-bold text-[#00f19f]">
-              {recoveryScore}%
-            </span>
-            
-            {/* Score change indicator */}
-            {scoreDiff !== 0 && (
-              <span className="ml-1 text-sm text-[#00f19f]">
-                {isScoreUp ? '+' : ''}{scoreDiff}
+            {/* Recovery score with indicator as a badge, matching screenshot */}
+            <div className="flex items-baseline">
+              <span className="text-2xl font-bold text-[#00f19f] mr-1">
+                {recoveryScore}%
               </span>
-            )}
+              {scoreDiff !== 0 && (
+                <span className="text-sm text-[#00f19f] font-medium">
+                  {isScoreUp ? '+' : ''}{scoreDiff}
+                </span>
+              )}
+            </div>
           </div>
-          <span className="text-xs text-gray-400 uppercase tracking-wider">RECOVERY</span>
+          <span className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">RECOVERY</span>
         </div>
       </div>
       
