@@ -75,7 +75,7 @@ export default function QuickAddTransaction() {
   const emotionMutation = useMutation({
     mutationFn: async (data: { userId: number; type: EmotionType; notes: string }) => {
       // Fixed parameter order: url, method, data
-      return await apiRequest('api/emotions', 'POST', data);
+      return await apiRequest('/emotions', 'POST', data);
     },
   });
 

@@ -55,7 +55,7 @@ export default function AddTransaction() {
       date?: Date;
       currency: string;
     }) => {
-      const res = await apiRequest('POST', 'api/transactions', data);
+      const res = await apiRequest('/transactions', 'POST', data);
       return res.json();
     },
     onSuccess: () => {
@@ -77,7 +77,7 @@ export default function AddTransaction() {
   
   const emotionMutation = useMutation({
     mutationFn: async (data: { userId: number; type: EmotionType; notes: string }) => {
-      const res = await apiRequest('POST', 'api/emotions', data);
+      const res = await apiRequest('/emotions', 'POST', data);
       return res.json();
     },
   });
