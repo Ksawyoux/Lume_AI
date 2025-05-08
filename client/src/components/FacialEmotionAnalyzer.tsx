@@ -80,41 +80,89 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     return mapping[emotion.toLowerCase()] || 'neutral';
   };
 
-  // Initialize camera
+  // Initialize camera with improved error handling
   const startCamera = async () => {
     setCameraError(null);
+    
+    // Check if navigator.mediaDevices is available (browser support)
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.error("Camera API not supported in this browser");
+      setCameraError("Your browser doesn't support camera access. Please select your mood manually.");
+      setManualMode(true);
+      return;
+    }
+    
+    // First ensure the video element actually exists
+    if (!videoRef.current) {
+      console.error("Video element not initialized");
+      setCameraError("Could not initialize camera. Please try manual selection.");
+      setManualMode(true);
+      return;
+    }
     
     try {
       // Basic camera configuration
       const constraints = { 
         audio: false,
-        video: { facingMode: 'user' }
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }
       };
       
-      console.log("Requesting camera...");
+      console.log("Requesting camera access...");
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(playError => {
-            console.error("Error playing video:", playError);
-            setCameraError("Error starting video playback");
-            setManualMode(true);
-          });
-        };
-        
-        setCameraActive(true);
-        console.log("Camera activated successfully");
-      } else {
-        setCameraError("Video element not available");
-        setManualMode(true);
+      console.log("Camera stream obtained, tracks:", stream.getVideoTracks().length);
+      
+      if (stream.getVideoTracks().length === 0) {
+        throw new Error("No video track available in the media stream");
       }
+      
+      // Update video source and handle playback
+      videoRef.current.srcObject = stream;
+      
+      // Set up event handlers for video element
+      videoRef.current.onloadedmetadata = () => {
+        console.log("Video metadata loaded");
+        videoRef.current?.play().catch(playError => {
+          console.error("Error playing video:", playError);
+          setCameraError("Error starting video playback. Please grant camera permissions.");
+          setManualMode(true);
+        });
+      };
+      
+      videoRef.current.onplaying = () => {
+        console.log("Video is now playing");
+        setCameraActive(true);
+      };
+      
+      videoRef.current.onerror = (e) => {
+        console.error("Video element error:", e);
+        setCameraError("Video error: " + (videoRef.current?.error?.message || "Unknown error"));
+        setManualMode(true);
+      };
     } catch (error) {
       console.error("Camera access error:", error);
-      setCameraError("Could not access camera. Please check your browser permissions.");
+      
+      // Provide more specific error messages based on the error
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          setCameraError("Camera access denied. Please check your browser permissions.");
+        } else if (error.name === 'NotFoundError') {
+          setCameraError("No camera found on your device. Please use manual selection.");
+        } else if (error.name === 'NotReadableError' || error.name === 'AbortError') {
+          setCameraError("Cannot access your camera. It may be in use by another application.");
+        } else {
+          setCameraError("Camera error: " + error.message);
+        }
+      } else {
+        setCameraError("Could not access camera. Please check your browser permissions.");
+      }
+      
       setManualMode(true);
     }
   };
@@ -193,8 +241,8 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     try {
       console.log("Sending image for analysis...");
       
-      // Send to server for analysis
-      const response = await apiRequest('POST', '/api/ml/emotions/analyze-face', {
+      // Send to server for analysis (updated endpoint path)
+      const response = await apiRequest('POST', '/api/ml/facial/analyze-face', {
         image: imageBase64
       });
       
@@ -257,8 +305,34 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     setEmotionResult(null);
   };
 
-  // Cleanup on unmount
+  // Setup and cleanup effects
   useEffect(() => {
+    // Check if we're on iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    // Show warnings for problematic browsers
+    if (isIOS) {
+      console.log("iOS device detected");
+      // iOS Safari has issues with camera access in some contexts
+      if (isSafari) {
+        setCameraError("Note: Camera access on iOS Safari may be limited. If you encounter issues, please use manual selection.");
+      }
+    }
+    
+    // Attempt autostart camera if browser supports it
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      // Try to auto-start camera for desktop browsers
+      if (!isIOS && !cameraActive && !manualMode) {
+        startCamera();
+      }
+    } else {
+      console.log("Media API not supported");
+      setCameraError("Your browser doesn't support camera access. Please use manual selection.");
+      setManualMode(true);
+    }
+    
+    // Cleanup on unmount
     return () => {
       stopCamera();
     };
@@ -401,12 +475,23 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         {cameraError && (
           <div className="bg-red-900/20 border border-red-900 text-red-400 p-3 rounded-md mb-4 text-sm flex items-start">
             <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
-            <span>
-              {cameraError} 
-              <Button variant="link" className="text-red-400 underline p-0 h-auto align-baseline ml-1" onClick={enableManualMode}>
-                Select your mood manually instead
-              </Button>
-            </span>
+            <div className="flex-1">
+              <span>{cameraError}</span>
+              {!manualMode && (
+                <Button 
+                  variant="link" 
+                  className="text-red-400 underline p-0 h-auto align-baseline ml-1" 
+                  onClick={enableManualMode}
+                >
+                  Select your mood manually instead
+                </Button>
+              )}
+              {analysisAttempts > 0 && (
+                <div className="mt-1 text-xs text-gray-400">
+                  Analysis attempt {analysisAttempts + 1} of 3. {analysisAttempts >= 2 ? "Switching to manual mode." : ""}
+                </div>
+              )}
+            </div>
           </div>
         )}
         
