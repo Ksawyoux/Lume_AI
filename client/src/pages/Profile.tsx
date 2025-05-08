@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import EmotionReferenceImageManager from '@/components/EmotionReferenceImageManager';
@@ -12,13 +13,22 @@ import { ChevronRight, Bell, Lock, Eye, HelpCircle, LogOut, Activity, Zap, Loade
 export default function Profile() {
   const { user } = useUser();
   const { logoutMutation } = useAuth();
+  const { toast } = useToast();
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [trendAnalysis, setTrendAnalysis] = useState(true);
   const [emotionTracking, setEmotionTracking] = useState(true);
   
-  const handleLogout = () => {
-    logoutMutation.mutate();
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (error) {
+      toast({
+        title: "Error logging out",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
   
   if (!user) return null;
