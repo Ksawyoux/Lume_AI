@@ -39,9 +39,9 @@ export default function EmotionReferenceImageManager() {
 
   // Fetch existing reference images
   const { data: referenceImages, isLoading: isLoadingImages } = useQuery({
-    queryKey: ['/api/emotion-reference-images'],
+    queryKey: ['/emotion-reference-images'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/emotion-reference-images');
+      const res = await apiRequest('/emotion-reference-images');
       return res.json() as Promise<EmotionReferenceImage[]>;
     }
   });
