@@ -1,15 +1,43 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { EmotionType } from '@/types';
-import { Camera, X, Check, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
+import { Camera, X, Check, RefreshCw, Loader2, AlertCircle, SmilePlus } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { DialogTitle } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FacialEmotionAnalyzerProps {
   onEmotionDetected: (emotion: EmotionType, confidence: number) => void;
   onClose: () => void;
 }
+
+// Simple manual emotion selector component
+const ManualEmotionSelector = ({ 
+  onSelect, 
+  selectedEmotion 
+}: { 
+  onSelect: (emotion: EmotionType) => void;
+  selectedEmotion: EmotionType;
+}) => {
+  return (
+    <div className="p-4 rounded-lg bg-[#252a2e] w-full max-w-xs mx-auto">
+      <h4 className="text-sm font-medium text-center mb-3 text-white">Select your current mood</h4>
+      <Select value={selectedEmotion} onValueChange={(value) => onSelect(value as EmotionType)}>
+        <SelectTrigger className="w-full bg-[#1c2127] border-gray-700">
+          <SelectValue placeholder="Select a mood" />
+        </SelectTrigger>
+        <SelectContent className="bg-[#1c2127] border-gray-700">
+          <SelectItem value="happy" className="text-green-400">Happy</SelectItem>
+          <SelectItem value="content" className="text-[#00f19f]">Content</SelectItem>
+          <SelectItem value="neutral" className="text-blue-400">Neutral</SelectItem>
+          <SelectItem value="worried" className="text-yellow-400">Worried</SelectItem>
+          <SelectItem value="stressed" className="text-red-500">Stressed</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
 
 export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: FacialEmotionAnalyzerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -19,7 +47,8 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [fakeImage, setFakeImage] = useState(false); // Fallback option if camera not working
+  const [manualMode, setManualMode] = useState(false); // Switch to manual selection
+  const [selectedEmotion, setSelectedEmotion] = useState<EmotionType>('content');
   
   const [emotionResult, setEmotionResult] = useState<{
     emotion: EmotionType;
@@ -72,6 +101,7 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
           videoRef.current?.play().catch(playError => {
             console.error("Error playing video:", playError);
             setCameraError("Error starting video playback");
+            setManualMode(true);
           });
         };
         
@@ -79,16 +109,29 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         console.log("Camera activated successfully");
       } else {
         setCameraError("Video element not available");
+        setManualMode(true);
       }
     } catch (error) {
       console.error("Camera access error:", error);
       setCameraError("Could not access camera. Please check your browser permissions.");
-      
-      // Offer fallback option
-      if (confirm("Camera access failed. Would you like to use a test image instead?")) {
-        setFakeImage(true);
-      }
+      setManualMode(true);
     }
+  };
+
+  // Switch to manual mode
+  const enableManualMode = () => {
+    stopCamera();
+    setManualMode(true);
+    setCameraError(null);
+  };
+
+  // Handle manual emotion selection
+  const submitManualEmotion = () => {
+    setEmotionResult({
+      emotion: selectedEmotion,
+      confidence: 1.0, // High confidence since user selected it directly
+      description: `You selected: ${selectedEmotion.charAt(0).toUpperCase() + selectedEmotion.slice(1)}`
+    });
   };
 
   // Stop camera stream
@@ -128,17 +171,6 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
         imageBase64 = dataUrl.split(',')[1]; // Remove the "data:image/jpeg;base64," part
       }
-    } else if (fakeImage) {
-      // Use a preselected test image - a simple emoji placeholder
-      console.log("Using test image instead of camera");
-      // We'll just use a default text input for the emotion in this case
-      setEmotionResult({
-        emotion: 'content',
-        confidence: 0.85,
-        description: 'Using simulated analysis since camera access was denied'
-      });
-      setIsAnalyzing(false);
-      return;
     }
     
     if (!imageBase64) {
@@ -281,26 +313,20 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
                 </div>
               )}
             </>
-          ) : fakeImage ? (
+          ) : manualMode ? (
             <div className="flex items-center justify-center h-full flex-col">
               <div className="bg-[#252a2e] p-5 rounded-lg text-center">
-                <p className="text-sm text-white mb-3">Using a test image instead</p>
+                <p className="text-sm text-white mb-3">Select your current mood</p>
+                <ManualEmotionSelector 
+                  selectedEmotion={selectedEmotion} 
+                  onSelect={setSelectedEmotion} 
+                />
                 <Button
-                  onClick={captureAndAnalyze}
-                  disabled={isAnalyzing}
-                  className="bg-[#00f19f] text-black hover:bg-[#00d88a]"
+                  onClick={submitManualEmotion}
+                  className="bg-[#00f19f] text-black hover:bg-[#00d88a] mt-4"
                 >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin mr-2" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle size={18} className="mr-2" />
-                      Analyze Test Image
-                    </>
-                  )}
+                  <SmilePlus size={18} className="mr-2" />
+                  Submit Mood
                 </Button>
               </div>
             </div>
@@ -310,14 +336,24 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
               <p className="text-sm text-gray-300 mb-4 text-center px-4">
                 Analyze your facial expression to detect your mood
               </p>
-              <Button 
-                onClick={startCamera} 
-                variant="outline"
-                className="border-gray-700 bg-[#252a2e] pulse-animation"
-              >
-                <Camera size={20} className="mr-2 text-[#00f19f]" />
-                Enable Camera
-              </Button>
+              <div className="flex flex-col space-y-2">
+                <Button 
+                  onClick={startCamera} 
+                  variant="outline"
+                  className="border-gray-700 bg-[#252a2e]"
+                >
+                  <Camera size={20} className="mr-2 text-[#00f19f]" />
+                  Enable Camera
+                </Button>
+                <Button
+                  onClick={enableManualMode}
+                  variant="ghost"
+                  className="text-gray-400 hover:text-white"
+                >
+                  <SmilePlus size={16} className="mr-2" />
+                  Select Manually
+                </Button>
+              </div>
             </div>
           )}
           
@@ -327,7 +363,12 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         {cameraError && (
           <div className="bg-red-900/20 border border-red-900 text-red-400 p-3 rounded-md mb-4 text-sm flex items-start">
             <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
-            <span>{cameraError}</span>
+            <span>
+              {cameraError} 
+              <Button variant="link" className="text-red-400 underline p-0 h-auto align-baseline ml-1" onClick={enableManualMode}>
+                Select your mood manually instead
+              </Button>
+            </span>
           </div>
         )}
         
