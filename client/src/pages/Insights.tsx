@@ -90,42 +90,47 @@ export default function Analytics() {
     let calculatedImpulse = 0;
     let calculatedSavings = 0;
 
-    // Calculate only if we have transactions
-    if (transactions && transactions.length > 0) {
-      // Sum all spending (negative values are expenses)
-      const expenses = transactions
-        .filter(t => t.amount < 0)
-        .map(t => Math.abs(t.amount));
-      
-      calculatedTotal = expenses.reduce((sum, amount) => sum + amount, 0);
-      
-      // Calculate impulse purchases (no emotionId means it wasn't tracked with emotion)
-      const impulseCount = transactions.filter(t => t.amount < 0 && t.emotionId !== null).length;
-      calculatedImpulse = transactions.length > 0 
-        ? Math.round((impulseCount / transactions.length) * 100) 
-        : 0;
-      
-      // Calculate emotion impact - variance in spending across emotional states
-      if (spendingByEmotion && spendingByEmotion.length > 0) {
-        const values = spendingByEmotion.map(item => item.amount);
-        const max = Math.max(...values);
-        const min = Math.min(...values);
-        calculatedImpact = max > 0 ? Math.round(((max - min) / max) * 100) : 0;
+    try {
+      // Calculate only if we have transactions
+      if (transactions && transactions.length > 0) {
+        // Sum all spending (negative values are expenses)
+        const expenses = transactions
+          .filter(t => t.amount < 0)
+          .map(t => Math.abs(t.amount));
+        
+        calculatedTotal = expenses.reduce((sum, amount) => sum + amount, 0);
+        
+        // Calculate impulse purchases (no emotionId means it wasn't tracked with emotion)
+        const emotionPurchases = transactions.filter(t => t.amount < 0 && t.emotionId !== null).length;
+        calculatedImpulse = transactions.length > 0 
+          ? Math.round((emotionPurchases / transactions.length) * 100) 
+          : 0;
+        
+        // Calculate emotion impact - variance in spending across emotional states
+        if (spendingByEmotion && spendingByEmotion.length > 0) {
+          const values = spendingByEmotion.map(item => item.amount);
+          const max = Math.max(...values);
+          const min = Math.min(...values);
+          calculatedImpact = max > 0 ? Math.round(((max - min) / max) * 100) : 0;
+        }
       }
+
+      // Calculate savings target using budget information
+      if (budgets && budgets.length > 0) {
+        const totalBudget = budgets
+          .filter(b => (b.type?.toLowerCase() === 'monthly' || b.type?.toLowerCase() === 'overall'))
+          .reduce((sum, b) => sum + b.amount, 0);
+        
+        if (totalBudget > 0 && calculatedTotal > 0) {
+          // Negative means overspending
+          calculatedSavings = Math.round(((totalBudget - calculatedTotal) / totalBudget) * 100);
+        }
+      }
+    } catch (error) {
+      console.error('Error calculating finance metrics:', error);
     }
 
-    // Calculate savings target using budget information
-    if (budgets && budgets.length > 0) {
-      const totalBudget = budgets
-        .filter(b => b.type.toLowerCase() === 'monthly' || b.type.toLowerCase() === 'overall')
-        .reduce((sum, b) => sum + b.amount, 0);
-      
-      if (totalBudget > 0 && calculatedTotal > 0) {
-        // Negative means overspending
-        calculatedSavings = Math.round(((totalBudget - calculatedTotal) / totalBudget) * 100);
-      }
-    }
-
+    // Return calculated values or fallback to defaults
     return {
       totalSpending: calculatedTotal > 0 ? calculatedTotal : 225.57,
       emotionImpact: calculatedImpact > 0 ? calculatedImpact : 32,
