@@ -68,6 +68,15 @@ export const budgets = pgTable("budgets", {
   isActive: boolean("is_active").default(true).notNull(),
 });
 
+export const emotionReferenceImages = pgTable("emotion_reference_images", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  emotion: text("emotion").notNull(), // Must match one of the EmotionType values
+  imageData: text("image_data").notNull(), // Base64 encoded image data
+  description: text("description"), // Optional description of the image/context
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -123,6 +132,13 @@ export const insertBudgetSchema = createInsertSchema(budgets).pick({
   isActive: true,
 });
 
+export const insertEmotionReferenceImageSchema = createInsertSchema(emotionReferenceImages).pick({
+  userId: true,
+  emotion: true,
+  imageData: true,
+  description: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -141,3 +157,6 @@ export type HealthData = typeof healthData.$inferSelect;
 
 export type InsertBudget = z.infer<typeof insertBudgetSchema>;
 export type Budget = typeof budgets.$inferSelect;
+
+export type InsertEmotionReferenceImage = z.infer<typeof insertEmotionReferenceImageSchema>;
+export type EmotionReferenceImage = typeof emotionReferenceImages.$inferSelect;
