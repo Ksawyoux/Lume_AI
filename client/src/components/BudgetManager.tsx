@@ -104,10 +104,19 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
       if (!user) return null;
       
       try {
-        // Fixed the apiRequest call to properly handle the method parameter
+        // Convert string dates to Date objects before sending
+        const formattedData = {
+          ...data,
+          // Convert startDate from string to Date object
+          startDate: new Date(data.startDate),
+          // Convert endDate if it exists
+          endDate: data.endDate ? new Date(data.endDate) : null
+        };
+        
+        // Fixed apiRequest call with the proper method parameter
         return await apiRequest('/api/budgets', 'POST', {
           userId: user.id,
-          ...data
+          ...formattedData
         });
       } catch (err: any) {
         const errorMessage = err?.message || 'Failed to create budget. Please try again.';
