@@ -7,7 +7,7 @@ export default function Header() {
   // WHOOP-style recovery score (67-100% is high recovery)
   const recoveryScore = 87;
   const scoreDiff = 15;
-  const isScoreUp = true;
+  const isScoreUp = scoreDiff > 0;
   
   return (
     <header className="px-4 py-3 flex items-center justify-between bg-[#1a2126] text-white border-b border-[#2A363D]">
@@ -16,23 +16,18 @@ export default function Header() {
         <h1 className="text-2xl font-bold tracking-wider uppercase">LUME</h1>
       </div>
       
-      {/* Center - WHOOP-style recovery score display as a badge */}
+      {/* Center - WHOOP-style recovery score display as a badge - exact match for screenshot */}
       <div className="w-1/3 flex justify-center">
         <div className="flex flex-col items-center">
-          <div className="flex items-center">
-            {/* Recovery score with indicator as a badge, matching screenshot */}
-            <div className="flex items-baseline">
-              <span className="text-2xl font-bold text-[#00f19f] mr-1">
-                {recoveryScore}%
-              </span>
-              {scoreDiff !== 0 && (
-                <span className="text-sm text-[#00f19f] font-medium">
-                  {isScoreUp ? '+' : ''}{scoreDiff}
-                </span>
-              )}
-            </div>
+          <div className="flex items-baseline">
+            <span className="text-2xl font-bold text-[#00f19f]">
+              {recoveryScore}%
+            </span>
+            <span className="ml-1 text-sm text-[#00f19f]">
+              {isScoreUp ? '+' : ''}{scoreDiff}
+            </span>
           </div>
-          <span className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">RECOVERY</span>
+          <span className="text-xs text-gray-400 uppercase tracking-wider">RECOVERY</span>
         </div>
       </div>
       
