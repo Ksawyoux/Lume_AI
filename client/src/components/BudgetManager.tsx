@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -47,20 +47,53 @@ const budgetFormSchema = z.object({
 
 type BudgetFormValues = z.infer<typeof budgetFormSchema>;
 
-export default function BudgetManager() {
+interface BudgetManagerProps {
+  onError?: (error: string) => void;
+}
+
+export default function BudgetManager({ onError }: BudgetManagerProps) {
   const { user } = useUser();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
+  // Propagate errors to parent component if needed
+  useEffect(() => {
+    if (error && onError) {
+      onError(error);
+    }
+  }, [error, onError]);
+
   // Get active budgets for the user
   const { 
     data: budgets, 
-    isLoading: isLoadingBudgets 
+    isLoading: isLoadingBudgets,
+    error: budgetsError
   } = useQuery<Budget[]>({
     queryKey: user ? [`/api/users/${user.id}/budgets/active`] : [],
     enabled: !!user,
   });
+  
+  // Handle errors from budgets query
+  useEffect(() => {
+    if (budgetsError) {
+      const errorMessage = budgetsError?.message || 'Failed to fetch budgets. Please try again.';
+      setError(errorMessage);
+      console.error('Error fetching budgets:', budgetsError);
+    }
+  }, [budgetsError]);
+  
+  // Display an error message if there's an error
+  if (error) {
+    return (
+      <div className="mt-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+        <h3 className="text-lg font-bold mb-2">Error Loading Budgets</h3>
+        <p className="text-sm text-gray-300">{error}</p>
+        <p className="text-xs text-gray-400 mt-2">Try refreshing the page or contact support if the issue persists.</p>
+      </div>
+    );
+  }
   
   // Create budget form
   const form = useForm<BudgetFormValues>({
@@ -81,12 +114,23 @@ export default function BudgetManager() {
     mutationFn: async (data: BudgetFormValues) => {
       if (!user) return null;
       
-      const res = await apiRequest('POST', '/api/budgets', {
-        userId: user.id,
-        ...data
-      });
-      
-      return res.json();
+      try {
+        const res = await apiRequest('POST', '/api/budgets', {
+          userId: user.id,
+          ...data
+        });
+        
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to create budget');
+        }
+        
+        return res.json();
+      } catch (err: any) {
+        const errorMessage = err?.message || 'Failed to create budget. Please try again.';
+        setError(errorMessage);
+        throw err;
+      }
     },
     onSuccess: () => {
       if (user) {
@@ -98,13 +142,18 @@ export default function BudgetManager() {
       });
       setIsAddDialogOpen(false);
       form.reset();
+      // Clear any previous errors
+      setError(null);
     },
     onError: (error: any) => {
+      const errorMessage = error?.message || "Failed to create budget. Please try again later.";
+      setError(errorMessage);
       toast({
         title: "Error creating budget",
-        description: error.message || "Please try again later.",
+        description: errorMessage,
         variant: "destructive",
       });
+      console.error('Budget creation error:', error);
     },
   });
 
@@ -318,15 +367,26 @@ export default function BudgetManager() {
 // Budget Card component for displaying a single budget
 function BudgetCard({ budget }: { budget: Budget }) {
   const { user } = useUser();
+  const [spendingError, setSpendingError] = useState<string | null>(null);
   
   // Get budget spending data
   const { 
     data: spending, 
-    isLoading: isLoadingSpending 
+    isLoading: isLoadingSpending,
+    error: spendingQueryError
   } = useQuery<BudgetSpending>({
     queryKey: user ? [`/api/users/${user.id}/budgets/${budget.id}/spending`] : [],
     enabled: !!user,
   });
+  
+  // Handle errors from budget spending query
+  useEffect(() => {
+    if (spendingQueryError) {
+      const errorMessage = spendingQueryError?.message || 'Failed to fetch budget spending data';
+      setSpendingError(errorMessage);
+      console.error(`Error fetching spending for budget ${budget.id}:`, spendingQueryError);
+    }
+  }, [spendingQueryError, budget.id]);
   
   // Format currency based on the budget settings
   const formatCurrency = (amount: number) => {
@@ -384,6 +444,16 @@ function BudgetCard({ budget }: { budget: Budget }) {
       
       {isLoadingSpending ? (
         <Skeleton className="h-6 w-full mb-2" />
+      ) : spendingError ? (
+        <div className="text-xs text-red-400 border border-red-500/30 rounded-md p-2 my-1">
+          <p>Error loading spending data</p>
+          <button 
+            className="text-blue-400 hover:underline mt-1 text-xs"
+            onClick={() => setSpendingError(null)}
+          >
+            Try again
+          </button>
+        </div>
       ) : spending ? (
         <>
           <div className="flex justify-between items-center mb-1">
@@ -414,7 +484,7 @@ function BudgetCard({ budget }: { budget: Budget }) {
           </div>
         </>
       ) : (
-        <p className="text-sm text-gray-400">Loading budget data...</p>
+        <p className="text-sm text-gray-400">Budget data not available</p>
       )}
     </div>
   );

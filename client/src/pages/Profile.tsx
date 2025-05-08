@@ -45,7 +45,7 @@ export default function Profile() {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-base font-semibold text-foreground uppercase">{user.name}</h3>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">MEMBER SINCE 2023</p>
+          
                 </div>
               </div>
               
