@@ -49,6 +49,7 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [manualMode, setManualMode] = useState(false); // Switch to manual selection
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionType>('content');
+  const [analysisAttempts, setAnalysisAttempts] = useState(0);
   
   const [emotionResult, setEmotionResult] = useState<{
     emotion: EmotionType;
@@ -181,25 +182,39 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
       }
     }
     
-    if (!imageBase64) {
-      console.log("No image data captured, switching to manual mode");
-      setCameraError("Failed to capture image. Please try the manual selection instead.");
+    if (!imageBase64 || imageBase64.length < 100) {
+      console.log("Invalid base64 image data");
+      setCameraError("Failed to capture a valid image. Please try again or select manually.");
       setIsAnalyzing(false);
       setManualMode(true);
       return;
     }
     
     try {
+      console.log("Sending image for analysis...");
+      
       // Send to server for analysis
       const response = await apiRequest('POST', '/api/ml/emotions/analyze-face', {
         image: imageBase64
       });
       
+      console.log("API Response Status:", response.status);
+      
       if (!response.ok) {
-        throw new Error("Server error analyzing image");
+        const errorText = await response.text();
+        console.log("API Response Error:", errorText);
+        
+        if (response.status === 404) {
+          throw new Error("Emotion analysis endpoint not found. Please check the server.");
+        } else if (response.status >= 500) {
+          throw new Error("Server error analyzing image. Please try again later.");
+        } else {
+          throw new Error(`Failed to analyze image: ${errorText}`);
+        }
       }
       
       const result = await response.json();
+      console.log("API Response Data:", result);
       
       // Process the result
       const mappedEmotion = mapEmotionToType(result.primaryEmotion);
@@ -209,9 +224,21 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         confidence: result.confidence || result.emotionIntensity || 0.75,
         description: result.description || `Detected ${result.primaryEmotion} in your expression`
       });
+      
+      // Reset attempts counter on success
+      setAnalysisAttempts(0);
     } catch (error) {
       console.error("Error analyzing expression:", error);
-      setCameraError("Failed to analyze facial expression. Please try again.");
+      
+      // Increment attempt counter
+      setAnalysisAttempts(attempts => attempts + 1);
+      
+      if (analysisAttempts >= 2) { // After 3 attempts (0, 1, 2)
+        setCameraError("Unable to analyze facial expression. Please select your mood manually.");
+        setManualMode(true);
+      } else {
+        setCameraError(error instanceof Error ? error.message : "Failed to analyze facial expression. Please try again.");
+      }
     } finally {
       setIsAnalyzing(false);
     }
