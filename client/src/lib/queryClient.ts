@@ -12,7 +12,7 @@ export async function apiRequest<T = any>(
   method: string = 'GET',
   data?: unknown | undefined,
 ): Promise<T> {
-  const res = await fetch(path, {
+  const res = await fetch(`/api${path}`, {
     method,
     headers: {
       ...(data ? { "Content-Type": "application/json" } : {}),
