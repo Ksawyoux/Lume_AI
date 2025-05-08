@@ -241,9 +241,16 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     try {
       console.log("Sending image for analysis...");
       
-      // Send to server for analysis (updated endpoint path)
-      const response = await apiRequest('POST', '/api/ml/facial/analyze-face', {
-        image: imageBase64
+      // Send to server for analysis (updated endpoint path and method)
+      const response = await fetch('/api/ml/facial/analyze-face', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          image: imageBase64
+        }),
+        credentials: 'include'
       });
       
       console.log("API Response Status:", response.status);
@@ -320,8 +327,14 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
       }
     }
     
-    // Attempt autostart camera if browser supports it
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // Check if camera can be supported in this browser
+    const isCameraSupported = 
+      typeof navigator !== 'undefined' && 
+      navigator.mediaDevices && 
+      'getUserMedia' in navigator.mediaDevices;
+    
+    // Attempt to start camera if supported  
+    if (isCameraSupported) {
       // Try to auto-start camera for desktop browsers
       if (!isIOS && !cameraActive && !manualMode) {
         startCamera();
