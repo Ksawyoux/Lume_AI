@@ -1,6 +1,14 @@
-import { emotions, transactions, insights, users, healthData } from "@shared/schema";
-import type { User, InsertUser, Emotion, InsertEmotion, Transaction, InsertTransaction, Insight, InsertInsight, EmotionType, InsertHealthData, HealthData, HealthMetricType } from "@shared/schema";
-import { format, subDays } from "date-fns";
+import { emotions, transactions, insights, users, healthData, budgets } from "@shared/schema";
+import type { 
+  User, InsertUser, 
+  Emotion, InsertEmotion, 
+  Transaction, InsertTransaction, 
+  Insight, InsertInsight, 
+  EmotionType, 
+  InsertHealthData, HealthData, HealthMetricType,
+  Budget, InsertBudget
+} from "@shared/schema";
+import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from "date-fns";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -34,6 +42,15 @@ export interface IStorage {
 
   // Analytics
   getSpendingByEmotion(userId: number): Promise<Array<{ emotion: EmotionType, amount: number }>>;
+  
+  // Budgets
+  createBudget(budget: InsertBudget): Promise<Budget>;
+  getBudgetsByUserId(userId: number): Promise<Budget[]>;
+  getBudgetById(id: number): Promise<Budget | undefined>;
+  getActiveBudgetsByUserId(userId: number, type?: string): Promise<Budget[]>;
+  updateBudget(id: number, budget: Partial<Budget>): Promise<Budget>;
+  deleteBudget(id: number): Promise<boolean>;
+  getBudgetSpending(userId: number, budgetId: number): Promise<{ spent: number, remaining: number, percentage: number }>;
 }
 
 export class MemStorage implements IStorage {
@@ -42,11 +59,13 @@ export class MemStorage implements IStorage {
   private transactions: Map<number, Transaction>;
   private insights: Map<number, Insight>;
   private healthData: Map<number, HealthData>;
+  private budgets: Map<number, Budget>;
   private userIds: { current: number };
   private emotionIds: { current: number };
   private transactionIds: { current: number };
   private insightIds: { current: number };
   private healthDataIds: { current: number };
+  private budgetIds: { current: number };
 
   constructor() {
     this.users = new Map();
