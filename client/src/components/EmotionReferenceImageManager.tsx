@@ -46,15 +46,22 @@ export default function EmotionReferenceImageManager() {
     }
   });
 
-  // Group images by emotion
+  // Group images by emotion - with proper type safety
+  const initialGroups: Record<EmotionType, EmotionReferenceImage[]> = {
+    happy: [],
+    content: [],
+    neutral: [],
+    worried: [],
+    stressed: []
+  };
+  
   const groupedImages = referenceImages ? 
     referenceImages.reduce((acc, img) => {
-      if (!acc[img.emotion]) {
-        acc[img.emotion] = [];
+      if (acc[img.emotion]) {
+        acc[img.emotion].push(img);
       }
-      acc[img.emotion].push(img);
       return acc;
-    }, {} as Record<EmotionType, EmotionReferenceImage[]>) : {};
+    }, initialGroups) : initialGroups;
 
   // Create new reference image
   const createMutation = useMutation({
@@ -396,7 +403,7 @@ export default function EmotionReferenceImageManager() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {['happy', 'content', 'neutral', 'worried', 'stressed'].map((emotion) => (
+                  {(['happy', 'content', 'neutral', 'worried', 'stressed'] as const).map((emotion) => (
                     <div key={emotion} className="space-y-2">
                       <h3 className={`text-sm font-medium ${
                         emotion === 'happy' ? 'text-green-400' :
@@ -408,9 +415,9 @@ export default function EmotionReferenceImageManager() {
                         {emotion.charAt(0).toUpperCase() + emotion.slice(1)}
                       </h3>
                       
-                      {groupedImages[emotion as EmotionType]?.length ? (
+                      {groupedImages[emotion]?.length ? (
                         <div className="grid grid-cols-3 gap-2">
-                          {groupedImages[emotion as EmotionType].map((image) => (
+                          {groupedImages[emotion].map((image) => (
                             <div key={image.id} className="relative group">
                               <img 
                                 src={`data:image/jpeg;base64,${image.imageData}`} 
