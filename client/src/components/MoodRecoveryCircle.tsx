@@ -69,31 +69,40 @@ export default function MoodRecoveryCircle({ weeklyMoods }: MoodRecoveryCirclePr
   return (
     <div className="flex flex-col items-center justify-center">
       <div className="relative w-24 h-24 mb-2">
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          {/* Dots around the circle */}
-          {moodSlots.map((mood, index) => {
-            const { x, y } = positions[index];
-            return (
-              <circle
-                key={index}
-                cx={x}
-                cy={y}
-                r={mood === null ? 3 : 4} // Slightly larger dots for recorded moods
-                fill={getMoodColor(mood)}
-                opacity={getOpacity(index, mood)}
-              />
-            );
-          })}
+        <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+          {/* Background circle */}
+          <circle
+            cx="50"
+            cy="50"
+            r="42"
+            fill="none"
+            stroke="#2A363D"
+            strokeWidth="8"
+            opacity="0.4"
+          />
           
-          {/* Middle text container */}
-          <g>
+          {/* Progress arc */}
+          <circle
+            cx="50"
+            cy="50"
+            r="42"
+            fill="none"
+            stroke="#00f19f"
+            strokeWidth="8"
+            strokeDasharray={`${2 * Math.PI * 42}`}
+            strokeDashoffset={`${2 * Math.PI * 42 * (1 - recoveryAverage / 100)}`}
+            strokeLinecap="round"
+          />
+          
+          {/* Rotating the text container back */}
+          <g transform="rotate(90 50 50)">
             {/* Recovery percentage */}
             <text 
               x="50" 
               y="45" 
               textAnchor="middle" 
               dominantBaseline="middle"
-              fontSize="12" 
+              fontSize="18" 
               fontWeight="bold" 
               fill="#00f19f"
             >

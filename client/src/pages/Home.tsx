@@ -8,8 +8,14 @@ import MoodRecoveryCircle from '@/components/MoodRecoveryCircle';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { Emotion, EmotionType } from '@shared/schema';
+import { Budget, Emotion, EmotionType } from '@shared/schema';
 import { HelpCircle } from 'lucide-react';
+
+interface BudgetSpending {
+  spent: number;
+  remaining: number;
+  percentage: number;
+}
 
 export default function Home() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -30,6 +36,21 @@ export default function Home() {
   const { data: weeklyEmotions } = useQuery<Emotion[]>({
     queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
     enabled: !!user,
+  });
+  
+  // Get active budgets
+  const { data: budgets } = useQuery<Budget[]>({
+    queryKey: user ? [`/api/users/${user.id}/budgets/active`] : [],
+    enabled: !!user,
+  });
+  
+  // Get the main monthly budget if it exists
+  const monthlyBudget = budgets?.find(budget => budget.type === 'monthly' && !budget.category);
+  
+  // Get budget spending data for the monthly budget
+  const { data: budgetSpending } = useQuery<BudgetSpending>({
+    queryKey: user && monthlyBudget ? [`/api/users/${user.id}/budgets/${monthlyBudget.id}/spending`] : [],
+    enabled: !!user && !!monthlyBudget,
   });
   
   // Extract the emotion types from the weekly emotions for the MoodRecoveryCircle
@@ -113,7 +134,7 @@ export default function Home() {
                         </div>
                         <div>
                           <div className="text-sm font-medium text-foreground capitalize">Current Mood: {latestEmotion.type}</div>
-                          <div className="text-xs text-muted-foreground">Last updated: {new Date(latestEmotion.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                          <div className="text-xs text-muted-foreground">Last updated: {new Date(latestEmotion.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                         </div>
                       </>
                     ) : (
@@ -148,37 +169,62 @@ export default function Home() {
                   <div className="flex flex-col p-3 bg-[#1a2126] rounded-lg">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-sm font-semibold text-foreground uppercase tracking-wider">FINANCIAL</span>
-                      <span className="text-sm font-medium text-muted-foreground">--</span>
+                      {monthlyBudget ? (
+                        <span className="text-sm font-medium text-[#00f19f]">{monthlyBudget.currency}</span>
+                      ) : (
+                        <span className="text-sm font-medium text-muted-foreground">--</span>
+                      )}
                     </div>
                     <div className="space-y-3">
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-gray-400 uppercase tracking-wider">SPENDING</span>
-                          <span className="text-gray-400">{emotionData?.totalSpending || '--'}</span>
+                          {budgetSpending ? (
+                            <span className="text-gray-400">{budgetSpending.spent.toFixed(0)}</span>
+                          ) : (
+                            <span className="text-gray-400">--</span>
+                          )}
                         </div>
                         <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
                           <div className="h-full bg-[#00f19f]" 
-                            style={{ width: emotionData?.totalSpending ? '60%' : '0%' }}></div>
+                            style={{ 
+                              width: budgetSpending ? `${budgetSpending.percentage}%` : '0%',
+                              backgroundColor: budgetSpending?.percentage > 90 ? '#FF5630' : 
+                                              budgetSpending?.percentage > 75 ? '#FFAB00' : '#00f19f'
+                            }}
+                          ></div>
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-gray-400 uppercase tracking-wider">SAVING</span>
-                          <span className="text-gray-400">--</span>
+                          {monthlyBudget && budgetSpending ? (
+                            <span className="text-gray-400">{(monthlyBudget.amount - budgetSpending.spent).toFixed(0)}</span>
+                          ) : (
+                            <span className="text-gray-400">--</span>
+                          )}
                         </div>
                         <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
                           <div className="h-full bg-[#4CC9F0]" 
-                            style={{ width: '0%' }}></div>
+                            style={{ 
+                              width: budgetSpending && monthlyBudget ? 
+                                    `${100 - budgetSpending.percentage}%` : '0%' 
+                            }}
+                          ></div>
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-gray-400 uppercase tracking-wider">BUDGET</span>
-                          <span className="text-gray-400">--</span>
+                          {monthlyBudget ? (
+                            <span className="text-gray-400">{monthlyBudget.amount.toFixed(0)}</span>
+                          ) : (
+                            <span className="text-gray-400">--</span>
+                          )}
                         </div>
                         <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
                           <div className="h-full bg-[#8D99AE]" 
-                            style={{ width: '0%' }}></div>
+                            style={{ width: monthlyBudget ? '100%' : '0%' }}></div>
                         </div>
                       </div>
                     </div>
