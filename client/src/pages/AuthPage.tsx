@@ -30,15 +30,22 @@ const registerSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
 
-export default function AuthPage() {
-  const [activeTab, setActiveTab] = useState("login");
-  const { user, loginMutation, registerMutation } = useAuth();
+// Component to check authentication and redirect if needed
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   
-  // Redirect if already logged in
   if (user) {
     return <Redirect to="/" />;
   }
+  
+  return <>{children}</>;
+}
 
+// Auth form component that contains all the form logic
+function AuthForms() {
+  const [activeTab, setActiveTab] = useState("login");
+  const { loginMutation, registerMutation } = useAuth();
+  
   // Login form
   const loginForm = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -67,7 +74,7 @@ export default function AuthPage() {
     const { confirmPassword, ...registerData } = values;
     registerMutation.mutate(registerData);
   };
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col md:flex-row">
       {/* Hero section */}
@@ -260,5 +267,13 @@ export default function AuthPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <AuthGuard>
+      <AuthForms />
+    </AuthGuard>
   );
 }
