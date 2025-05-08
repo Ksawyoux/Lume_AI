@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { insertEmotionSchema, insertHealthDataSchema, insertTransactionSchema, insertUserSchema, HealthMetricType } from "@shared/schema";
 import emotionAnalysisRoutes from "./routes/emotion-analysis";
+import insightsGeneratorRoutes from "./routes/insights-generator";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
@@ -338,6 +339,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Machine Learning Emotion Analysis routes
   app.use('/api/ml/emotions', emotionAnalysisRoutes);
+  
+  // AI-powered Insights Generator routes
+  app.use('/api/insights', insightsGeneratorRoutes);
 
   const httpServer = createServer(app);
 
