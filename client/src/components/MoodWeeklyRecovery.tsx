@@ -1,4 +1,5 @@
 import { EmotionType } from '@shared/schema';
+import { emotionRecoveryPercentages } from '@/lib/emotionUtils';
 
 interface MoodWeeklyRecoveryProps {
   weeklyMoods?: EmotionType[];
@@ -12,6 +13,19 @@ interface MoodWeeklyRecoveryProps {
 export default function MoodWeeklyRecovery({ weeklyMoods }: MoodWeeklyRecoveryProps) {
   // Default to empty array if no moods are provided
   const moods = weeklyMoods || [];
+  
+  // Calculate recovery average
+  const calculateRecoveryAverage = (): number => {
+    if (moods.length === 0) return 0;
+    
+    const total = moods.reduce((sum, mood) => {
+      return sum + emotionRecoveryPercentages[mood];
+    }, 0);
+    
+    return Math.round(total / moods.length);
+  };
+  
+  const recoveryAverage = calculateRecoveryAverage();
   
   return (
     <div className="w-full flex flex-col items-center">
@@ -41,19 +55,35 @@ export default function MoodWeeklyRecovery({ weeklyMoods }: MoodWeeklyRecoveryPr
             );
           })}
           
-          {/* Middle text - adjusted to match screenshot exactly */}
-          <text 
-            x="50" 
-            y="55" 
-            textAnchor="middle" 
-            dominantBaseline="middle"
-            fontSize="9" 
-            fontWeight="bold" 
-            fill="#94A3B8"
-            style={{ textTransform: 'uppercase' }}
-          >
-            MOOD
-          </text>
+          {/* Middle text container */}
+          <g>
+            {/* Recovery percentage */}
+            <text 
+              x="50" 
+              y="45" 
+              textAnchor="middle" 
+              dominantBaseline="middle"
+              fontSize="12" 
+              fontWeight="bold" 
+              fill="#00f19f"
+            >
+              {recoveryAverage}%
+            </text>
+            
+            {/* MOOD text */}
+            <text 
+              x="50" 
+              y="60" 
+              textAnchor="middle" 
+              dominantBaseline="middle"
+              fontSize="8" 
+              fontWeight="bold" 
+              fill="#94A3B8"
+              style={{ textTransform: 'uppercase' }}
+            >
+              MOOD
+            </text>
+          </g>
         </svg>
       </div>
       <p className="text-xs text-gray-400 uppercase">WEEKLY RECOVERY</p>

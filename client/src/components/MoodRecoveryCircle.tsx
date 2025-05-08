@@ -1,4 +1,5 @@
 import { EmotionType } from '@shared/schema';
+import { emotionRecoveryPercentages } from '@/lib/emotionUtils';
 
 interface MoodRecoveryCircleProps {
   weeklyMoods?: EmotionType[];
@@ -51,7 +52,19 @@ export default function MoodRecoveryCircle({ weeklyMoods }: MoodRecoveryCirclePr
     return positions;
   };
   
+  // Calculate recovery average
+  const calculateRecoveryAverage = (): number => {
+    if (moods.length === 0) return 0;
+    
+    const total = moods.reduce((sum, mood) => {
+      return sum + emotionRecoveryPercentages[mood];
+    }, 0);
+    
+    return Math.round(total / moods.length);
+  };
+  
   const positions = generateCirclePositions(moodSlots.length);
+  const recoveryAverage = calculateRecoveryAverage();
   
   return (
     <div className="flex flex-col items-center justify-center">
@@ -72,19 +85,35 @@ export default function MoodRecoveryCircle({ weeklyMoods }: MoodRecoveryCirclePr
             );
           })}
           
-          {/* Middle mood text - matching the screenshot exactly */}
-          <text 
-            x="50" 
-            y="55" 
-            textAnchor="middle" 
-            dominantBaseline="middle"
-            fontSize="9" 
-            fontWeight="bold" 
-            fill="#94A3B8"
-            style={{ textTransform: 'uppercase' }}
-          >
-            MOOD
-          </text>
+          {/* Middle text container */}
+          <g>
+            {/* Recovery percentage */}
+            <text 
+              x="50" 
+              y="45" 
+              textAnchor="middle" 
+              dominantBaseline="middle"
+              fontSize="12" 
+              fontWeight="bold" 
+              fill="#00f19f"
+            >
+              {recoveryAverage}%
+            </text>
+            
+            {/* MOOD text */}
+            <text 
+              x="50" 
+              y="60" 
+              textAnchor="middle" 
+              dominantBaseline="middle"
+              fontSize="8" 
+              fontWeight="bold" 
+              fill="#94A3B8"
+              style={{ textTransform: 'uppercase' }}
+            >
+              MOOD
+            </text>
+          </g>
         </svg>
       </div>
       <div className="text-center">
