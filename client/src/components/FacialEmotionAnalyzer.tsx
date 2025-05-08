@@ -62,6 +62,9 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     // If emotion is undefined or empty, return neutral as default
     if (!emotion) return 'neutral';
     
+    // Make sure to lowercase the emotion before lookup to avoid case mismatches
+    const emotionLower = emotion.toLowerCase();
+    
     const mapping: Record<string, EmotionType> = {
       'happy': 'happy',
       'joy': 'happy',
@@ -80,7 +83,11 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
       'disgust': 'stressed'
     };
     
-    return mapping[emotion.toLowerCase()] || 'neutral';
+    // Provide better debugging
+    console.log("Emotion mapping lookup:", emotionLower, "->", mapping[emotionLower] || 'neutral');
+    
+    // Return the mapped emotion, defaulting to 'neutral' if not found
+    return mapping[emotionLower] || 'neutral';
   };
 
   // Initialize camera with improved error handling
@@ -311,14 +318,20 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
       console.log("Result from facial analysis:", result);
       
       // Handle different response formats from different endpoints
-      const primaryEmotion = result.primaryEmotion || result.emotion;
+      // If primary emotion is undefined, make sure to provide a fallback
+      const primaryEmotion = result.primaryEmotion || result.emotion || "neutral";
+      
+      // Map the primary emotion to our emotion types
+      console.log("Primary emotion before mapping:", primaryEmotion);
       const mappedEmotion = mapEmotionToType(primaryEmotion);
+      console.log("Mapped emotion:", mappedEmotion);
+      
       const confidence = result.confidence || result.emotionIntensity || 0.75;
       
       setEmotionResult({
         emotion: mappedEmotion,
         confidence: confidence,
-        description: result.description || `Detected ${primaryEmotion || mappedEmotion} in your expression`
+        description: result.description || `Detected ${primaryEmotion} in your expression`
       });
       
       // Reset attempts counter on success
