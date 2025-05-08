@@ -216,6 +216,9 @@ export default function Home() {
           </div>
         </section>
         
+        {/* Personalized Insights */}
+        <PersonalizedInsights />
+        
         {/* Recent Transactions */}
         <RecentTransactions />
       </main>
