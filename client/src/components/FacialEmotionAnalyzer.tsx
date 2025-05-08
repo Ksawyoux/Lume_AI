@@ -261,66 +261,28 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
       console.log("Sending image for analysis...");
       
       // First try to match against the user's reference images
-      let response;
+      let result;
+      
       try {
         // Try to analyze using the user's reference images
-        response = await fetch('/api/emotion-reference-images/analyze', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            imageData: imageBase64
-          }),
-          credentials: 'include'
+        result = await apiRequest('/api/emotion-reference-images/analyze', 'POST', {
+          imageData: imageBase64
         });
+      } catch (referenceError) {
+        console.log("Error using reference images, falling back to default analyzer:", referenceError);
         
-        // If we don't have enough reference images, the API will return a 400 status
-        // In that case, fall back to the default analyzer
-        if (response.status === 400) {
-          console.log("Not enough reference images, falling back to default analyzer");
-          response = await fetch('/api/ml/facial/analyze-face', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              image: imageBase64
-            }),
-            credentials: 'include'
-          });
-        }
-      } catch (error) {
         // If the reference image endpoint fails, fall back to default analyzer
-        console.log("Error using reference images, falling back to default analyzer:", error);
-        response = await fetch('/api/ml/facial/analyze-face', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
+        try {
+          result = await apiRequest('/api/ml/facial/analyze-face', 'POST', {
             image: imageBase64
-          }),
-          credentials: 'include'
-        });
-      }
-      
-      console.log("API Response Status:", response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log("API Response Error:", errorText);
-        
-        if (response.status === 404) {
-          throw new Error("Emotion analysis endpoint not found. Please check the server.");
-        } else if (response.status >= 500) {
-          throw new Error("Server error analyzing image. Please try again later.");
-        } else {
-          throw new Error(`Failed to analyze image: ${errorText}`);
+          });
+        } catch (analysisError) {
+          console.error("All facial analysis methods failed:", analysisError);
+          throw new Error("Failed to analyze facial expression. Please try again or use manual selection.");
         }
       }
       
-      const result = await response.json();
+      // Result is already received from apiRequest which parses the JSON
       console.log("API Response Data:", result);
       
       // Process the result
