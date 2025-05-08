@@ -121,15 +121,29 @@ export const insertHealthDataSchema = createInsertSchema(healthData).pick({
   metadata: true,
 });
 
-export const insertBudgetSchema = createInsertSchema(budgets).pick({
+// Create a base budget schema
+const baseBudgetSchema = createInsertSchema(budgets).pick({
   userId: true,
   type: true,
   amount: true,
   category: true,
   currency: true,
-  startDate: true,
-  endDate: true,
   isActive: true,
+});
+
+// Export the final schema with modified date handling
+export const insertBudgetSchema = baseBudgetSchema.extend({
+  // Handle startDate as either a string (from form) or Date object
+  startDate: z.union([
+    z.string().transform(str => new Date(str)),
+    z.date()
+  ]),
+  // Handle endDate as optional string or Date object
+  endDate: z.union([
+    z.string().transform(str => new Date(str)),
+    z.date(),
+    z.null()
+  ]).nullable(),
 });
 
 export const insertEmotionReferenceImageSchema = createInsertSchema(emotionReferenceImages).pick({
