@@ -161,7 +161,10 @@ export default function PersonalizedInsights() {
         </div>
       ) : (
         <div className="space-y-4">
-          {insights && insights.map((insight) => (
+          {insights && [...insights]
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 5)
+            .map((insight) => (
             <div 
               key={insight.id} 
               className="bg-[#1c2127] rounded-lg p-5 border border-gray-800"
