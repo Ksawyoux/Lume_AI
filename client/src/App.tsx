@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserProvider } from "@/context/UserContext";
 import Home from "@/pages/Home";
-import Insights from "@/pages/Insights";
+import Analytics from "@/pages/Insights";
 import Emotions from "@/pages/Emotions";
 import Profile from "@/pages/Profile";
 import AddTransaction from "@/pages/AddTransaction";
@@ -16,7 +16,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/insights" component={Insights} />
+      <Route path="/insights" component={Analytics} />
       <Route path="/emotions" component={Emotions} />
       <Route path="/profile" component={Profile} />
       <Route path="/add-transaction" component={AddTransaction} />
