@@ -56,6 +56,18 @@ export const healthData = pgTable("health_data", {
   metadata: text("metadata"), // JSON string for additional data
 });
 
+export const budgets = pgTable("budgets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(), // monthly, yearly, or category-specific
+  amount: real("amount").notNull(),
+  category: text("category"), // If null, applies to all categories
+  currency: text("currency").default("USD").notNull(),
+  startDate: timestamp("start_date").defaultNow().notNull(),
+  endDate: timestamp("end_date"),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -100,6 +112,17 @@ export const insertHealthDataSchema = createInsertSchema(healthData).pick({
   metadata: true,
 });
 
+export const insertBudgetSchema = createInsertSchema(budgets).pick({
+  userId: true,
+  type: true,
+  amount: true,
+  category: true,
+  currency: true,
+  startDate: true,
+  endDate: true,
+  isActive: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -115,3 +138,6 @@ export type Insight = typeof insights.$inferSelect;
 
 export type InsertHealthData = z.infer<typeof insertHealthDataSchema>;
 export type HealthData = typeof healthData.$inferSelect;
+
+export type InsertBudget = z.infer<typeof insertBudgetSchema>;
+export type Budget = typeof budgets.$inferSelect;
