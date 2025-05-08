@@ -34,7 +34,11 @@ type RegisterValues = z.infer<typeof registerSchema>;
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   
-  if (user) {
+  // Also check localStorage for stored user data
+  const localUser = localStorage.getItem('lumeUser');
+  
+  if (user || localUser) {
+    // If we have a user session, redirect to home
     return <Redirect to="/" />;
   }
   

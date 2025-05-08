@@ -18,13 +18,13 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
+      <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/" component={Home} />
       <ProtectedRoute path="/insights" component={Analytics} />
       <ProtectedRoute path="/emotions" component={Emotions} />
       <ProtectedRoute path="/profile" component={Profile} />
       <ProtectedRoute path="/add-transaction" component={AddTransaction} />
       <ProtectedRoute path="/health" component={Health} />
-      <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
   );
