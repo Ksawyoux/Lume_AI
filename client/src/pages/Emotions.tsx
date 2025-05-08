@@ -2,10 +2,11 @@ import { useUser } from '@/context/UserContext';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
 import { useQuery } from '@tanstack/react-query';
-import { Emotion, emotionConfig } from '@/types';
+import { Emotion, EmotionType } from '@shared/schema';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from '@/components/ui/skeleton';
+import { emotionConfig, getEmotionColor, emotionRecoveryPercentages } from "@/lib/emotionUtils";
 
 export default function Emotions() {
   const { user } = useUser();
@@ -18,8 +19,9 @@ export default function Emotions() {
   if (!user) return null;
   
   // Map emotion types to WHOOP recovery colors
-  const getEmotionColor = (type: string) => {
-    switch(type) {
+  const getEmotionColorClass = (type: string): string => {
+    const emotionType = type as EmotionType;
+    switch(emotionType) {
       case 'stressed':
         return 'bg-[hsl(var(--recovery-low)/0.1)] text-[hsl(var(--recovery-low))]';
       case 'worried':
@@ -92,7 +94,7 @@ export default function Emotions() {
                     } catch (e) {
                       date = new Date(); // Fallback to current date if error
                     }
-                    const colorClass = getEmotionColor(emotionType);
+                    const colorClass = getEmotionColorClass(emotionType);
                     
                     return (
                       <div 
@@ -103,12 +105,12 @@ export default function Emotions() {
                           <div 
                             className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${colorClass}`}
                           >
-                            <i className={`fas fa-${emotionConfig[emotionType].icon} text-lg`}></i>
+                            <i className={`fas fa-${emotionConfig[emotionType as EmotionType].icon} text-lg`}></i>
                           </div>
                           <div className="flex-1">
                             <div className="flex justify-between mb-2">
                               <span className="font-semibold text-sm uppercase tracking-wider text-foreground">
-                                {emotionConfig[emotionType].label}
+                                {emotionConfig[emotionType as EmotionType].label}
                               </span>
                               <span className="text-xs text-muted-foreground uppercase tracking-wider">
                                 {/* Format date safely */}
@@ -134,10 +136,7 @@ export default function Emotions() {
                                 <div 
                                   className="h-full" 
                                   style={{ 
-                                    width: emotionType === 'stressed' ? '20%' : 
-                                           emotionType === 'worried' ? '40%' : 
-                                           emotionType === 'neutral' ? '60%' : 
-                                           emotionType === 'content' ? '80%' : '100%',
+                                    width: `${emotionRecoveryPercentages[emotionType as EmotionType]}%`,
                                     backgroundColor: `hsl(var(${emotionType === 'stressed' ? '--recovery-low' : 
                                                              emotionType === 'worried' ? '--recovery-medium' : 
                                                              emotionType === 'neutral' ? '--recovery-neutral' : 
