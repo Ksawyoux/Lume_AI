@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { EmotionType } from '@/types';
-import { Camera, X, Check, RefreshCw } from 'lucide-react';
+import { Camera, X, Check, RefreshCw, Loader2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { DialogTitle } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface FacialEmotionAnalyzerProps {
   onEmotionDetected: (emotion: EmotionType, confidence: number) => void;
@@ -153,6 +155,11 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
 
   return (
     <div className="relative">
+      {/* Accessibility enhancements */}
+      <VisuallyHidden>
+        <DialogTitle>Facial Emotion Analysis</DialogTitle>
+      </VisuallyHidden>
+      
       <div className="p-4 bg-[#1c2127] rounded-lg">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-white">Facial Emotion Analysis</h3>
@@ -177,6 +184,29 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
                 className="w-full h-full object-cover"
               />
               
+              {/* Camera active UI overlay */}
+              {!emotionResult && !isAnalyzing && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="border-2 border-dashed border-[#00f19f] rounded-full w-28 h-28 flex items-center justify-center opacity-70">
+                    <div className="text-[#00f19f] text-xs text-center">
+                      <Camera size={24} className="mx-auto mb-1" />
+                      Center your face
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Loading UI overlay */}
+              {isAnalyzing && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="text-center">
+                    <Loader2 size={48} className="animate-spin text-[#00f19f] mx-auto mb-3" />
+                    <p className="text-white text-sm">Analyzing your expression...</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Results UI overlay */}
               {emotionResult && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="bg-[#252a2e] p-4 rounded-lg max-w-xs text-center">
@@ -214,11 +244,15 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
               )}
             </>
           ) : (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-full flex-col">
+              <Camera size={36} className="text-[#00f19f] mb-4 opacity-70" />
+              <p className="text-sm text-gray-300 mb-4 text-center px-4">
+                Allow camera access to analyze your facial expression
+              </p>
               <Button 
                 onClick={startCamera} 
                 variant="outline"
-                className="border-gray-700 bg-[#252a2e]"
+                className="border-gray-700 bg-[#252a2e] pulse-animation"
               >
                 <Camera size={20} className="mr-2 text-[#00f19f]" />
                 Enable Camera
@@ -237,19 +271,41 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
         )}
         
         {cameraActive && !emotionResult && (
-          <Button
-            onClick={captureAndAnalyze}
-            disabled={isAnalyzing}
-            className="w-full bg-[#00f19f] text-black hover:bg-[#00d88a]"
-          >
-            {isAnalyzing ? 'Analyzing...' : 'Analyze Expression'}
-          </Button>
+          <div className="flex flex-col items-center">
+            <Button
+              onClick={captureAndAnalyze}
+              disabled={isAnalyzing}
+              className="w-full bg-[#00f19f] text-black hover:bg-[#00d88a] py-6 relative"
+            >
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#1c2127] rounded-full border-2 border-[#00f19f] w-7 h-7 flex items-center justify-center">
+                <Camera size={16} className="text-[#00f19f]" />
+              </div>
+              <span className="flex items-center justify-center">
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin mr-2" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Camera size={18} className="mr-2" />
+                    Take Photo
+                  </>
+                )}
+              </span>
+            </Button>
+            <p className="text-xs text-gray-400 mt-2 text-center">
+              Center your face in the frame and click "Take Photo"
+            </p>
+          </div>
         )}
         
         <div className="mt-3 text-xs text-gray-400">
           <p>Your privacy is important. Images are analyzed locally and are not saved.</p>
         </div>
       </div>
+      
+      {/* Animation styles are defined in global CSS */}
     </div>
   );
 }

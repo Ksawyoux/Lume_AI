@@ -6,6 +6,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom animation for facial emotion analyzer */
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 241, 159, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 241, 159, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 241, 159, 0);
+  }
+}
+
 :root {
   /* WHOOP-inspired color palette with muted tones and strategic highlights */
   --background: 210 20% 98%;

@@ -369,20 +369,18 @@ export async function analyzeFacialExpression(base64Image: string): Promise<Emot
         generationConfig
       });
       
-      // Create parts array with text and image
-      // First add the text prompt
-      const parts = [{ text: prompt }];
-      
-      // Then add the image as inlineData
-      parts.push({
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: base64Image
+      // Set up the prompt as a standalone string
+      const result = await model.generateContent([
+        {
+          text: prompt
+        },
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64Image
+          }
         }
-      });
-      
-      // Generate content with the multimodal parts
-      const result = await model.generateContent(parts);
+      ]);
       const generatedResponse = await result.response;
       response = generatedResponse.text();
       
