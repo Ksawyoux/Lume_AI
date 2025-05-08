@@ -102,30 +102,41 @@ const VoiceEmotionAnalyzer: React.FC<VoiceEmotionAnalyzerProps> = ({ onResult, i
       reader.readAsDataURL(audioBlob);
       
       reader.onloadend = async () => {
-        const base64Audio = reader.result?.toString().split(',')[1];
-        if (!base64Audio) {
-          throw new Error('Failed to convert audio to base64');
+        try {
+          const base64Audio = reader.result?.toString().split(',')[1];
+          if (!base64Audio) {
+            throw new Error('Failed to convert audio to base64');
+          }
+
+          // Send audio for analysis
+          setStatus('processing');
+          const response = await apiRequest('POST', '/api/ml/voice/analyze-voice', {
+            audio: base64Audio
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Failed to analyze voice emotion');
+          }
+
+          const result = await response.json();
+          setTranscript(result.transcript || '');
+          
+          // Pass result to parent component
+          onResult({
+            emotion: result.emotion,
+            confidence: result.confidence,
+            transcript: result.transcript || ''
+          });
+        } catch (err) {
+          console.error('Error in reader.onloadend:', err);
+          setStatus('idle');
+          // Create and dispatch a custom event to notify the parent about the error
+          const errorEvent = new CustomEvent('voiceAnalysisError', { 
+            detail: { message: err instanceof Error ? err.message : 'Failed to analyze voice' }
+          });
+          window.dispatchEvent(errorEvent);
         }
-
-        // Send audio for analysis
-        setStatus('processing');
-        const response = await apiRequest('POST', '/api/ml/voice/analyze-voice', {
-          audio: base64Audio
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to analyze voice emotion');
-        }
-
-        const result = await response.json();
-        setTranscript(result.transcript || '');
-        
-        // Pass result to parent component
-        onResult({
-          emotion: result.emotion,
-          confidence: result.confidence,
-          transcript: result.transcript || ''
-        });
       };
     } catch (error) {
       console.error('Error analyzing audio:', error);
