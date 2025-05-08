@@ -62,11 +62,12 @@ export default function Insights() {
   const impulsePercentage = data?.impulsePercentage || 0; // Use 0 instead of placeholder data
   const savingsTarget = data?.savingsTarget || 0; // Use 0 instead of placeholder data
 
-  // Default to 'neutral' if no top emotion data available
-  const topEmotion = !data?.emotionSpending ? 'neutral' : 
+  // Get the top emotion from spending data, or use "-" if no data
+  const topEmotion = !data?.emotionSpending ? '-' : 
     Object.entries(data.emotionSpending)
+      .filter(([_, amount]) => amount > 0) // Only consider emotions with spending
       .sort((a, b) => b[1] - a[1])
-      .map(([emotion]) => emotion)[0] || 'neutral';
+      .map(([emotion]) => emotion)[0] || '-';
 
   return (
     <div className="max-w-md mx-auto bg-[#1b1c1e] min-h-screen flex flex-col text-white">
@@ -149,9 +150,11 @@ export default function Insights() {
                       <div className="bg-[#252a2e] rounded-lg p-3">
                         <p className="text-xs text-gray-400 mb-1">TOP EMOTION</p>
                         <p className="text-lg font-bold">
-                          {topEmotion.charAt(0).toUpperCase() + topEmotion.slice(1)}
+                          {topEmotion === '-' ? '-' : topEmotion.charAt(0).toUpperCase() + topEmotion.slice(1)}
                         </p>
-                        <p className="text-xs text-gray-400">Most frequent</p>
+                        <p className="text-xs text-gray-400">
+                          {topEmotion === '-' ? 'No data yet' : 'Most frequent'}
+                        </p>
                       </div>
 
                       {/* Impulse */}
