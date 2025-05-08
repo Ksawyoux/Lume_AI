@@ -8,10 +8,12 @@ import { format } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import EmojiSelector from './EmojiSelector';
+import FacialEmotionAnalyzer from './FacialEmotionAnalyzer';
 import { Camera, Mic, Brain, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export interface EmotionAnalysisResult {
   primaryEmotion: string;
@@ -32,6 +34,7 @@ export default function EmotionTracker() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<EmotionAnalysisResult | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showFacialAnalyzer, setShowFacialAnalyzer] = useState(false);
   
   const mutation = useMutation({
     mutationFn: async (data: { userId: number; type: EmotionType; notes: string }) => {
@@ -112,6 +115,23 @@ export default function EmotionTracker() {
     }
     
     return null;
+  };
+  
+  // Handle emotion detected from facial analysis
+  const handleFacialEmotionDetected = (emotion: EmotionType, confidence: number) => {
+    setSelectedEmotion(emotion);
+    setShowFacialAnalyzer(false);
+    
+    // Add a note about the facial detection
+    setNotes(prev => {
+      const facialNote = `Facial expression analysis detected ${emotion} emotion with ${Math.round(confidence * 100)}% confidence.`;
+      return prev ? `${prev}\n\n${facialNote}` : facialNote;
+    });
+    
+    toast({
+      title: "Facial expression analyzed",
+      description: `Detected ${emotion} emotion from your expression.`,
+    });
   };
 
   const handleSaveEmotion = () => {
