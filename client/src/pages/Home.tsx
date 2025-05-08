@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Emotion, EmotionType } from '@shared/schema';
 import { HelpCircle } from 'lucide-react';
+import { Link } from 'wouter';
 
 export default function Home() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -113,13 +114,15 @@ export default function Home() {
                 {/* WHOOP-style metrics overview - Empty State */}
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   {/* WHOOP-inspired Mood Recovery Circle */}
-                  <div className="flex flex-col items-center justify-center p-3 bg-[#1a2126] rounded-lg">
-                    {weeklyMoodTypes.length > 0 ? (
-                      <MoodRecoveryCircle weeklyMoods={weeklyMoodTypes} />
-                    ) : (
-                      <MoodRecoveryCircle />
-                    )}
-                  </div>
+                  <Link href="/mood-dashboard">
+                    <a className="flex flex-col items-center justify-center p-3 bg-[#1a2126] rounded-lg hover:bg-[#1F2932] transition-colors">
+                      {weeklyMoodTypes.length > 0 ? (
+                        <MoodRecoveryCircle weeklyMoods={weeklyMoodTypes} />
+                      ) : (
+                        <MoodRecoveryCircle />
+                      )}
+                    </a>
+                  </Link>
 
                   {/* Financial Health Chart */}
                   <div className="flex flex-col p-3 bg-[#1a2126] rounded-lg">
@@ -184,7 +187,7 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
-                    {!weeklyEmotions?.length && (
+                    {weeklyMoodTypes.length === 0 && (
                       <div className="mt-4 flex justify-center">
                         <span className="text-xs text-gray-400 italic">
                           Track your mood over time to see trends

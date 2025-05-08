@@ -13,6 +13,7 @@ import Emotions from "@/pages/Emotions";
 import Profile from "@/pages/Profile";
 import AddTransaction from "@/pages/AddTransaction";
 import Health from "@/pages/Health";
+import MoodDashboard from "@/pages/MoodDashboard";
 import AuthPage from "@/pages/AuthPage";
 import NotFound from "@/pages/not-found";
 
@@ -34,6 +35,7 @@ function Router({ initialPath = "/" }: { initialPath?: string }) {
       <ProtectedRoute path="/profile" component={Profile} />
       <ProtectedRoute path="/add-transaction" component={AddTransaction} />
       <ProtectedRoute path="/health" component={Health} />
+      <ProtectedRoute path="/mood-dashboard" component={MoodDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
