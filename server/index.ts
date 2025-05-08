@@ -2,12 +2,20 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
+import cors from 'cors';
 
 const app = express();
 // Increase JSON body parser limit for handling large image uploads (up to 10MB)
 app.use(express.json({ limit: '10mb' })); 
 // Increase URL-encoded body parser limit as well
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://your-app-url.repl.co' 
+    : 'http://localhost:5173',
+  credentials: true
+}));
 
 // Setup authentication
 setupAuth(app);
