@@ -35,21 +35,21 @@ export default function MoodWeeklyRecovery({ weeklyMoods }: MoodWeeklyRecoveryPr
                 cx={cx}
                 cy={cy}
                 r={3.5}
-                fill={isFilled ? "#E5E7EB" : "#4B5563"}
-                className={isFilled ? "" : "opacity-50"}
+                fill={isFilled ? "#FFFFFF" : "#2A363D"}
+                className={isFilled ? "" : "opacity-70"}
               />
             );
           })}
           
-          {/* Middle text */}
+          {/* Middle text - adjusted to match screenshot exactly */}
           <text 
             x="50" 
-            y="50" 
+            y="55" 
             textAnchor="middle" 
             dominantBaseline="middle"
-            fontSize="10" 
+            fontSize="9" 
             fontWeight="bold" 
-            fill="#E5E7EB"
+            fill="#94A3B8"
             style={{ textTransform: 'uppercase' }}
           >
             MOOD
