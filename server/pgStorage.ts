@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { eq, desc, and, gte, sql } from "drizzle-orm";
-import { emotions, transactions, insights, users, healthData } from "@shared/schema";
+import { eq, desc, and, gte, lte, isNull, sql, or } from "drizzle-orm";
+import { emotions, transactions, insights, users, healthData, budgets } from "@shared/schema";
 import type { 
   User, 
   InsertUser, 
@@ -13,9 +13,11 @@ import type {
   EmotionType, 
   InsertHealthData, 
   HealthData, 
-  HealthMetricType 
+  HealthMetricType,
+  Budget,
+  InsertBudget 
 } from "@shared/schema";
-import { format, subDays } from "date-fns";
+import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from "date-fns";
 import { IStorage } from "./storage";
 
 export class PgStorage implements IStorage {
@@ -222,5 +224,117 @@ export class PgStorage implements IStorage {
     }
     
     return result;
+  }
+
+  // Budget methods
+  async createBudget(insertBudget: InsertBudget): Promise<Budget> {
+    const result = await db.insert(budgets).values(insertBudget).returning();
+    return result[0];
+  }
+  
+  async getBudgetsByUserId(userId: number): Promise<Budget[]> {
+    return await db
+      .select()
+      .from(budgets)
+      .where(eq(budgets.userId, userId))
+      .orderBy(desc(budgets.startDate));
+  }
+  
+  async getBudgetById(id: number): Promise<Budget | undefined> {
+    const result = await db.select().from(budgets).where(eq(budgets.id, id)).limit(1);
+    return result[0];
+  }
+  
+  async getActiveBudgetsByUserId(userId: number, type?: string): Promise<Budget[]> {
+    const currentDate = new Date();
+    const currentDateStr = currentDate.toISOString();
+    
+    let query = db
+      .select()
+      .from(budgets)
+      .where(and(
+        eq(budgets.userId, userId),
+        eq(budgets.isActive, true),
+        sql`${budgets.startDate}::timestamp <= ${currentDateStr}::timestamp`,
+        or(
+          isNull(budgets.endDate),
+          sql`${budgets.endDate}::timestamp >= ${currentDateStr}::timestamp`
+        )
+      ));
+    
+    // Add type filter if provided
+    if (type) {
+      query = query.where(eq(budgets.type, type));
+    }
+    
+    return await query.orderBy(desc(budgets.startDate));
+  }
+  
+  async updateBudget(id: number, budgetUpdate: Partial<Budget>): Promise<Budget> {
+    const result = await db
+      .update(budgets)
+      .set(budgetUpdate)
+      .where(eq(budgets.id, id))
+      .returning();
+    
+    if (result.length === 0) {
+      throw new Error(`Budget with id ${id} not found`);
+    }
+    
+    return result[0];
+  }
+  
+  async deleteBudget(id: number): Promise<boolean> {
+    const result = await db
+      .delete(budgets)
+      .where(eq(budgets.id, id))
+      .returning({ id: budgets.id });
+    
+    return result.length > 0;
+  }
+  
+  async getBudgetSpending(userId: number, budgetId: number): Promise<{ spent: number, remaining: number, percentage: number }> {
+    // Get the budget
+    const budget = await this.getBudgetById(budgetId);
+    
+    if (!budget) {
+      throw new Error(`Budget with id ${budgetId} not found`);
+    }
+    
+    // Create date filters based on budget period
+    const startDateStr = budget.startDate.toISOString();
+    const endDateStr = budget.endDate ? budget.endDate.toISOString() : new Date().toISOString();
+    
+    // Set up the base query with date filters
+    let query = db
+      .select({
+        total: sql<number>`SUM(ABS(${transactions.amount}))`
+      })
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        sql`${transactions.amount} < 0`, // Only count expenses
+        sql`${transactions.date}::timestamp >= ${startDateStr}::timestamp`,
+        sql`${transactions.date}::timestamp <= ${endDateStr}::timestamp`
+      ));
+    
+    // If the budget is for a specific category, add category filter
+    if (budget.category) {
+      query = query.where(eq(transactions.category, budget.category));
+    }
+    
+    // Execute the query
+    const result = await query;
+    
+    // Calculate the spending metrics
+    const totalSpent = result[0].total || 0;
+    const remaining = Math.max(0, budget.amount - totalSpent);
+    const percentage = budget.amount > 0 ? (totalSpent / budget.amount) * 100 : 0;
+    
+    return {
+      spent: totalSpent,
+      remaining,
+      percentage: Math.min(100, percentage) // Cap at 100%
+    };
   }
 }
