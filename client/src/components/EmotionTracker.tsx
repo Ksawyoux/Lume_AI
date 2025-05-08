@@ -175,6 +175,7 @@ export default function EmotionTracker() {
           <FacialEmotionAnalyzer 
             onEmotionDetected={handleFacialEmotionDetected}
             onClose={() => setShowFacialAnalyzer(false)}
+            key={showFacialAnalyzer ? 'active' : 'inactive'} // Force re-mount when opened
           />
         </DialogContent>
       </Dialog>

@@ -12,8 +12,8 @@ interface FacialEmotionAnalyzerProps {
 }
 
 export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: FacialEmotionAnalyzerProps) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [emotionResult, setEmotionResult] = useState<{
@@ -22,6 +22,17 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     description: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Ensure the component is mounted before trying to access the camera
+  const [isMounted, setIsMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+    return () => {
+      setIsMounted(false);
+      stopCamera();
+    };
+  }, []);
 
   // Map API emotion names to our EmotionType
   const mapEmotionToType = (emotion: string): EmotionType => {
@@ -46,25 +57,55 @@ export default function FacialEmotionAnalyzer({ onEmotionDetected, onClose }: Fa
     return mapping[emotion.toLowerCase()] || 'neutral';
   };
 
-  // Start camera
+  // Start camera with a delay
   const startCamera = async () => {
     setError(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'user',
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        } 
-      });
+      // Simplified constraints for better cross-browser compatibility
+      const constraints = { 
+        audio: false,
+        video: true
+      };
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setCameraActive(true);
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      setError('Unable to access camera. Please ensure camera permissions are granted.');
+      console.log("Starting camera with simple constraints");
+      
+      // Let's wait a moment to make sure the component is fully mounted
+      setTimeout(async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          
+          if (!videoRef.current) {
+            console.error("Video element no longer available");
+            return;
+          }
+          
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            if (!videoRef.current) return;
+            
+            videoRef.current.play()
+              .then(() => {
+                console.log("Video now playing");
+                setCameraActive(true);
+              })
+              .catch(error => {
+                console.error("Error playing video:", error);
+                setError("Could not play video stream: " + error.message);
+              });
+          };
+        } catch (error) {
+          console.error("Camera access error:", error);
+          const err = error as { name?: string; message?: string };
+          setError(`Unable to access camera: ${err.name === 'NotAllowedError' ? 
+            'Permission denied. Please allow camera access in your browser settings.' : 
+            err.message || 'Unknown error'}`);
+        }
+      }, 500); // Short delay to ensure DOM is ready
+      
+    } catch (error) {
+      console.error('Error in camera initialization:', error);
+      const err = error as { name?: string; message?: string };
+      setError(`Camera error: ${err.message || 'Unknown error'}`);
     }
   };
 
