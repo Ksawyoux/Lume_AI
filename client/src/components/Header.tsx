@@ -94,7 +94,7 @@ export default function Header() {
                 </span>
               </div>
             </div>
-            <span className="text-xs text-gray-400 uppercase tracking-wider mt-1">RECOVERY</span>
+
           </div>
         </div>
         
