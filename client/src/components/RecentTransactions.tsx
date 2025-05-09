@@ -16,11 +16,8 @@ export default function RecentTransactions() {
   if (!user) return null;
   
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      signDisplay: 'exceptZero',
-    }).format(amount);
+    const sign = amount > 0 ? '+' : amount < 0 ? '-' : '';
+    return `${sign}${Math.round(Math.abs(amount))} MAD`;
   };
   
   const formatTransactionDate = (date: string | Date) => {
