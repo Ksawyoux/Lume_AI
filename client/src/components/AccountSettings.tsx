@@ -66,7 +66,7 @@ export default function AccountSettings({ open, onOpenChange, user }: AccountSet
       if (!user) return;
       
       // Make API request to update profile
-      const response = await apiRequest("PATCH", `/api/users/${user.id}/profile`, values);
+      const response = await apiRequest(`/users/${user.id}/profile`, "PATCH", values);
       
       if (response.ok) {
         toast({
