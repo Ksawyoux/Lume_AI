@@ -223,9 +223,9 @@ export default function Health() {
         {/* WHOOP-style card with grid layout */}
         <div className="bg-[#1F2932] rounded-xl p-5 mb-6 shadow-lg">
           <div className="grid grid-cols-2 gap-4 mb-4">
-            {/* Recovery chart */}
+            {/* Status chart */}
             <div className="bg-[#2A363D] rounded-lg p-3 flex flex-col justify-between h-[120px]">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Recovery</p>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Status</p>
               <div className="mt-2">
                 <div className="relative">
                   {/* Simplified chart */}
@@ -329,7 +329,7 @@ export default function Health() {
             </div>
             <div>
               <h3 className="font-semibold">Recommended Workout</h3>
-              <p className="text-sm text-gray-400">based on your Recovery Score</p>
+              <p className="text-sm text-gray-400">based on your Score</p>
             </div>
           </div>
           
@@ -337,7 +337,7 @@ export default function Health() {
             <div className="flex justify-between items-center">
               <div>
                 <h4 className="font-medium mb-1">Moderate Cardio</h4>
-                <p className="text-xs text-gray-400">{recovery?.value || 0}% Recovery · Moderate intensity</p>
+                <p className="text-xs text-gray-400">{recovery?.value || 0}% · Moderate intensity</p>
               </div>
               <Button variant="ghost" size="sm" className="bg-[#1F2932] hover:bg-[#2A363D]">
                 <ArrowRight size={16} />
@@ -346,7 +346,7 @@ export default function Health() {
           </div>
         </div>
         
-        {/* Recovery recommendations */}
+        {/* Recommendations */}
         <div className="bg-[#1F2932] rounded-xl p-5 shadow-lg">
           <div className="flex items-center space-x-4 mb-4">
             <div className="w-12 h-12 rounded-full bg-[#2A363D] flex items-center justify-center">
@@ -356,13 +356,13 @@ export default function Health() {
             </div>
             <div>
               <h3 className="font-semibold">Get back in the Green</h3>
-              <p className="text-sm text-gray-400">Recovery recommendations</p>
+              <p className="text-sm text-gray-400">Health recommendations</p>
             </div>
           </div>
           
           <div className="bg-[#2A363D] rounded-lg p-4">
             <p className="text-sm mb-3">
-              Based on your metrics, consider the following to improve recovery:
+              Based on your metrics, consider the following to improve health:
             </p>
             <div className="space-y-2">
               <div className="flex items-start">
