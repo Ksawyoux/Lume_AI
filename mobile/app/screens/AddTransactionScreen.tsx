@@ -161,7 +161,8 @@ export default function AddTransactionScreen() {
         category: selectedCategory,
         emotion: selectedEmotion,
         notes,
-        date: new Date()
+        date: new Date(),
+        currency: 'MAD' // Hardcoded to Moroccan Dirham
       };
       
       console.log('Transaction data:', transactionData);
@@ -203,7 +204,7 @@ export default function AddTransactionScreen() {
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Amount</Text>
             <View style={styles.amountInputRow}>
-              <Text style={styles.currencySymbol}>$</Text>
+              <Text style={styles.currencySymbol}>د.م.</Text>
               <TextInput
                 style={styles.amountInput}
                 value={amount}
