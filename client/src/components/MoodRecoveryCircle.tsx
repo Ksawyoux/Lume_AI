@@ -126,7 +126,7 @@ export default function MoodRecoveryCircle({ weeklyMoods }: MoodRecoveryCirclePr
         </svg>
       </div>
       <div className="text-center">
-        <span className="text-xs text-gray-400 uppercase tracking-wider">WEEKLY RECOVERY</span>
+        <span className="text-xs text-gray-400 uppercase tracking-wider">WEEKLY</span>
       </div>
     </div>
   );

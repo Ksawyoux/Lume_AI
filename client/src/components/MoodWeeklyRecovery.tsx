@@ -86,7 +86,7 @@ export default function MoodWeeklyRecovery({ weeklyMoods }: MoodWeeklyRecoveryPr
           </g>
         </svg>
       </div>
-      <p className="text-xs text-gray-400 uppercase">WEEKLY RECOVERY</p>
+      <p className="text-xs text-gray-400 uppercase">WEEKLY</p>
     </div>
   );
 }

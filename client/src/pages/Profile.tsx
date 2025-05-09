@@ -111,7 +111,7 @@ export default function Profile() {
                   {personalRecoveryScore}%
                 </span>
               </div>
-              <span className="absolute -bottom-6 text-xs text-gray-400 uppercase">RECOVERY</span>
+
             </div>
           </div>
         </div>
