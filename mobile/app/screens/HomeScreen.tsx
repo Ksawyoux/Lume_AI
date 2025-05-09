@@ -105,7 +105,7 @@ export default function HomeScreen() {
             )}
           </View>
         </View>
-        <Text style={styles.balanceAmount}>${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+        <Text style={styles.balanceAmount}>{Math.round(balance)} MAD</Text>
         
         <View style={styles.balanceActions}>
           <TouchableOpacity style={styles.balanceAction}>

@@ -129,10 +129,10 @@ const sampleTransactions: Transaction[] = [
 ];
 
 export default function RecentTransactions() {
-  // Format amount
+  // Format amount with MAD currency
   const formatAmount = (amount: number) => {
     const prefix = amount >= 0 ? '+' : '';
-    return `${prefix}$${Math.abs(amount).toFixed(2)}`;
+    return `${prefix}${Math.round(Math.abs(amount))} MAD`;
   };
   
   // Format date
