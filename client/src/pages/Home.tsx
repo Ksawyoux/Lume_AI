@@ -229,7 +229,7 @@ export default function Home() {
                           <span className="text-gray-400 uppercase tracking-wider">BUDGET</span>
                           <span className="text-gray-400">
                             {budgets && budgets.length > 0 ? 
-                              budgets[0].amount.toFixed(0) : 
+                              `${Math.round(budgets[0].amount)} MAD` : 
                               '--'
                             }
                           </span>

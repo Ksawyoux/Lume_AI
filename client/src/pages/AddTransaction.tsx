@@ -29,7 +29,7 @@ export default function AddTransaction() {
   const [notes, setNotes] = useState<string>('');
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionType | null>("content");
   const [date, setDate] = useState<Date>(new Date());
-  const [currency, setCurrency] = useState<string>('USD'); // Default to USD
+  const [currency, setCurrency] = useState<string>('MAD'); // Default to MAD
   
   // Fetch the latest emotion to suggest it for the transaction
   const { data: latestEmotion } = useQuery<Emotion>({
@@ -193,32 +193,7 @@ export default function AddTransaction() {
                 </Popover>
               </div>
               
-              {/* Currency selection */}
-              <div>
-                <label className="block text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
-                  CURRENCY
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={`border-border ${currency === 'USD' ? 'bg-[hsl(var(--primary)/0.1)] text-primary border-primary' : 'bg-card text-foreground'} flex items-center justify-center`}
-                    onClick={() => setCurrency('USD')}
-                  >
-                    USD ($)
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={`border-border ${currency === 'MAD' ? 'bg-[hsl(var(--primary)/0.1)] text-primary border-primary' : 'bg-card text-foreground'} flex items-center justify-center`}
-                    onClick={() => setCurrency('MAD')}
-                  >
-                    MAD (د.م.)
-                  </Button>
-                </div>
-              </div>
+              {/* Currency is fixed to MAD */}
               
               {/* Amount */}
               <div>
@@ -227,7 +202,7 @@ export default function AddTransaction() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-muted-foreground">{currency === 'USD' ? '$' : 'د.م.'}</span>
+                    <span className="text-muted-foreground">د.م.</span>
                   </div>
                   <Input
                     type="number"
