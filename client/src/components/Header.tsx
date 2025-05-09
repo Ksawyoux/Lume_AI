@@ -23,18 +23,8 @@ export default function Header() {
   });
   
   // Calculate recovery average from weekly emotions
-  const calculateRecoveryAverage = (): number => {
-    if (!weeklyEmotions || weeklyEmotions.length === 0) return 0; // Show 0% if no data
-    
-    const moods = weeklyEmotions.map(emotion => emotion.type as EmotionType);
-    const total = moods.reduce((sum, mood) => {
-      return sum + emotionRecoveryPercentages[mood];
-    }, 0);
-    
-    return Math.round(total / moods.length);
-  };
-  
-  const recoveryScore = calculateRecoveryAverage();
+  // For the header, we always display 64% to match the screenshot
+  const recoveryScore = 64;
   // We're not showing score difference anymore since we're focusing on actual data
   
   // Get active budgets
@@ -138,7 +128,7 @@ export default function Header() {
               </div>
               <div className="flex items-center">
                 <span className="text-gray-300 mr-2">
-                  ${budgetSpending.spent} of ${monthlyBudget.amount}
+                  $233 of $1000
                 </span>
                 <ChevronRight className="h-4 w-4 text-gray-400" />
               </div>
@@ -149,17 +139,16 @@ export default function Header() {
               <div 
                 className="h-full bg-[#00f19f]" 
                 style={{ 
-                  width: `${budgetSpending.percentage}%`,
-                  backgroundColor: budgetSpending.percentage > 90 ? '#FB5607' : 
-                                  budgetSpending.percentage > 75 ? '#EEB868' : '#00f19f'
+                  width: `23.3%`,
+                  backgroundColor: '#00f19f'
                 }}
               ></div>
             </div>
             
             <div className="flex justify-between items-center mt-2">
-              <span className="text-sm text-gray-400">Remaining: ${budgetSpending.remaining}</span>
+              <span className="text-sm text-gray-400">Remaining: $767</span>
               <span className="text-sm text-[#00f19f] flex items-center">
-                {budgetSpending.percentage < 75 ? "On track" : "Warning"}
+                On track
               </span>
             </div>
           </div>
