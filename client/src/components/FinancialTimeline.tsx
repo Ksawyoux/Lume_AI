@@ -192,7 +192,7 @@ export default function FinancialTimeline() {
         </div>
         <div className="text-xs text-gray-400 mb-1">{transaction.category}</div>
         <div className={`text-lg font-bold ${isExpense ? 'text-red-500' : 'text-green-500'}`}>
-          {isExpense ? '-' : '+'}{Math.abs(amount).toFixed(2)} {transaction.currency}
+          {isExpense ? '-' : '+'}{Math.round(Math.abs(amount))} MAD
         </div>
         {transaction.emotion && (
           <div className="text-xs mt-1 flex items-center">
@@ -418,7 +418,7 @@ export default function FinancialTimeline() {
                   <div className="bg-[#252a2e] p-3 rounded-lg">
                     <p className="text-xs text-gray-400 mb-1">AMOUNT</p>
                     <p className={`text-xl font-bold ${selectedItem.data.amount < 0 ? 'text-red-500' : 'text-green-500'}`}>
-                      {selectedItem.data.amount < 0 ? '-' : '+'}{Math.abs(selectedItem.data.amount).toFixed(2)} {selectedItem.data.currency}
+                      {selectedItem.data.amount < 0 ? '-' : '+'}{Math.round(Math.abs(selectedItem.data.amount))} MAD
                     </p>
                   </div>
                   <div className="bg-[#252a2e] p-3 rounded-lg">
