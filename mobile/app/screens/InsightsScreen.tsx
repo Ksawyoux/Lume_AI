@@ -130,7 +130,7 @@ export default function InsightsScreen() {
   
   // Format currency
   const formatCurrency = (amount: number) => {
-    return '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    return `${Math.round(amount)} MAD`;
   };
   
   return (
@@ -276,7 +276,7 @@ export default function InsightsScreen() {
               <View style={styles.suggestionContent}>
                 <Text style={styles.suggestionTitle}>Reduce Stress-Based Spending</Text>
                 <Text style={styles.suggestionDescription}>
-                  You spend 35% more when stressed. Consider implementing a 24-hour waiting period for purchases over $50 during these times.
+                  You spend 35% more when stressed. Consider implementing a 24-hour waiting period for purchases over 500 MAD during these times.
                 </Text>
               </View>
             </LinearGradient>

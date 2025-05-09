@@ -28,7 +28,7 @@ export default function BudgetDetails({ budget, open, onOpenChange }: BudgetDeta
 
   // Format currency with MAD (Moroccan Dirham) as the only currency
   const formatCurrency = (amount: number) => {
-    return `${amount.toFixed(0)} MAD`;
+    return `${Math.round(amount)} MAD`;
   };
 
   // Check if budget is on track
