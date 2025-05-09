@@ -57,37 +57,8 @@ export default function Header() {
           <h1 className="text-2xl font-bold tracking-wider uppercase">LUME</h1>
         </div>
         
-        {/* Center - WHOOP-style recovery score display as a badge - exact match for screenshot */}
-        <div className="w-1/3 flex justify-center">
-          <div className="flex flex-col items-center relative">
-            {/* Arc background for recovery percentage */}
-            <div className="w-14 h-14 relative flex items-center justify-center">
-              {/* Semi-circle background track */}
-              <div className="absolute w-full h-full rounded-full border-4 border-gray-700 opacity-30"></div>
-              
-              {/* Recovery arc - dynamic based on percentage */}
-              <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle 
-                  cx="50" cy="50" r="40" 
-                  fill="none" 
-                  stroke="#00f19f" 
-                  strokeWidth="8" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={251.2 - (251.2 * recoveryScore / 100)}
-                  strokeLinecap="round"
-                />
-              </svg>
-              
-              {/* Percentage display */}
-              <div className="z-10 text-center">
-                <span className="text-xl font-bold text-[#00f19f]">
-                  {recoveryScore}%
-                </span>
-              </div>
-            </div>
-
-          </div>
-        </div>
+        {/* Center - Empty space */}
+        <div className="w-1/3"></div>
         
         {/* Right side icons */}
         <div className="w-1/3 flex justify-end items-center space-x-4">
