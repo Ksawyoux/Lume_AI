@@ -23,7 +23,8 @@ export default function QuickAddTransaction() {
   const [category, setCategory] = useState<string>('');
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionType | null>("content");
   const [notes, setNotes] = useState<string>('');
-  const [currency, setCurrency] = useState<string>('MAD');
+  // Currency is hardcoded to MAD throughout the application
+  // No longer using currency state since it's hardcoded
 
   // Get the latest emotion to suggest
   const { data: latestEmotion } = useQuery<Emotion>({
@@ -123,7 +124,7 @@ export default function QuickAddTransaction() {
         notes,
         emotionId,
         date: new Date(),
-        currency: currency
+        currency: 'MAD'
       });
       
       // Invalidate insights after transaction
@@ -140,7 +141,7 @@ export default function QuickAddTransaction() {
     setCategory('');
     setNotes('');
     setSelectedEmotion('content');
-    setCurrency('MAD');
+    // currency is now hardcoded to MAD
   };
 
   const categoryOptions = [
