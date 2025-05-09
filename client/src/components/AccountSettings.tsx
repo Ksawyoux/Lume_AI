@@ -66,20 +66,15 @@ export default function AccountSettings({ open, onOpenChange, user }: AccountSet
       if (!user) return;
       
       // Make API request to update profile
-      const response = await apiRequest(`/users/${user.id}/profile`, "PATCH", values);
+      await apiRequest(`/users/${user.id}/profile`, "PATCH", values);
       
-      if (response.ok) {
-        toast({
-          title: "Profile updated",
-          description: "Your profile has been updated successfully.",
-        });
-        
-        // Force a reload to update user info everywhere
-        window.location.reload();
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to update profile");
-      }
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      });
+      
+      // Force a reload to update user info everywhere
+      window.location.reload();
     } catch (error: any) {
       toast({
         title: "Error updating profile",
