@@ -121,7 +121,7 @@ export default function Insights() {
                           ))}
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-xl font-bold">${totalSpending.toFixed(2)}</span>
+                          <span className="text-xl font-bold">{Math.round(totalSpending)} MAD</span>
                           <span className="text-xs text-gray-400">Total</span>
                         </div>
                       </div>
