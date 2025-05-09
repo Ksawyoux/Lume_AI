@@ -191,7 +191,7 @@ export default function Home() {
                         <div className="flex justify-between items-center text-xs mb-1">
                           <span className="text-gray-400 uppercase tracking-wider">SPENDING</span>
                           <span className="text-gray-400">
-                            {budgetSpending ? budgetSpending.spent.toFixed(0) : '--'}
+                            {budgetSpending ? `${Math.round(budgetSpending.spent)} MAD` : '--'}
                           </span>
                         </div>
                         <div className="h-1 w-full bg-[#2A363D] rounded-full overflow-hidden">
@@ -209,7 +209,7 @@ export default function Home() {
                           <span className="text-gray-400 uppercase tracking-wider">SAVING</span>
                           <span className="text-gray-400">
                             {budgets && budgets.length > 0 && budgetSpending ? 
-                              (budgets[0].amount - budgetSpending.spent).toFixed(0) : 
+                              `${Math.round(budgets[0].amount - budgetSpending.spent)} MAD` : 
                               '--'
                             }
                           </span>
