@@ -6,11 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    signDisplay: 'exceptZero'
-  }).format(amount);
+  // Format as MAD with no decimal places
+  return `${Math.round(amount)} MAD`;
 }
 
 export function formatDate(date: Date | string): string {
