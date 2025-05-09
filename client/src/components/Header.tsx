@@ -42,19 +42,10 @@ export default function Header() {
     enabled: !!user && !!monthlyBudget,
   });
   
-  // Format currency
-  const formatCurrency = (amount: number | undefined, currency: string = 'USD') => {
+  // Format currency using MAD (Moroccan Dirham) as the only currency
+  const formatCurrency = (amount: number | undefined) => {
     if (amount === undefined) return '--';
-    
-    switch (currency) {
-      case 'MAD':
-        return `${amount.toFixed(0)} MAD`;
-      case 'EUR':
-        return `€${amount.toFixed(0)}`;
-      case 'USD':
-      default:
-        return `$${amount.toFixed(0)}`;
-    }
+    return `${amount.toFixed(0)} MAD`;
   };
 
   return (
@@ -128,7 +119,7 @@ export default function Header() {
               </div>
               <div className="flex items-center">
                 <span className="text-gray-300 mr-2">
-                  $233 of $1000
+                  {formatCurrency(budgetSpending.spent)} of {formatCurrency(monthlyBudget.amount)}
                 </span>
                 <ChevronRight className="h-4 w-4 text-gray-400" />
               </div>
@@ -139,14 +130,14 @@ export default function Header() {
               <div 
                 className="h-full bg-[#00f19f]" 
                 style={{ 
-                  width: `23.3%`,
+                  width: `${budgetSpending.percentage}%`,
                   backgroundColor: '#00f19f'
                 }}
               ></div>
             </div>
             
             <div className="flex justify-between items-center mt-2">
-              <span className="text-sm text-gray-400">Remaining: $767</span>
+              <span className="text-sm text-gray-400">Remaining: {formatCurrency(budgetSpending.remaining)}</span>
               <span className="text-sm text-[#00f19f] flex items-center">
                 On track
               </span>
