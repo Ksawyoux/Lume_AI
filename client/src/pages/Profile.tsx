@@ -5,12 +5,14 @@ import { Emotion, EmotionType } from '@shared/schema';
 import { emotionRecoveryPercentages } from '@/lib/emotionUtils';
 import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
+import AccountSettings from '@/components/AccountSettings';
 import { ChevronRight, LogOut } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Profile() {
   const { user, logout, isLoading: isUserLoading } = useUser();
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
   
   // Get weekly emotions data to calculate personalized recovery
   const { data: weeklyEmotions } = useQuery<Emotion[]>({
@@ -116,7 +118,10 @@ export default function Profile() {
         
         {/* Settings Menu */}
         <div className="space-y-2 mb-8">
-          <div className="p-4 bg-[#1a2126] rounded-lg border border-[#2A363D] flex justify-between items-center cursor-pointer hover:bg-[#222a32] transition-colors">
+          <div 
+            className="p-4 bg-[#1a2126] rounded-lg border border-[#2A363D] flex justify-between items-center cursor-pointer hover:bg-[#222a32] transition-colors"
+            onClick={() => setAccountSettingsOpen(true)}
+          >
             <span className="text-foreground">Account Settings</span>
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </div>
@@ -150,6 +155,13 @@ export default function Profile() {
           <span>{confirmLogout ? 'Confirm Logout' : 'Logout'}</span>
         </button>
       </main>
+      
+      {/* Account Settings Dialog */}
+      <AccountSettings 
+        open={accountSettingsOpen}
+        onOpenChange={setAccountSettingsOpen}
+        user={user}
+      />
       
       <BottomNavigation />
     </div>
