@@ -183,7 +183,7 @@ export default function Home() {
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-sm font-semibold text-foreground uppercase tracking-wider">FINANCIAL</span>
                       <span className="text-sm font-medium text-muted-foreground">
-                        {budgets && budgets.length > 0 ? budgets[0].currency : '--'}
+                        MAD
                       </span>
                     </div>
                     <div className="space-y-3">
