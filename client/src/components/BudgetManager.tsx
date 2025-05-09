@@ -42,7 +42,7 @@ const budgetFormSchema = z.object({
   startDate: z.string(),
   endDate: z.string().nullable(),
   isActive: z.boolean(),
-  currency: z.string().default('USD')
+  currency: z.string().default('MAD')
 });
 
 type BudgetFormValues = z.infer<typeof budgetFormSchema>;
@@ -102,7 +102,7 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
       startDate: format(new Date(), 'yyyy-MM-dd'),
       endDate: null,
       isActive: true,
-      currency: 'USD'
+      currency: 'MAD'
     },
   });
 

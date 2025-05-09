@@ -26,17 +26,9 @@ export default function BudgetDetails({ budget, open, onOpenChange }: BudgetDeta
     enabled: !!user && open,
   });
 
-  // Format currency with the budget's currency
+  // Format currency with MAD (Moroccan Dirham) as the only currency
   const formatCurrency = (amount: number) => {
-    switch (budget.currency) {
-      case 'MAD':
-        return `${amount.toFixed(2)} MAD`;
-      case 'EUR':
-        return `€${amount.toFixed(2)}`;
-      case 'USD':
-      default:
-        return `$${amount.toFixed(2)}`;
-    }
+    return `${amount.toFixed(0)} MAD`;
   };
 
   // Check if budget is on track
