@@ -23,7 +23,7 @@ export default function QuickAddTransaction() {
   const [category, setCategory] = useState<string>('');
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionType | null>("content");
   const [notes, setNotes] = useState<string>('');
-  const [currency, setCurrency] = useState<string>('USD');
+  const [currency, setCurrency] = useState<string>('MAD');
 
   // Get the latest emotion to suggest
   const { data: latestEmotion } = useQuery<Emotion>({
@@ -140,7 +140,7 @@ export default function QuickAddTransaction() {
     setCategory('');
     setNotes('');
     setSelectedEmotion('content');
-    setCurrency('USD');
+    setCurrency('MAD');
   };
 
   const categoryOptions = [
@@ -172,27 +172,7 @@ export default function QuickAddTransaction() {
         </DialogHeader>
         
         <div className="space-y-4 py-2">
-          {/* Currency Selection */}
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={`border-border ${currency === 'USD' ? 'bg-[hsl(var(--primary)/0.1)] text-primary border-primary' : 'bg-card text-foreground'}`}
-              onClick={() => setCurrency('USD')}
-            >
-              USD ($)
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={`border-border ${currency === 'MAD' ? 'bg-[hsl(var(--primary)/0.1)] text-primary border-primary' : 'bg-card text-foreground'}`}
-              onClick={() => setCurrency('MAD')}
-            >
-              MAD (د.م.)
-            </Button>
-          </div>
+          {/* Currency is fixed to MAD */}
           
           {/* Amount */}
           <div>
@@ -201,7 +181,7 @@ export default function QuickAddTransaction() {
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-muted-foreground">{currency === 'USD' ? '$' : 'د.م.'}</span>
+                <span className="text-muted-foreground">د.م.</span>
               </div>
               <Input
                 type="number"

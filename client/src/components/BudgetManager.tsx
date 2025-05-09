@@ -253,31 +253,8 @@ export default function BudgetManager({ onError }: BudgetManagerProps) {
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="currency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Currency</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-[#252a2e] border-gray-700">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="bg-[#252a2e] border-gray-700">
-                          <SelectItem value="USD">USD</SelectItem>
-                          <SelectItem value="MAD">MAD</SelectItem>
-                          <SelectItem value="EUR">EUR</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Currency field is hidden since we only use MAD */}
+                <input type="hidden" {...form.register("currency")} value="MAD" />
                 
                 <FormField
                   control={form.control}
@@ -444,17 +421,9 @@ function BudgetCard({ budget, onDelete }: { budget: Budget, onDelete?: (id: numb
     }
   }, [spendingQueryError, budget.id]);
   
-  // Format currency based on the budget settings
+  // Format currency as MAD only
   const formatCurrency = (amount: number) => {
-    switch (budget.currency) {
-      case 'MAD':
-        return `${amount.toFixed(2)} MAD`;
-      case 'EUR':
-        return `€${amount.toFixed(2)}`;
-      case 'USD':
-      default:
-        return `$${amount.toFixed(2)}`;
-    }
+    return `${Math.round(amount)} MAD`;
   };
   
   // Get display name for budget type

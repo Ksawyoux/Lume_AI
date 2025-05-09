@@ -45,7 +45,7 @@ export default function Header() {
   // Format currency using MAD (Moroccan Dirham) as the only currency
   const formatCurrency = (amount: number | undefined) => {
     if (amount === undefined) return '--';
-    return `${amount.toFixed(0)} MAD`;
+    return `${Math.round(amount)} MAD`;
   };
 
   return (
