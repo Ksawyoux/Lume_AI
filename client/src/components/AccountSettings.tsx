@@ -21,8 +21,7 @@ interface AccountSettingsProps {
 // Profile update schema
 const profileFormSchema = z.object({
   username: z.string().min(3, { message: "Username must be at least 3 characters long" }),
-  fullName: z.string().min(2, { message: "Name must be at least 2 characters long" }).optional(),
-  email: z.string().email({ message: "Please enter a valid email" }).optional(),
+  name: z.string().min(2, { message: "Name must be at least 2 characters long" }).optional(),
 });
 
 // Password update schema
@@ -47,8 +46,7 @@ export default function AccountSettings({ open, onOpenChange, user }: AccountSet
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       username: user?.username || "",
-      fullName: user?.fullName || "",
-      email: user?.email || "",
+      name: user?.name || "",
     },
   });
 
@@ -172,32 +170,13 @@ export default function AccountSettings({ open, onOpenChange, user }: AccountSet
                 
                 <FormField
                   control={profileForm.control}
-                  name="fullName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-gray-300">Full Name</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
-                          className="bg-[#222a32] border-[#2A363D] focus-visible:ring-[#00f19f] focus-visible:ring-offset-0 focus-visible:border-[#00f19f]" 
-                          value={field.value || ''}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-400 text-xs" />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={profileForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-300">Email</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="email"
                           className="bg-[#222a32] border-[#2A363D] focus-visible:ring-[#00f19f] focus-visible:ring-offset-0 focus-visible:border-[#00f19f]" 
                           value={field.value || ''}
                         />
